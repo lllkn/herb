@@ -1,227 +1,220 @@
 # 百草行 - 中医药文化解谜游戏
 
-> **项目类型**: 像素风中医药文化解谜游戏  
-> **游戏引擎**: Phaser.js 3.60  
-> **技术栈**: HTML5 + Canvas + Node.js + Express  
-> **AI功能**: LLM API (Claude/GPT)  
-> **开发周期**: 14天MVP冲刺 (2026-05-18 ~ 2026-05-31)
-
----
-
-## 📖 项目简介
-
-**百草行**是一款以中医药文化为背景的像素风解谜游戏。玩家将扮演一名年轻的中医师，在百草村中探索、采集草药、问诊病人，通过学习中医药知识来解开各种谜题。
-
-### 核心玩法
-- 🚶 **自由探索** - WASD移动，探索百草村地图
-- 🌿 **草药采集** - 靠近草药按E键采集
-- 🎒 **背包系统** - 管理采集的草药
-- 💬 **对话系统** - 与NPC对话，了解病情
-- 🤖 **AI问诊** - 通过LLM API生成个性化问诊对话
-- 📝 **处方验证** - 根据病情配制正确处方
-
----
-
-## 🚀 快速开始
-
-### 方式一：纯前端模式（无需安装依赖）
-
-```bash
-# 直接打开 index.html
-start d:\Game for Tecent\Game1\index.html
-```
-
-**特点**:
-- ✅ 无需安装任何依赖
-- ✅ 可玩核心玩法（移动、采集）
-- ❌ 无法使用AI问诊功能
-
----
-
-### 方式二：完整功能模式（需要Node.js）
-
-#### 1. 安装依赖
-```bash
-cd "d:\Game for Tecent\Game1"
-npm install
-```
-
-#### 2. 配置环境变量
-```bash
-copy .env.example .env
-# 编辑 .env 文件，填入 LLM API Key
-```
-
-#### 3. 启动服务器
-```bash
-npm start
-# 或
-node server/index.js
-```
-
-#### 4. 访问游戏
-打开浏览器访问: http://localhost:3000
-
----
-
-### 方式三：静态服务器模式（轻量级）
-
-```bash
-cd "d:\Game for Tecent\Game1"
-node static-server.js
-# 访问: http://localhost:8080
-```
-
----
-
-## 🎮 操作说明
-
-| 按键 | 功能 |
-|------|------|
-| **WASD** 或 **方向键** | 玩家移动 |
-| **E** | 采集草药 |
-| **B** | 打开/关闭背包 |
-| **F12** | 调试模式（显示坐标） |
-| **Space** | 确认/交互 |
-
----
-
-## 📁 项目结构
+## 项目结构（重构后的开发级架构）
 
 ```
 Game1/
-├── index.html                  # 游戏入口（Phaser CDN）
-├── package.json                # 项目配置
-├── package-lock.json          # 依赖锁文件
-├── README.md                  # 项目说明（本文件）
-├── TODO.md                    # 开发任务清单
-├── .env.example               # 环境变量模板
-├── .gitignore                 # Git忽略配置
-├── static-server.js           # 轻量级静态服务器
+├── index.html              # 🎯 主入口文件
+├── styles.css              # 🎨 游戏样式表
 │
-├── src/                       # 前端源码
-│   ├── main.js                # 游戏主文件
-│   ├── systems/               # 游戏系统
-│   │   ├── MockAPI.js         # 模拟API（无需后端）
-│   │   └── PlayerSpriteGenerator.js  # 玩家Sprite生成器
-│   └── data/                  # 游戏数据
-│       ├── herbs.json         # 草药数据（20种）
-│       └── patients.json      # 患者数据（5位）
+├── src/                    # 📁 源代码目录
+│   ├── config.js           # ⚙️  游戏配置模块 (常量、参数)
+│   ├── data.js             # 📊 游戏数据模块 (草药、任务数据)
+│   ├── gameState.js        # 🔧 状态管理模块 (运行时状态)
+│   ├── ui.js               # 🖥️  UI管理模块 (HTML交互)
+│   ├── GameScene.js        # 🎮 Phaser游戏场景 (核心逻辑)
+│   └── main.js             # 🚀 入口模块 (初始化、启动)
 │
-│
-└── node_modules/              # 依赖库（104 packages）
+└── src/assets/             # 🖼️ 资源文件目录
+    └── picture/            # 图片资源
 ```
 
 ---
 
-## 🛠️ 技术栈
+## 模块依赖关系
 
-### 前端
-- **游戏引擎**: Phaser.js 3.60 (CDN引入)
-- **渲染**: Canvas 2D
-- **动画**: Sprite帧动画
-- **地图**: Tilemap (Tiled Editor)
-
-### 后端
-- **运行环境**: Node.js v26.1.0
-- **Web框架**: Express 5.x
-- **跨域处理**: CORS
-- **环境变量**: dotenv
-- **HTTP请求**: node-fetch
-
-### AI功能
-- **API**: LLM API (Claude/GPT)
-- **功能**: 
-  - 智能问诊对话生成
-  - 草药知识问答
-  - 处方验证反馈
-
----
-
-## ✅ 当前进度
-
-### 已实现功能 ✅
-- [x] 项目初始化与核心框架
-- [x] 玩家移动（WASD/方向键）
-- [x] Sprite动画（4方向×4帧）
-- [x] 摄像机跟随系统（lerp惯性）
-- [x] Tilemap碰撞检测
-- [x] 草药采集系统（E键）
-- [x] HUD显示（药材数量、时辰、节气）
-- [x] 后端服务搭建（Express）
-- [x] LLM客户端封装
-- [x] 草药数据（20种）
-- [x] 患者数据（5位）
-- [x] MockAPI系统
-
-### 开发中 🚧
-- [ ] 背包UI系统
-- [ ] 对话系统
-- [ ] 节气时辰系统
-
-### 待实现 📋
-- [ ] 碾药小游戏
-- [ ] AI问诊界面
-- [ ] 处方验证系统
-- [ ] 剧情实现（序章+第一幕）
-- [ ] 任务系统
-
-> 📝 详细任务清单请查看 [TODO.md](./TODO.md)
+```
+index.html (入口)
+    │
+    ├── styles.css (样式)
+    │
+    ├── phaser.min.js (CDN) ← Phaser 引擎
+    │
+    ├── config.js     ← 无依赖（配置常量）
+    │       ↓
+    ├── data.js       ← 无依赖（静态数据）
+    │       ↓
+    ├── gameState.js  ← 依赖 config.js
+    │       ↓
+    ├── ui.js         ← 依赖 gameState.js, config.js, data.js
+    │       ↓
+    ├── GameScene.js  ← 依赖 config.js, data.js, gameState.js, ui.js
+    │       ↓
+    ├── main.js       ← 依赖所有模块
+    │       ↓
+    └── startLoadingSequence() → 启动游戏
+```
 
 ---
 
-## 🎯 开发计划
+## 各模块职责说明
 
-| 日期 | 任务 | 状态 |
+### 1. `config.js` - 游戏配置
+**职责**: 定义所有游戏常量和可调参数
+
+```javascript
+// 主要包含:
+window.GameConfig = {
+    GAME_WIDTH: 1280,           // 画布宽度
+    GAME_HEIGHT: 720,           // 画布高度
+    WORLD_WIDTH: 1600,          // 世界宽度
+    player: { ... },            // 玩家参数
+    herbColors: [...],          // 草药颜色
+    rarityColors: {...},        // 稀有度颜色
+    timeSystem: {...},          // 时辰系统配置
+    herbPositions: [...],       // 草药位置
+    obstacles: [...],           // 障碍物
+    camera: {...}               // 摄像机设置
+};
+```
+
+### 2. `data.js` - 游戏数据
+**职责**: 定义所有静态游戏数据
+
+```javascript
+// 主要包含:
+window.GameData = {
+    HERBS_DATA: [ ... ],  // 12种草药的详细数据
+    TASKS: [ ... ]        // 任务列表
+};
+```
+
+### 3. `gameState.js` - 状态管理
+**职责**: 管理运行时游戏状态，提供状态操作API
+
+```javascript
+class GameStateManager {
+    addHerbToBackpack(herbId)      // 添加到背包
+    getHerbCount(herbId)           // 获取数量
+    isHerbUnlocked(herbId)         // 检查解锁状态
+    toggleDebugMode()              // 切换调试模式
+    serialize() / deserialize()    // 存档功能（预留）
+}
+window.gameStateManager = new GameStateManager();
+```
+
+### 4. `ui.js` - UI 管理
+**职责**: 处理所有 HTML DOM 操作
+
+```javascript
+class UIManager {
+    updateProgress(value, text)    // 加载进度条
+    openModal(modalId)             // 打开弹窗
+    closeAllModals()               // 关闭所有弹窗
+    updateMinimap(x, y)           // 更新小地图
+    showCollectPrompt(name)       // 显示采集提示
+    updateBackpackUI()            // 更新背包界面
+    updateHerbGuideUI()           // 更新图鉴界面
+    updateTaskProgress()          // 更新任务进度
+    updateDebugInfo(params)       // 更新调试信息
+    toggleDebugPanel(show)        // 切换调试面板
+}
+window.uiManager = new UIManager();
+```
+
+### 5. `GameScene.js` - Phaser 场景
+**职责**: 核心游戏逻辑
+
+```javascript
+class GameScene extends Phaser.Scene {
+    preload()                     // 加载资源
+    create()                      // 创建游戏对象
+    update()                      // 每帧更新
+    
+    createPlayer()                // 创建玩家
+    createHerbs()                 // 创建草药
+    createObstacles()             // 创建障碍物
+    setupCamera()                 // 配置摄像机
+    setupInput()                  // 设置输入控制
+    updatePlayerMovement()        // 更新移动
+    checkHerbCollection()         // 检测采集
+    collectHerb(herb)             // 执行采集
+}
+```
+
+### 6. `main.js` - 入口模块
+**职责**: 初始化和启动游戏
+
+```javascript
+initGame()                    // 创建 Phaser.Game 实例
+startTimeSystem()             // 启动时辰定时器
+startLoadingSequence()        // 启动加载动画序列
+```
+
+---
+
+## 开发指南
+
+### 如何添加新草药？
+
+1. 在 **`src/data.js`** 的 `HERBS_DATA` 数组中添加新草药数据
+2. 在 **`src/config.js`** 的 `herbPositions` 中添加位置
+3. 如果需要新颜色，在 **`config.js`** 的 `herbColors` 中添加
+
+### 如何修改玩家速度？
+
+在 **`src/config.js`** 中修改：
+```javascript
+player: {
+    speed: 160  // 改为其他值
+}
+```
+
+### 如何添加新的UI组件？
+
+1. 在 **`styles.css`** 中添加样式
+2. 在 **`index.html`** 中添加 HTML 结构
+3. 在 **`src/ui.js`** 的 `cacheElements()` 和对应方法中添加逻辑
+
+### 如何添加新的游戏场景？
+
+创建新的 Scene 类文件，在 `main.js` 的 `initGame()` 中注册：
+```javascript
+scene: [GameScene, NewScene]
+```
+
+---
+
+## 本地开发
+
+### 使用 Node.js 启动本地服务器：
+
+```bash
+cd Game1
+npm install
+node static-server.js
+```
+
+然后访问：http://localhost:3000
+
+### 或直接用浏览器打开
+
+由于使用了 CDN 加载 Phaser，可以直接双击 `index.html` 运行。
+
+---
+
+## 技术栈
+
+| 技术 | 版本 | 用途 |
 |------|------|------|
-| Day 1 (05-18) | 项目初始化与核心框架 | ✅ 完成 |
-| Day 2 (05-18) | 后端服务与AI接入 | ✅ 完成 |
-| Day 3 (05-18) | 主角移动与摄像机系统 | 🚧 进行中 |
-| Day 4 (05-19) | 草药采集与背包系统 | 📋 待开始 |
-| Day 5 (05-20) | 对话系统与节气时辰 | 📋 待开始 |
-| Day 6-14 (05-21~31) | 地图、剧情、测试、部署 | 📋 待开始 |
+| Phaser | 3.60.0 | 游戏引擎 |
+| JavaScript | ES6+ | 编程语言 |
+| CSS3 | - | 样式设计 |
+| Google Fonts | - | 字体 |
 
 ---
 
-## 🐛 调试模式
+## 重构对比
 
-按 **F12** 开启调试模式，可查看：
-- 玩家坐标
-- 碰撞体范围
-- FPS帧率
-- 游戏状态
+### 重构前 ❌
+- 所有代码在 `index.html` 中（~1280行）
+- 难以维护和扩展
+- 无法复用代码
+- 没有清晰的模块边界
 
----
-
-## 📝 开发日志
-
-### 2026-05-18
-- ✅ 创建项目基础结构
-- ✅ 实现玩家移动和摄像机跟随
-- ✅ 实现草药采集系统
-- ✅ 创建草药和患者数据
-- ✅ 配置Node.js环境
-- ✅ 安装后端依赖（104 packages）
-
----
-
-## 📚 相关文档
-
-- [游戏设计文档 (GDD)](./docs/百草行_GDD.html)
-- [Phase 1 实施方案](./docs/百草行_Phase1实施方案.html)
-- [腾讯云Hackathon参赛指南](./docs/Tencent_Cloud_Hackathon_ZH.pdf)
-- [开发任务清单](./TODO.md)
-
----
-
-## 📄 许可证
-
-MIT License
-
----
-
-## 👥 开发团队
-
-**开发者**: [您的名字]  
-**参赛项目**: 腾讯云Hackathon  
-**最后更新**: 2026-05-18
+### 重构后 ✅
+- 清晰的模块化结构
+- 单一职责原则
+- 易于扩展和维护
+- 完整的类型注释
+- 支持未来存档功能（GameState 序列化）

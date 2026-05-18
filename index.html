@@ -4,546 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>百草行 - 中医药文化解谜游戏</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
-            background: #1a1a1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        #game-container {
-            width: 1280px;
-            height: 720px;
-            position: relative;
-            background: #2d5016;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            display: none;
-            overflow: hidden;
-        }
-
-        /* Phaser画布样式 */
-        #game-container canvas {
-            position: absolute !important;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        /* 加载界面 */
-        #loading-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 1280px;
-            height: 720px;
-            background: linear-gradient(135deg, #2d5016 0%, #1a3a0a 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        #loading-screen h1 {
-            font-size: 48px;
-            color: #f0e6d3;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        #loading-screen p {
-            font-size: 18px;
-            color: #c8b99a;
-            margin-bottom: 40px;
-        }
-
-        #progress-bar {
-            width: 400px;
-            height: 20px;
-            background: #1a3a0a;
-            border: 2px solid #f0e6d3;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        #progress-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #4a7c28, #6aaa3a);
-            transition: width 0.3s ease;
-        }
-
-        #progress-text {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #c8b99a;
-        }
-
-        /* 左上角：小地图 + 时间日期 */
-        #top-left-panel {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            z-index: 100;
-            display: flex;
-            gap: 15px;
-            align-items: flex-start;
-        }
-
-        #minimap {
-            width: 240px;
-            height: 180px;
-            background: rgba(26, 58, 10, 0.9);
-            border: 2px solid #8b7355;
-            border-radius: 8px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        #minimap:hover {
-            border-color: #f0e6d3;
-            box-shadow: 0 0 15px rgba(240, 230, 211, 0.3);
-        }
-
-        #minimap h3 {
-            color: #f0e6d3;
-            font-size: 16px;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
-        #minimap-content {
-            width: 100%;
-            height: 130px;
-            background: rgba(45, 80, 22, 0.5);
-            border-radius: 4px;
-            position: relative;
-        }
-
-        #player-dot {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: #ff4444;
-            border-radius: 50%;
-            transition: all 0.1s;
-            margin-left: -4px;
-            margin-top: -4px;
-        }
-
-        #time-info {
-            background: rgba(26, 58, 10, 0.9);
-            border: 2px solid #8b7355;
-            border-radius: 8px;
-            padding: 15px 20px;
-            min-width: 180px;
-        }
-
-        #time-info h3 {
-            color: #f0e6d3;
-            font-size: 18px;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
-        #time-info p {
-            color: #c8b99a;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        /* 任务栏 */
-        #task-panel {
-            position: absolute;
-            top: 210px;
-            left: 15px;
-            width: 240px;
-            background: rgba(26, 58, 10, 0.9);
-            border: 2px solid #8b7355;
-            border-radius: 8px;
-            padding: 12px;
-            z-index: 100;
-        }
-
-        #task-panel h3 {
-            color: #f0e6d3;
-            font-size: 16px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .task-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            padding: 6px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .task-item:hover {
-            background: rgba(139, 115, 85, 0.3);
-        }
-
-        .task-item.selected {
-            background: rgba(139, 115, 85, 0.5);
-        }
-
-        .task-checkbox {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #8b7355;
-            border-radius: 3px;
-            margin-right: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #4a7c28;
-            font-weight: bold;
-        }
-
-        .task-text {
-            color: #c8b99a;
-            font-size: 13px;
-            flex: 1;
-        }
-
-        /* 顶部右侧：功能按钮 */
-        #top-right-buttons {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            gap: 10px;
-            z-index: 100;
-        }
-
-        .func-btn {
-            padding: 10px 20px;
-            background: rgba(26, 58, 10, 0.9);
-            border: 2px solid #8b7355;
-            border-radius: 20px;
-            color: #f0e6d3;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .func-btn:hover {
-            background: rgba(74, 124, 40, 0.9);
-            border-color: #f0e6d3;
-            box-shadow: 0 0 15px rgba(240, 230, 211, 0.3);
-        }
-
-        /* 弹窗 */
-        .modal {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(26, 58, 10, 0.95);
-            border: 3px solid #8b7355;
-            border-radius: 12px;
-            padding: 30px;
-            z-index: 1000;
-            min-width: 400px;
-            max-width: 600px;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .modal.active {
-            display: block;
-            animation: modalFadeIn 0.3s ease;
-        }
-
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -48%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #8b7355;
-        }
-
-        .modal-header h2 {
-            color: #f0e6d3;
-            font-size: 24px;
-        }
-
-        .modal-close {
-            width: 30px;
-            height: 30px;
-            background: none;
-            border: 2px solid #8b7355;
-            border-radius: 50%;
-            color: #f0e6d3;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .modal-close:hover {
-            background: #8b7355;
-        }
-
-        .modal-body {
-            color: #c8b99a;
-            font-size: 16px;
-            line-height: 1.8;
-        }
-
-        /* 背包网格 */
-        .backpack-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .backpack-item {
-            background: rgba(45, 80, 22, 0.5);
-            border: 2px solid #8b7355;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .backpack-item:hover {
-            border-color: #f0e6d3;
-            transform: scale(1.05);
-        }
-
-        .backpack-item.empty {
-            opacity: 0.3;
-        }
-
-        .backpack-item-icon {
-            font-size: 32px;
-            margin-bottom: 5px;
-        }
-
-        .backpack-item-name {
-            color: #f0e6d3;
-            font-size: 12px;
-            margin-bottom: 3px;
-        }
-
-        .backpack-item-count {
-            color: #4a7c28;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        /* 图鉴网格 */
-        .herb-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .herb-card {
-            background: rgba(45, 80, 22, 0.5);
-            border: 2px solid #8b7355;
-            border-radius: 8px;
-            padding: 15px;
-            transition: all 0.2s;
-        }
-
-        .herb-card:hover {
-            border-color: #f0e6d3;
-            transform: scale(1.03);
-        }
-
-        .herb-card.locked {
-            opacity: 0.4;
-            filter: grayscale(100%);
-        }
-
-        .herb-card-icon {
-            font-size: 48px;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .herb-card-name {
-            color: #f0e6d3;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 5px;
-        }
-
-        .herb-card-property {
-            color: #c8b99a;
-            font-size: 12px;
-            text-align: center;
-            margin-bottom: 3px;
-        }
-
-        .herb-card-desc {
-            color: #8b7355;
-            font-size: 11px;
-            text-align: center;
-            margin-top: 8px;
-            font-style: italic;
-        }
-
-        .lock-icon {
-            font-size: 48px;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        /* 底部操作提示 */
-        #controls-hint {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #c8b99a;
-            font-size: 14px;
-            background: rgba(26, 58, 10, 0.8);
-            padding: 8px 20px;
-            border-radius: 20px;
-            border: 1px solid #8b7355;
-            z-index: 100;
-        }
-
-        /* 采集提示 */
-        #collect-prompt {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #ffd700;
-            font-size: 18px;
-            font-weight: bold;
-            background: rgba(26, 58, 10, 0.9);
-            padding: 10px 25px;
-            border-radius: 25px;
-            border: 2px solid #ffd700;
-            display: none;
-            z-index: 100;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        /* 采集成功提示 */
-        #collect-success {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #4a7c28;
-            font-size: 24px;
-            font-weight: bold;
-            background: rgba(240, 230, 211, 0.95);
-            padding: 15px 30px;
-            border-radius: 30px;
-            display: none;
-            z-index: 200;
-            animation: successFade 1.5s ease forwards;
-        }
-
-        @keyframes successFade {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            40% { transform: translate(-50%, -50%) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -60%) scale(1); }
-        }
-
-        /* 调试面板 */
-        #debug-panel {
-            position: absolute;
-            top: 15px;
-            right: 200px;
-            width: 200px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid #4a7c28;
-            border-radius: 6px;
-            padding: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            color: #4a7c28;
-            display: none;
-            z-index: 100;
-        }
-
-        #debug-panel h4 {
-            color: #6aaa3a;
-            margin-bottom: 8px;
-            font-size: 12px;
-        }
-
-        .debug-item {
-            margin-bottom: 4px;
-        }
-
-        /* 遮罩层 */
-        #modal-overlay {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 1280px;
-            height: 720px;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-        #modal-overlay.active {
-            display: block;
-        }
-
-        /* 地图弹窗特殊样式 */
-        #map-modal .modal-body {
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
+    
+    <!-- 江湖字体 - Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+    
+    <!-- 游戏样式表 -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- 加载界面 -->
+    <!-- ==================== 加载界面 ==================== -->
     <div id="loading-screen">
-        <h1>🌿 百草行</h1>
+        <h1>百草行</h1>
         <p>中医药文化解谜游戏</p>
         <div id="progress-bar">
             <div id="progress-fill"></div>
@@ -551,7 +22,7 @@
         <div id="progress-text">正在加载...</div>
     </div>
 
-    <!-- 游戏主界面 -->
+    <!-- ==================== 游戏主界面 ==================== -->
     <div id="game-container">
         <!-- Phaser会在这里创建canvas -->
 
@@ -594,7 +65,7 @@
 
         <!-- 底部操作提示 -->
         <div id="controls-hint">
-            WASD 移动 | E 采集 | F12 调试
+            WASD 移动 | E 采集 | B 背包 | T 图鉴 | F12 调试 | ESC 关闭
         </div>
 
         <!-- 采集提示 -->
@@ -629,35 +100,94 @@
             </div>
         </div>
 
-        <!-- 背包弹窗 -->
+        <!-- 背包弹窗（国风药篓） -->
         <div id="backpack-modal" class="modal">
             <div class="modal-header">
-                <h2>🎒 背包</h2>
+                <h2 class="bag-title">🌿 百草药篓</h2>
+                <div class="weight-info">负重：<span id="weight-current">0</span>/50 · 时节：初夏</div>
                 <button class="modal-close">✕</button>
             </div>
-            <div class="modal-body">
-                <div id="backpack-content">
-                    <p style="text-align: center; color: #8b7355; margin-top: 20px;">
-                        背包空空如也，快去采集草药吧！
-                    </p>
+            
+            <!-- 背包主体 -->
+            <div class="bag-main">
+                <!-- 左侧：分类 + 物品格子 -->
+                <div class="bag-left">
+                    <!-- 分类标签 -->
+                    <div class="tag-list" id="category-tags">
+                        <button class="tag active" data-category="all">全部药材</button>
+                        <button class="tag" data-category="root">根茎类</button>
+                        <button class="tag" data-category="flower">花叶类</button>
+                        <button class="tag" data-category="fruit">果实类</button>
+                        <button class="tag" data-category="mineral">矿石类</button>
+                        <button class="tag" data-category="pet">灵宠道具</button>
+                    </div>
+                    
+                    <!-- 空背包提示 -->
+                    <div id="backpack-content">
+                        <p style="text-align:center;color:#916c44;margin-top:80px;font-size:16px;">
+                            🌱 药篓空空如也<br><span style="font-size:13px;color:#b89a7a;">快去山野间采集草药吧！</span>
+                        </p>
+                    </div>
+                    
+                    <!-- 物品格子 (5列 x 4行 = 20格) -->
+                    <div id="backpack-grid" class="item-grid"></div>
                 </div>
-                <div id="backpack-grid" class="backpack-grid"></div>
+
+                <!-- 右侧：详情面板 -->
+                <div class="bag-right">
+                    <div class="detail-title" id="detail-title">选择药材查看详情</div>
+                    <div id="detail-body">
+                        <p style="text-align:center;color:#c4b5a0;padding:30px 0;">
+                            点击左侧药格<br>查看详细信息
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部按钮 -->
+            <div class="bag-bottom">
+                <button class="bottom-btn shop-entry-btn" id="btn-qinghe-shop">🏪 前往清禾药斋</button>
             </div>
         </div>
 
-        <!-- 图鉴弹窗 -->
-        <div id="herb-guide-modal" class="modal">
+        <!-- 图鉴弹窗（国风风格） -->
+        <div id="herb-guide-modal" class="modal guide-modal">
             <div class="modal-header">
-                <h2>📖 草药图鉴</h2>
+                <h2 class="guide-title">📖 百草图谱</h2>
+                <div class="guide-stats">已解锁：<span id="guide-unlocked">0</span> / <span id="guide-total">12</span> · 节气：<span id="guide-solar-term">寒露</span></div>
                 <button class="modal-close">✕</button>
             </div>
-            <div class="modal-body">
-                <div id="herb-guide-content">
-                    <p style="text-align: center; color: #8b7355; margin-top: 20px;">
-                        尚未解锁任何草药图鉴<br>采集草药后可解锁图鉴信息
-                    </p>
+
+            <!-- 图鉴主体 -->
+            <div class="guide-main">
+                <!-- 左侧：病症分类 + 卡片网格 -->
+                <div class="guide-left">
+                    <!-- 病症分类标签 -->
+                    <div class="tag-list" id="symptom-tags">
+                        <button class="tag active" data-symptom="all">📖 全部图鉴</button>
+                        <button class="tag" data-symptom="气虚证">💨 气虚证</button>
+                        <button class="tag" data-symptom="血虚证">🩸 血虚证</button>
+                        <button class="tag" data-symptom="风热证">🌬️ 风热证</button>
+                        <button class="tag" data-symptom="实热证">🔥 实热证</button>
+                        <button class="tag" data-symptom="瘀血证">🔴 瘀血证</button>
+                        <button class="tag" data-symptom="痰湿证">💨 痰湿证</button>
+                        <button class="tag" data-symptom="肝阳证">⚡ 肝阳上亢</button>
+                        <button class="tag" data-symptom="虚劳证">🌙 虚劳证</button>
+                    </div>
+
+                    <!-- 图鉴卡片网格 (4列 x 3行 = 12格) -->
+                    <div id="guide-grid" class="guide-grid"></div>
                 </div>
-                <div id="herb-grid" class="herb-grid"></div>
+
+                <!-- 右侧：详情面板 -->
+                <div class="guide-right">
+                    <div class="detail-title" id="guide-detail-title">点击卡片查看详情</div>
+                    <div id="guide-detail-body">
+                        <p style="text-align:center;color:#c4b5a0;padding:30px 0;">
+                            点击左侧药卡<br>查看详细介绍
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -690,501 +220,33 @@
         </div>
     </div>
 
+    <!-- ==================== 脚本加载（按依赖顺序）==================== -->
+    
+    <!-- Phaser 引擎 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    
+    <!-- 游戏模块：配置和数据（无依赖） -->
+    <script src="src/config.js"></script>
+    <script src="src/data.js"></script>
+    
+    <!-- 游戏模块：状态管理（依赖 config） -->
+    <script src="src/gameState.js"></script>
+    
+    <!-- 游戏模块：UI管理（依赖 gameState） -->
+    <script src="src/ui.js"></script>
+    
+    <!-- 游戏模块：Phaser 场景（依赖 config, data, gameState, ui） -->
+    <script src="src/GameScene.js"></script>
+    
+    <!-- 游戏入口（依赖所有模块） -->
+    <script src="src/main.js"></script>
+    
+    <!-- 启动游戏 -->
     <script>
-        // ==================== 游戏配置 ====================
-        const GAME_WIDTH = 1280;
-        const GAME_HEIGHT = 720;
-        const WORLD_WIDTH = 1600;
-        const WORLD_HEIGHT = 1200;
-
-        // ==================== 草药数据 ====================
-        const HERBS_DATA = [
-            { id: 'gancao', name: '甘草', property: '甘/平', meridian: '心脾肺胃', effect: '补脾益气，润肺止咳', icon: '🌿', unlocked: false },
-            { id: 'huangqi', name: '黄芪', property: '甘/温', meridian: '肺脾', effect: '补气升阳，固表止汗', icon: '🌱', unlocked: false },
-            { id: 'danggui', name: '当归', property: '甘辛/温', meridian: '心肝脾', effect: '补血活血，调经止痛', icon: '🌾', unlocked: false },
-            { id: 'gouqi', name: '枸杞', property: '甘/平', meridian: '肝肾', effect: '滋补肝肾，明目润肺', icon: '🫐', unlocked: false },
-            { id: 'jinyinhua', name: '金银花', property: '甘寒', meridian: '肺心胃', effect: '清热解毒，疏散风热', icon: '🌸', unlocked: false }
-        ];
-
-        // ==================== 游戏状态 ====================
-        let gameState = {
-            backpack: {},  // { herbId: count }
-            unlockedHerbs: [],  // 已解锁图鉴的草药ID
-            collectedCount: 0,
-            currentTime: '寅时',
-            currentDate: '九月十七',
-            currentSeason: '寒露·晴'
-        };
-
-        // ==================== 加载界面逻辑 ====================
-        let progress = 0;
-        const progressFill = document.getElementById('progress-fill');
-        const progressText = document.getElementById('progress-text');
-
-        function updateProgress(value, text) {
-            progress = value;
-            progressFill.style.width = progress + '%';
-            if (text) progressText.textContent = text;
-        }
-
-        function startLoading() {
-            updateProgress(10, '正在加载游戏资源...');
-            
-            setTimeout(() => {
-                updateProgress(30, '正在初始化游戏世界...');
-                
-                setTimeout(() => {
-                    updateProgress(50, '正在生成草药...');
-                    
-                    setTimeout(() => {
-                        updateProgress(70, '正在创建玩家角色...');
-                        
-                        setTimeout(() => {
-                            updateProgress(90, '正在启动游戏...');
-                            
-                            setTimeout(() => {
-                                updateProgress(100, '加载完成！');
-                                
-                                setTimeout(() => {
-                                    document.getElementById('loading-screen').style.display = 'none';
-                                    document.getElementById('game-container').style.display = 'block';
-                                    initGame();
-                                }, 500);
-                            }, 300);
-                        }, 200);
-                    }, 200);
-                }, 200);
-            }, 200);
-        }
-
-        // ==================== Phaser 游戏 ====================
-        let game;
-        let player;
-        let herbs = [];
-        let cursors;
-        let wasd;
-        let eKey;
-        let debugMode = false;
-
-        function initGame() {
-            const config = {
-                type: Phaser.AUTO,
-                width: GAME_WIDTH,
-                height: GAME_HEIGHT,
-                parent: 'game-container',  // 修正：parent应该是容器ID
-                backgroundColor: '#2d5016',
-                physics: {
-                    default: 'arcade',
-                    arcade: {
-                        debug: false
-                    }
-                },
-                scene: {
-                    preload: preload,
-                    create: create,
-                    update: update
-                }
-            };
-
-            game = new Phaser.Game(config);
-        }
-
-        function preload() {
-            // 可以在这里加载图片资源
-        }
-
-        function create() {
-            // 创建世界边界
-            this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-
-            // 创建玩家 - 使用graphics绘制更清晰的角色
-            const graphics = this.add.graphics();
-            graphics.fillStyle(0x4a7c28, 1);
-            graphics.fillCircle(0, 0, 20);
-            graphics.lineStyle(2, 0xffffff, 1);
-            graphics.strokeCircle(0, 0, 20);
-            
-            // 方向指示器
-            const directionIndicator = this.add.triangle(
-                0, -25, 
-                8, 0, 
-                0, 15, 
-                16, 15, 
-                0xffffff
-            );
-            
-            player = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2, [graphics, directionIndicator]);
-            this.physics.add.existing(player);
-            player.body.setCollideWorldBounds(true);
-            player.body.setSize(40, 40);
-
-            // 创建草药
-            const herbPositions = [
-                { x: 300, y: 300, type: 0 },
-                { x: 500, y: 400, type: 1 },
-                { x: 700, y: 500, type: 2 },
-                { x: 900, y: 300, type: 3 },
-                { x: 1100, y: 600, type: 4 }
-            ];
-
-            herbPositions.forEach((pos, index) => {
-                const herbData = HERBS_DATA[pos.type];
-                const herb = this.add.circle(pos.x, pos.y, 15, getHerbColor(pos.type));
-                herb.setStrokeStyle(2, 0xffffff);
-                
-                const label = this.add.text(pos.x, pos.y + 25, herbData.name, {
-                    fontSize: '12px',
-                    color: '#ffffff',
-                    backgroundColor: '#00000088',
-                    padding: { x: 4, y: 2 }
-                }).setOrigin(0.5);
-                
-                herbs.push({
-                    sprite: herb,
-                    label: label,
-                    data: herbData,
-                    collected: false
-                });
-            });
-
-            // 创建障碍物
-            const obstacles = [
-                { x: 400, y: 300, w: 60, h: 60 },
-                { x: 800, y: 500, w: 80, h: 40 },
-                { x: 600, y: 700, w: 40, h: 80 }
-            ];
-
-            obstacles.forEach(obs => {
-                const rect = this.add.rectangle(obs.x, obs.y, obs.w, obs.h, 0x666666);
-                rect.setStrokeStyle(2, 0x444444);
-                this.physics.add.existing(rect, true);
-            });
-
-            // 摄像机设置
-            this.cameras.main.startFollow(player, true, 0.08, 0.08);
-            this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-
-            // 输入控制 - 方向键
-            cursors = this.input.keyboard.createCursorKeys();
-            // 输入控制 - WASD键
-            wasd = {
-                W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-                A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-                S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-                D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
-            };
-            
-            eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
-            
-            // 将 wasd 附加到 scene 上，以便在 update 中访问
-            this.wasd = wasd;
-            
-            // 调试快捷键
-            this.input.keyboard.on('keydown-F12', () => {
-                debugMode = !debugMode;
-                document.getElementById('debug-panel').style.display = debugMode ? 'block' : 'none';
-            });
-
-            // 初始化UI
-            updateBackpackUI();
-            updateHerbGuideUI();
-        }
-
-        function update() {
-            if (!player || !player.body) return;
-
-            // 玩家移动
-            const speed = 160;
-            let velocityX = 0;
-            let velocityY = 0;
-
-            if (cursors.left.isDown || this.wasd.A.isDown) {
-                velocityX = -speed;
-            } else if (cursors.right.isDown || this.wasd.D.isDown) {
-                velocityX = speed;
-            }
-
-            if (cursors.up.isDown || this.wasd.W.isDown) {
-                velocityY = -speed;
-            } else if (cursors.down.isDown || this.wasd.S.isDown) {
-                velocityY = speed;
-            }
-
-            // 对角线移动速度修正
-            if (velocityX !== 0 && velocityY !== 0) {
-                velocityX *= 0.707;
-                velocityY *= 0.707;
-            }
-
-            player.body.setVelocity(velocityX, velocityY);
-
-            // 更新方向指示器
-            if (player.length > 1) {
-                const directionIndicator = player.getAt(1);
-                if (velocityX > 0) {
-                    directionIndicator.setRotation(0);
-                } else if (velocityX < 0) {
-                    directionIndicator.setRotation(Math.PI);
-                } else if (velocityY < 0) {
-                    directionIndicator.setRotation(-Math.PI / 2);
-                } else if (velocityY > 0) {
-                    directionIndicator.setRotation(Math.PI / 2);
-                }
-            }
-
-            // 更新小地图
-            updateMinimap();
-
-            // 检测草药采集
-            checkHerbCollection();
-
-            // 更新调试信息
-            if (debugMode) {
-                updateDebugInfo();
-            }
-        }
-
-        // ==================== 游戏逻辑函数 ====================
-        function getHerbColor(type) {
-            const colors = [0x4a7c28, 0x8b7355, 0xff6b6b, 0x8b0000, 0xf0e68c];
-            return colors[type] || 0x4a7c28;
-        }
-
-        function updateMinimap() {
-            const dot = document.getElementById('player-dot');
-            if (!player) return;
-            
-            const mapWidth = 220;
-            const mapHeight = 130;
-            const x = (player.x / WORLD_WIDTH) * mapWidth + 10;
-            const y = (player.y / WORLD_HEIGHT) * mapHeight + 10;
-            
-            dot.style.left = x + 'px';
-            dot.style.top = y + 'px';
-        }
-
-        function checkHerbCollection() {
-            if (!player) return;
-
-            let nearHerb = null;
-            const collectPrompt = document.getElementById('collect-prompt');
-
-            herbs.forEach(herb => {
-                if (herb.collected) return;
-
-                const distance = Phaser.Math.Distance.Between(
-                    player.x, player.y,
-                    herb.sprite.x, herb.sprite.y
-                );
-
-                if (distance < 50) {
-                    nearHerb = herb;
-                }
-            });
-
-            if (nearHerb) {
-                collectPrompt.style.display = 'block';
-                collectPrompt.textContent = `[E] 采集 ${nearHerb.data.name}`;
-                
-                if (Phaser.Input.Keyboard.JustDown(eKey)) {
-                    collectHerb(nearHerb);
-                }
-            } else {
-                collectPrompt.style.display = 'none';
-            }
-        }
-
-        function collectHerb(herb) {
-            herb.collected = true;
-            herb.sprite.setVisible(false);
-            herb.label.setVisible(false);
-
-            // 更新背包
-            if (!gameState.backpack[herb.data.id]) {
-                gameState.backpack[herb.data.id] = 0;
-            }
-            gameState.backpack[herb.data.id]++;
-            gameState.collectedCount++;
-
-            // 首次采集解锁图鉴
-            if (!gameState.unlockedHerbs.includes(herb.data.id)) {
-                gameState.unlockedHerbs.push(herb.data.id);
-            }
-
-            // 显示成功提示
-            showCollectSuccess(herb.data.name);
-
-            // 更新UI
-            updateBackpackUI();
-            updateHerbGuideUI();
-            updateTaskProgress();
-        }
-
-        function showCollectSuccess(herbName) {
-            const success = document.getElementById('collect-success');
-            success.textContent = `✓ 已采集：${herbName}`;
-            success.style.display = 'block';
-            
-            setTimeout(() => {
-                success.style.display = 'none';
-            }, 1500);
-        }
-
-        function updateBackpackUI() {
-            const grid = document.getElementById('backpack-grid');
-            const content = document.getElementById('backpack-content');
-            
-            const herbKeys = Object.keys(gameState.backpack);
-            
-            if (herbKeys.length === 0) {
-                content.style.display = 'block';
-                grid.style.display = 'none';
-                return;
-            }
-            
-            content.style.display = 'none';
-            grid.style.display = 'grid';
-            grid.innerHTML = '';
-
-            HERBS_DATA.forEach(herb => {
-                const count = gameState.backpack[herb.id] || 0;
-                const item = document.createElement('div');
-                item.className = 'backpack-item' + (count === 0 ? ' empty' : '');
-                item.innerHTML = `
-                    <div class="backpack-item-icon">${herb.icon}</div>
-                    <div class="backpack-item-name">${herb.name}</div>
-                    <div class="backpack-item-count">${count}</div>
-                `;
-                grid.appendChild(item);
-            });
-        }
-
-        function updateHerbGuideUI() {
-            const grid = document.getElementById('herb-grid');
-            const content = document.getElementById('herb-guide-content');
-            
-            if (gameState.unlockedHerbs.length === 0) {
-                content.style.display = 'block';
-                grid.style.display = 'none';
-                return;
-            }
-            
-            content.style.display = 'none';
-            grid.style.display = 'grid';
-            grid.innerHTML = '';
-
-            HERBS_DATA.forEach(herb => {
-                const unlocked = gameState.unlockedHerbs.includes(herb.id);
-                const card = document.createElement('div');
-                card.className = 'herb-card' + (unlocked ? '' : ' locked');
-                
-                if (unlocked) {
-                    card.innerHTML = `
-                        <div class="herb-card-icon">${herb.icon}</div>
-                        <div class="herb-card-name">${herb.name}</div>
-                        <div class="herb-card-property">性味：${herb.property}</div>
-                        <div class="herb-card-property">归经：${herb.meridian}</div>
-                        <div class="herb-card-desc">${herb.effect}</div>
-                    `;
-                } else {
-                    card.innerHTML = `
-                        <div class="lock-icon">🔒</div>
-                        <div class="herb-card-name">未解锁</div>
-                    `;
-                }
-                
-                grid.appendChild(card);
-            });
-        }
-
-        function updateTaskProgress() {
-            const task1 = document.querySelector('[data-task="1"]');
-            const checkbox = task1.querySelector('.task-checkbox');
-            const taskText = task1.querySelector('.task-text');
-            
-            const gancaoCount = gameState.backpack['gancao'] || 0;
-            taskText.textContent = `采集甘草 ×3 (${Math.min(gancaoCount, 3)}/3)`;
-            
-            if (gancaoCount >= 3) {
-                checkbox.textContent = '✓';
-                checkbox.style.color = '#4a7c28';
-            }
-        }
-
-        function updateDebugInfo() {
-            if (!player) return;
-            document.getElementById('debug-x').textContent = Math.floor(player.x);
-            document.getElementById('debug-y').textContent = Math.floor(player.y);
-            document.getElementById('debug-time').textContent = gameState.currentTime;
-            document.getElementById('debug-collected').textContent = gameState.collectedCount;
-            document.getElementById('debug-fps').textContent = game ? game.loop.actualFps.toFixed(0) : '60';
-        }
-
-        // ==================== UI 交互 ====================
-        // 功能按钮点击
-        document.querySelectorAll('.func-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const modalId = btn.dataset.modal + '-modal';
-                openModal(modalId);
-            });
+        // 页面加载完成后启动游戏
+        document.addEventListener('DOMContentLoaded', function() {
+            startLoadingSequence();
         });
-
-        // 关闭按钮
-        document.querySelectorAll('.modal-close').forEach(btn => {
-            btn.addEventListener('click', () => {
-                closeAllModals();
-            });
-        });
-
-        // 遮罩层点击关闭
-        document.getElementById('modal-overlay').addEventListener('click', () => {
-            closeAllModals();
-        });
-
-        function openModal(modalId) {
-            closeAllModals();
-            document.getElementById(modalId).classList.add('active');
-            document.getElementById('modal-overlay').classList.add('active');
-        }
-
-        function closeAllModals() {
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.classList.remove('active');
-            });
-            document.getElementById('modal-overlay').classList.remove('active');
-        }
-
-        // 任务栏点击高亮
-        document.querySelectorAll('.task-item').forEach(item => {
-            item.addEventListener('click', () => {
-                item.classList.toggle('selected');
-            });
-        });
-
-        // 小地图点击 - 修复：打开地图弹窗
-        document.getElementById('minimap').addEventListener('click', () => {
-            openModal('map-modal');
-        });
-
-        // ==================== 时辰系统 ====================
-        const TIME_PERIODS = ['寅时', '卯时', '辰时', '巳时', '午时', '未时', '申时', '酉时', '戌时', '亥时', '子时', '丑时'];
-        let timeIndex = 0;
-        let timeTicks = 0;
-
-        setInterval(() => {
-            timeTicks++;
-            if (timeTicks >= 12) {  // 每12秒切换一次时辰
-                timeTicks = 0;
-                timeIndex = (timeIndex + 1) % TIME_PERIODS.length;
-                gameState.currentTime = TIME_PERIODS[timeIndex];
-                document.getElementById('time-display').textContent = 
-                    `${gameState.currentTime} ${String(Math.floor(timeIndex * 2)).padStart(2, '0')}:00`;
-            }
-        }, 1000);
-
-        // ==================== 启动游戏 ====================
-        startLoading();
     </script>
 </body>
 </html>
