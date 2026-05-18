@@ -1,0 +1,107 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-18",
+  "description": "百草行 - 患者数据库（MVP 5位患者）",
+  "patients": [
+    {
+      "id": "patient_001",
+      "name": "王大娘",
+      "age": 65,
+      "gender": "女",
+      "avatar": "npc_wang_daniang.png",
+      "symptoms": "风寒感冒，头痛发热，恶寒无汗",
+      "diagnosis": "风寒表实证",
+      "requiredHerbs": ["herb_001", "herb_016"],
+      "reward": {
+        "copper": 50,
+        "reputation": 10,
+        "exp": 20
+      },
+      "dialogue": {
+        "greeting": "大夫啊，我这几天头疼得厉害，浑身发冷，您给看看吧...",
+        "correct": "哎呀，吃了这药真好多了！大夫您真厉害！",
+        "wrong": "大夫，这药好像不太对劲啊，我还是很难受..."
+      }
+    },
+    {
+      "id": "patient_002",
+      "name": "李大叔",
+      "age": 45,
+      "gender": "男",
+      "avatar": "npc_li_dashu.png",
+      "symptoms": "脾胃虚弱，食欲不振，大便溏薄",
+      "diagnosis": "脾虚湿盛",
+      "requiredHerbs": ["herb_001", "herb_008"],
+      "reward": {
+        "copper": 60,
+        "reputation": 15,
+        "exp": 25
+      },
+      "dialogue": {
+        "greeting": "大夫，我最近吃不下饭，肚子总是胀胀的，怎么办啊？",
+        "correct": "神了！吃了您的药，胃口真的开了！",
+        "wrong": "大夫，这药吃了几天，好像没什么效果啊..."
+      }
+    },
+    {
+      "id": "patient_003",
+      "name": "小翠",
+      "age": 22,
+      "gender": "女",
+      "avatar": "npc_xiaocui.png",
+      "symptoms": "月经不调，经期腹痛，量少色暗",
+      "diagnosis": "气滞血瘀",
+      "requiredHerbs": ["herb_003", "herb_010"],
+      "reward": {
+        "copper": 80,
+        "reputation": 20,
+        "exp": 30
+      },
+      "dialogue": {
+        "greeting": "大夫姐姐/哥哥，我每个月那几天都疼得死去活来，您帮帮我吧...",
+        "correct": "太好了！这个月真的不怎么疼了，谢谢大夫！",
+        "wrong": "大夫，好像还是有点疼啊，是不是药没对症？"
+      }
+    },
+    {
+      "id": "patient_004",
+      "name": "张员外",
+      "age": 55,
+      "gender": "男",
+      "avatar": "npc_zhang_yuanwai.png",
+      "symptoms": "失眠多梦，心悸健忘，五心烦热",
+      "diagnosis": "心肾不交",
+      "requiredHerbs": ["herb_009", "herb_004"],
+      "reward": {
+        "copper": 100,
+        "reputation": 25,
+        "exp": 40
+      },
+      "dialogue": {
+        "greeting": "听闻大夫医术高明，我近日辗转难眠，还望大夫诊治。",
+        "correct": "妙哉！夜能安寝，白日精神多了，多谢大夫！",
+        "wrong": "大夫，服药数日，似无寸效，是否需换方？"
+      }
+    },
+    {
+      "id": "patient_005",
+      "name": "赵婆婆",
+      "age": 72,
+      "gender": "女",
+      "avatar": "npc_zhao_popo.png",
+      "symptoms": "咳嗽痰多，气短乏力，畏寒肢冷",
+      "diagnosis": "肺脾气虚",
+      "requiredHerbs": ["herb_001", "herb_007", "herb_004"],
+      "reward": {
+        "copper": 120,
+        "reputation": 30,
+        "exp": 50
+      },
+      "dialogue": {
+        "greeting": "大夫啊，我这咳嗽好多年了，尤其到了冬天就更厉害，您给好好看看...",
+        "correct": "大夫真是华佗再世啊！我这咳嗽好多了，晚上也能睡个安稳觉了！",
+        "wrong": "大夫，咳嗽好像没怎么好转，是不是药力不够啊？"
+      }
+    }
+  ]
+}

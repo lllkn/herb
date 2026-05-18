@@ -1,0 +1,46 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 环境变量
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 构建输出
+dist/
+build/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 游戏资源 (大型文件)
+src/assets/images/
+src/assets/audio/
+src/assets/maps/
+
+# 临时文件
+*.tmp
+*.bak
+*.cache
+
+# CodeBuddy
+.codebuddy/
+
+# 日志
+logs/
+*.log
