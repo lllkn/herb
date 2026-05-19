@@ -206,16 +206,143 @@
         </div>
 
         <!-- 设置弹窗 -->
-        <div id="settings-modal" class="modal">
+        <div id="settings-modal" class="modal settings-modal">
             <div class="modal-header">
-                <h2>⚙️ 设置</h2>
+                <h2>⚙️ 游戏设置</h2>
                 <button class="modal-close">✕</button>
             </div>
-            <div class="modal-body">
-                <p style="text-align: center; color: #8b7355; margin-top: 50px; font-size: 18px;">
-                    ⚙️ 设置界面<br><br>
-                    <span style="font-size: 14px;">此处将展示音量、画质等设置选项</span>
-                </p>
+            <div class="modal-body settings-body">
+                <!-- 音频设置 -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">🔊 音频设置</h3>
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span class="setting-icon">🎵</span>
+                            <span class="setting-name">背景音乐</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" class="setting-slider" id="bgm-volume" min="0" max="100" value="80">
+                            <span class="slider-value" id="bgm-value">80%</span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span class="setting-icon">🔔</span>
+                            <span class="setting-name">游戏音效</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" class="setting-slider" id="sfx-volume" min="0" max="100" value="90">
+                            <span class="slider-value" id="sfx-value">90%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 画质设置 -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">🖼️ 画质设置</h3>
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span class="setting-icon">⚡</span>
+                            <span class="setting-name">画质模式</span>
+                        </div>
+                        <div class="btn-group" id="quality-group">
+                            <button class="quality-btn active" data-quality="high">高</button>
+                            <button class="quality-btn" data-quality="medium">中</button>
+                            <button class="quality-btn" data-quality="low">低</button>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span class="setting-icon">💨</span>
+                            <span class="setting-name">粒子效果</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="particle-effect" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 键位设置 -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">⌨️ 键位设置</h3>
+                    <div class="keybind-list">
+                        <div class="keybind-item">
+                            <span class="keybind-action">移动上</span>
+                            <button class="keybind-btn" data-action="up">W</button>
+                        </div>
+                        <div class="keybind-item">
+                            <span class="keybind-action">移动下</span>
+                            <button class="keybind-btn" data-action="down">S</button>
+                        </div>
+                        <div class="keybind-item">
+                            <span class="keybind-action">移动左</span>
+                            <button class="keybind-btn" data-action="left">A</button>
+                        </div>
+                        <div class="keybind-item">
+                            <span class="keybind-action">移动右</span>
+                            <button class="keybind-btn" data-action="right">D</button>
+                        </div>
+                        <div class="keybind-item">
+                            <span class="keybind-action">采集</span>
+                            <button class="keybind-btn" data-action="collect">E</button>
+                        </div>
+                        <div class="keybind-item">
+                            <span class="keybind-action">背包</span>
+                            <button class="keybind-btn" data-action="backpack">B</button>
+                        </div>
+                        <div class="keybind-item">
+                            <span class="keybind-action">图鉴</span>
+                            <button class="keybind-btn" data-action="guide">T</button>
+                        </div>
+                        <div class="keybind-item">
+                            <span class="keybind-action">调试</span>
+                            <button class="keybind-btn" data-action="debug">F12</button>
+                        </div>
+                    </div>
+                    <button class="reset-keybind-btn" id="reset-keybinds">🔄 恢复默认键位</button>
+                </div>
+
+                <!-- 游戏设置 -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">🎮 游戏设置</h3>
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span class="setting-icon">💾</span>
+                            <span class="setting-name">自动存档</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-save" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span class="setting-icon">📖</span>
+                            <span class="setting-name">操作提示</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="show-hints" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span class="setting-icon">🌙</span>
+                            <span class="setting-name">加速时间</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="speed-up">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="settings-actions">
+                    <button class="settings-save-btn" id="save-settings">✓ 保存设置</button>
+                    <button class="settings-reset-btn" id="reset-all-settings">↺ 重置全部</button>
+                </div>
             </div>
         </div>
     </div>

@@ -7,6 +7,338 @@ class UIManager {
     constructor() {
         this.cacheElements();
         this.bindEvents();
+        this.initSettings();
+    }
+
+    // ==================== 设置页面管理 ====================
+    
+    // 默认键位配置
+    defaultKeybinds = {
+        up: 'W',
+        down: 'S',
+        left: 'A',
+        right: 'D',
+        collect: 'E',
+        backpack: 'B',
+        guide: 'T',
+        debug: 'F12'
+    };
+
+    // 当前设置
+    currentSettings = {
+        bgmVolume: 80,
+        sfxVolume: 90,
+        quality: 'high',
+        particleEffect: true,
+        autoSave: true,
+        showHints: true,
+        speedUp: false,
+        keybinds: { ...this.defaultKeybinds }
+    };
+
+    // 正在监听的键位
+    listeningKeybind = null;
+
+    /**
+     * 初始化设置系统
+     */
+    initSettings() {
+        this.loadSettings();
+        this.bindSettingsEvents();
+        this.updateSettingsUI();
+    }
+
+    /**
+     * 加载设置
+     */
+    loadSettings() {
+        const saved = localStorage.getItem('gameSettings');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                this.currentSettings = { ...this.currentSettings, ...parsed };
+            } catch (e) {
+                console.warn('设置加载失败，使用默认值');
+            }
+        }
+    }
+
+    /**
+     * 保存设置到localStorage
+     */
+    saveSettings() {
+        localStorage.setItem('gameSettings', JSON.stringify(this.currentSettings));
+        this.applySettings();
+        console.log('✓ 设置已保存');
+    }
+
+    /**
+     * 应用设置到游戏
+     */
+    applySettings() {
+        // 应用音量设置
+        if (window.audioManager) {
+            window.audioManager.setBGMVolume(this.currentSettings.bgmVolume / 100);
+            window.audioManager.setSFXVolume(this.currentSettings.sfxVolume / 100);
+        }
+        
+        // 应用画质设置
+        if (this.currentSettings.quality === 'low') {
+            // 降低粒子效果
+        }
+        
+        // 应用自动存档
+        // ...
+        
+        console.log('设置已应用到游戏');
+    }
+
+    /**
+     * 重置所有设置
+     */
+    resetAllSettings() {
+        this.currentSettings = {
+            bgmVolume: 80,
+            sfxVolume: 90,
+            quality: 'high',
+            particleEffect: true,
+            autoSave: true,
+            showHints: true,
+            speedUp: false,
+            keybinds: { ...this.defaultKeybinds }
+        };
+        this.saveSettings();
+        this.updateSettingsUI();
+    }
+
+    /**
+     * 更新设置UI显示
+     */
+    updateSettingsUI() {
+        // 音量滑块
+        const bgmSlider = document.getElementById('bgm-volume');
+        const sfxSlider = document.getElementById('sfx-volume');
+        const bgmValue = document.getElementById('bgm-value');
+        const sfxValue = document.getElementById('sfx-value');
+        
+        if (bgmSlider) {
+            bgmSlider.value = this.currentSettings.bgmVolume;
+            bgmValue.textContent = this.currentSettings.bgmVolume + '%';
+        }
+        if (sfxSlider) {
+            sfxSlider.value = this.currentSettings.sfxVolume;
+            sfxValue.textContent = this.currentSettings.sfxVolume + '%';
+        }
+        
+        // 画质按钮
+        document.querySelectorAll('.quality-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.quality === this.currentSettings.quality);
+        });
+        
+        // 开关
+        const particleToggle = document.getElementById('particle-effect');
+        const autoSaveToggle = document.getElementById('auto-save');
+        const hintsToggle = document.getElementById('show-hints');
+        const speedUpToggle = document.getElementById('speed-up');
+        
+        if (particleToggle) particleToggle.checked = this.currentSettings.particleEffect;
+        if (autoSaveToggle) autoSaveToggle.checked = this.currentSettings.autoSave;
+        if (hintsToggle) hintsToggle.checked = this.currentSettings.showHints;
+        if (speedUpToggle) speedUpToggle.checked = this.currentSettings.speedUp;
+        
+        // 键位显示
+        this.updateKeybindDisplay();
+    }
+
+    /**
+     * 更新键位按钮显示
+     */
+    updateKeybindDisplay() {
+        document.querySelectorAll('.keybind-btn').forEach(btn => {
+            const action = btn.dataset.action;
+            if (action && this.currentSettings.keybinds[action]) {
+                btn.textContent = this.currentSettings.keybinds[action];
+            }
+        });
+    }
+
+    /**
+     * 绑定设置页面事件
+     */
+    bindSettingsEvents() {
+        // 音量滑块
+        const bgmSlider = document.getElementById('bgm-volume');
+        const sfxSlider = document.getElementById('sfx-volume');
+        
+        if (bgmSlider) {
+            bgmSlider.addEventListener('input', (e) => {
+                this.currentSettings.bgmVolume = parseInt(e.target.value);
+                document.getElementById('bgm-value').textContent = e.target.value + '%';
+            });
+        }
+        
+        if (sfxSlider) {
+            sfxSlider.addEventListener('input', (e) => {
+                this.currentSettings.sfxVolume = parseInt(e.target.value);
+                document.getElementById('sfx-value').textContent = e.target.value + '%';
+            });
+        }
+        
+        // 画质按钮
+        document.querySelectorAll('.quality-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.quality-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.currentSettings.quality = btn.dataset.quality;
+            });
+        });
+        
+        // 开关
+        document.getElementById('particle-effect')?.addEventListener('change', (e) => {
+            this.currentSettings.particleEffect = e.target.checked;
+        });
+        
+        document.getElementById('auto-save')?.addEventListener('change', (e) => {
+            this.currentSettings.autoSave = e.target.checked;
+        });
+        
+        document.getElementById('show-hints')?.addEventListener('change', (e) => {
+            this.currentSettings.showHints = e.target.checked;
+            // 更新底部操作提示显示
+            const hints = document.getElementById('controls-hint');
+            if (hints) {
+                hints.style.display = e.target.checked ? 'block' : 'none';
+            }
+        });
+        
+        document.getElementById('speed-up')?.addEventListener('change', (e) => {
+            this.currentSettings.speedUp = e.target.checked;
+        });
+        
+        // 键位监听
+        document.querySelectorAll('.keybind-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.startKeybindListening(e.target);
+            });
+        });
+        
+        // 全局键盘监听（用于键位设置）
+        document.addEventListener('keydown', (e) => {
+            if (this.listeningKeybind) {
+                e.preventDefault();
+                this.setKeybind(this.listeningKeybind, e);
+            }
+        });
+        
+        // 重置键位按钮
+        document.getElementById('reset-keybinds')?.addEventListener('click', () => {
+            this.currentSettings.keybinds = { ...this.defaultKeybinds };
+            this.updateKeybindDisplay();
+            console.log('键位已恢复默认');
+        });
+        
+        // 保存设置按钮
+        document.getElementById('save-settings')?.addEventListener('click', () => {
+            this.saveSettings();
+            // 显示保存成功提示
+            const btn = document.getElementById('save-settings');
+            if (btn) {
+                const originalText = btn.textContent;
+                btn.textContent = '✓ 已保存!';
+                btn.style.background = 'linear-gradient(135deg, #7AAA52, #6A9A42)';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 1500);
+            }
+        });
+        
+        // 重置全部设置按钮
+        document.getElementById('reset-all-settings')?.addEventListener('click', () => {
+            if (confirm('确定要重置所有设置为默认值吗？')) {
+                this.resetAllSettings();
+            }
+        });
+    }
+
+    /**
+     * 开始监听键位输入
+     */
+    startKeybindListening(btn) {
+        // 取消之前的监听
+        if (this.listeningKeybind) {
+            this.listeningKeybind.classList.remove('listening');
+            this.listeningKeybind.textContent = this.currentSettings.keybinds[this.listeningKeybind.dataset.action] || '?';
+        }
+        
+        const action = btn.dataset.action;
+        this.listeningKeybind = btn;
+        btn.classList.add('listening');
+        btn.textContent = '...';
+    }
+
+    /**
+     * 设置键位
+     */
+    setKeybind(btn, event) {
+        const action = btn.dataset.action;
+        let keyName = event.key.toUpperCase();
+        
+        // 特殊键位名称
+        const specialKeys = {
+            ' ': '空格',
+            'ARROWUP': '↑',
+            'ARROWDOWN': '↓',
+            'ARROWLEFT': '←',
+            'ARROWRIGHT': '→',
+            'SHIFT': 'Shift',
+            'CTRL': 'Ctrl',
+            'ALT': 'Alt',
+            'ENTER': 'Enter',
+            'BACKSPACE': '退格',
+            'DELETE': 'Del',
+            'TAB': 'Tab',
+            'ESCAPE': 'ESC'
+        };
+        
+        if (specialKeys[keyName]) {
+            keyName = specialKeys[keyName];
+        }
+        
+        // F1-F12键
+        if (keyName.startsWith('F') && /^(F[1-9]|F1[0-2])$/.test(keyName)) {
+            keyName = keyName;
+        }
+        
+        // 检查是否与其他键位冲突
+        for (const [act, key] of Object.entries(this.currentSettings.keybinds)) {
+            if (key === keyName && act !== action) {
+                // 交换键位
+                this.currentSettings.keybinds[act] = btn.textContent;
+                document.querySelector(`.keybind-btn[data-action="${act}"]`).textContent = btn.textContent;
+                break;
+            }
+        }
+        
+        this.currentSettings.keybinds[action] = keyName;
+        btn.classList.remove('listening');
+        btn.textContent = keyName;
+        this.listeningKeybind = null;
+        
+        // 更新全局键位配置
+        this.updateGameKeybinds();
+    }
+
+    /**
+     * 更新游戏键位配置
+     */
+    updateGameKeybinds() {
+        if (window.GameConfig) {
+            window.GameConfig.KEYS = {
+                ...window.GameConfig.KEYS,
+                ...this.currentSettings.keybinds
+            };
+        }
     }
 
     /**
