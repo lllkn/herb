@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>百草行 - 中医药文化解谜游戏</title>
     
-    <!-- 江湖字体 - Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+    <!-- 古风字体 - Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Long+Cang&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     
     <!-- 游戏样式表 -->
     <link rel="stylesheet" href="styles.css">
@@ -362,18 +362,28 @@
     <!-- 游戏模块：UI管理（依赖 gameState） -->
     <script src="src/ui.js"></script>
     
-    <!-- 游戏模块：Phaser 场景（依赖 config, data, gameState, ui） -->
+    <!-- 游戏模块：系统（依赖 Phaser） -->
+    <script src="src/systems/TypewriterSystem.js"></script>
+    <script src="src/systems/ChoiceSystem.js"></script>
+    <script src="src/systems/TutorialOverlay.js"></script>
+    <script src="src/systems/CGDisplaySystem.js"></script>
+
+    <!-- 游戏模块：Phaser 场景（依赖 config, data, gameState, ui, systems） -->
     <script src="src/GameScene.js"></script>
+    <script src="src/BootScene.js"></script>
+    <script src="src/IntroScene.js"></script>
     
     <!-- 游戏入口（依赖所有模块） -->
     <script src="src/main.js"></script>
     
     <!-- 启动游戏 -->
     <script>
-        // 页面加载完成后启动游戏
-        document.addEventListener('DOMContentLoaded', function() {
+    // 等待所有资源 + Phaser 完全加载
+    window.addEventListener('load', function() {
+        setTimeout(() => {
             startLoadingSequence();
-        });
-    </script>
+        }, 100); // 延迟100ms，确保引擎就绪
+    });
+</script>
 </body>
 </html>

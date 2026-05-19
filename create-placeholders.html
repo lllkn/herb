@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>生成占位图片</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a2e; color: #eee; }
+        canvas { border: 1px solid #444; margin: 10px; background: #000; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>百草行 - 占位图片生成器</h1>
+    <p>点击按钮生成所有占位图片，图片会自动下载到下载文件夹</p>
+    <button onclick="generateAll()">生成所有占位图片</button>
+    <div id="progress"></div>
+    <div id="canvases"></div>
+
+    <script>
+        const images = [
+            // CG图片 (800x600)
+            { name: 'cg_01_school', width: 800, height: 600, bgColor: '#4a7c59', text: 'CG: 岐黄学堂全景', textColor: '#fff' },
+            { name: 'cg_02_spirit_room', width: 800, height: 600, bgColor: '#8b5cf6', text: 'CG: 灵药房', textColor: '#fff' },
+            { name: 'cg_03_awakening', width: 800, height: 600, bgColor: '#f59e0b', text: 'CG: 灵宠觉醒', textColor: '#000' },
+            { name: 'cg_04_departure', width: 800, height: 600, bgColor: '#3b82f6', text: 'CG: 踏上旅途', textColor: '#fff' },
+            
+            // 背景图片 (800x600)
+            { name: 'bg_school_yard', width: 800, height: 600, bgColor: '#6b8e23', text: '背景: 学堂庭院', textColor: '#fff' },
+            { name: 'bg_herb_garden', width: 800, height: 600, bgColor: '#228b22', text: '背景: 药圃', textColor: '#fff' },
+            { name: 'bg_spirit_room', width: 800, height: 600, bgColor: '#9370db', text: '背景: 灵药房', textColor: '#fff' },
+            { name: 'bg_school_gate', width: 800, height: 600, bgColor: '#8b4513', text: '背景: 学堂门口', textColor: '#fff' },
+            { name: 'bg_dean_room', width: 800, height: 600, bgColor: '#654321', text: '背景: 院长书房', textColor: '#fff' },
+            { name: 'bg_processing_room', width: 800, height: 600, bgColor: '#a0522d', text: '背景: 炮制间', textColor: '#fff' },
+            
+            // 白院长立绘 (400x600)
+            { name: 'bai_smile', width: 400, height: 600, bgColor: '#4169e1', text: '白院长\n微笑', textColor: '#fff' },
+            { name: 'bai_thoughtful', width: 400, height: 600, bgColor: '#4169e1', text: '白院长\n沉思', textColor: '#fff' },
+            { name: 'bai_serious', width: 400, height: 600, bgColor: '#4169e1', text: '白院长\n严肃', textColor: '#fff' },
+            
+            // 小兰立绘 (400x600)
+            { name: 'xiaolan_anxious', width: 400, height: 600, bgColor: '#ff6347', text: '小兰\n焦急', textColor: '#fff' },
+            { name: 'xiaolan_grateful', width: 400, height: 600, bgColor: '#ff6347', text: '小兰\n感激', textColor: '#fff' },
+            
+            // 青苗立绘 (400x600)
+            { name: 'qingmiao_surprised', width: 400, height: 600, bgColor: '#32cd32', text: '青苗\n惊讶', textColor: '#fff' },
+            { name: 'qingmiao_happy', width: 400, height: 600, bgColor: '#32cd32', text: '青苗\n开心', textColor: '#fff' },
+            
+            // 灵宠图片 (200x200)
+            { name: 'pet_qingmiao', width: 200, height: 200, bgColor: '#90ee90', text: '灵宠\n青苗', textColor: '#000' },
+            { name: 'pet_chiyun', width: 200, height: 200, bgColor: '#ff6b6b', text: '灵宠\n赤云', textColor: '#fff' },
+            { name: 'pet_yinxue', width: 200, height: 200, bgColor: '#c0c0c0', text: '灵宠\n银雪', textColor: '#000' }
+        ];
+
+        function generateImage(imgData) {
+            const canvas = document.createElement('canvas');
+            canvas.width = imgData.width;
+            canvas.height = imgData.height;
+            const ctx = canvas.getContext('2d');
+            
+            // 背景
+            ctx.fillStyle = imgData.bgColor;
+            ctx.fillRect(0, 0, imgData.width, imgData.height);
+            
+            // 网格图案（装饰）
+            ctx.strokeStyle = imgData.textColor + '20';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < imgData.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, imgData.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < imgData.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(imgData.width, y);
+                ctx.stroke();
+            }
+            
+            // 文字
+            ctx.fillStyle = imgData.textColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const lines = imgData.text.split('\n');
+            const lineHeight = 40;
+            const startY = (imgData.height - (lines.length - 1) * lineHeight) / 2;
+            
+            lines.forEach((line, i) => {
+                ctx.font = `${Math.min(48, imgData.width / 10)}px Arial`;
+                ctx.fillText(line, imgData.width / 2, startY + i * lineHeight);
+            });
+            
+            // 边框
+            ctx.strokeStyle = imgData.textColor + '80';
+            ctx.lineWidth = 5;
+            ctx.strokeRect(10, 10, imgData.width - 20, imgData.height - 20);
+            
+            return canvas;
+        }
+
+        function downloadImage(canvas, filename) {
+            return new Promise((resolve) => {
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename + '.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    setTimeout(resolve, 100);
+                }, 'image/png');
+            });
+        }
+
+        async function generateAll() {
+            const progress = document.getElementById('progress');
+            const canvasesDiv = document.getElementById('canvases');
+            canvasesDiv.innerHTML = '';
+            
+            for (let i = 0; i < images.length; i++) {
+                const imgData = images[i];
+                progress.textContent = `生成中: ${i + 1}/${images.length} - ${imgData.name}`;
+                
+                const canvas = generateImage(imgData);
+                canvasesDiv.appendChild(canvas);
+                
+                await downloadImage(canvas, imgData.name);
+                
+                // 等待一下避免浏览器阻塞
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            progress.textContent = '✅ 所有图片生成完成！请查看下载文件夹';
+        }
+    </script>
+</body>
+</html>

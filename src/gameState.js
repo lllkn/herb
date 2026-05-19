@@ -43,6 +43,39 @@ class GameStateManager {
     }
 
     /**
+     * 检查是否首次玩游戏（基于localStorage）
+     * @returns {boolean} 是否首次
+     */
+    isFirstPlay() {
+        const hasPlayed = localStorage.getItem('baicaoxing_has_played');
+        return hasPlayed !== 'true';
+    }
+
+    /**
+     * 标记为已玩过（存储到localStorage）
+     */
+    markAsPlayed() {
+        try {
+            localStorage.setItem('baicaoxing_has_played', 'true');
+            console.log('GameState: 已标记为玩过');
+        } catch (e) {
+            console.error('GameState: 存储标记失败', e);
+        }
+    }
+
+    /**
+     * 重置首次游戏标记（用于测试）
+     */
+    resetFirstPlayFlag() {
+        try {
+            localStorage.removeItem('baicaoxing_has_played');
+            console.log('GameState: 已重置首次游戏标记');
+        } catch (e) {
+            console.error('GameState: 重置标记失败', e);
+        }
+    }
+
+    /**
      * 添加草药到背包
      * @param {string} herbId - 草药ID
      * @returns {boolean} 是否首次获得该草药

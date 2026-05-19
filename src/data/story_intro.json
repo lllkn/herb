@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-19",
+  "description": "百草行 - 新手引导剧情",
+  "storyId": "intro",
+  "title": "序章·入行",
+  "steps": [
+    {
+      "id": "step_001",
+      "speaker": "narrator",
+      "avatar": null,
+      "text": "大雍王朝，永和十二年，秋风萧瑟。",
+      "background": "bg_hanmedic.png",
+      "sound": null
+    },
+    {
+      "id": "step_002",
+      "speaker": "narrator",
+      "avatar": null,
+      "text": "你本是乡野郎中之子，自幼随父采药识草，略通医理。父亲去世后，你决定前往清禾镇，投奔父亲旧友——镇上最有名的「清禾药斋」掌柜。",
+      "background": "bg_hanmedic.png",
+      "sound": null
+    },
+    {
+      "id": "step_003",
+      "speaker": "narrator",
+      "avatar": null,
+      "text": "今日，你终于到了清禾镇。",
+      "background": "bg_hanmedic.png",
+      "sound": null
+    },
+    {
+      "id": "step_004",
+      "speaker": "npc",
+      "name": "药铺掌柜",
+      "avatar": "npc_shopkeeper.png",
+      "text": "哟，你就是老周大夫的儿子吧？进来进来！",
+      "background": "bg_hanmedic.png",
+      "sound": null
+    },
+    {
+      "id": "step_005",
+      "speaker": "npc",
+      "name": "药铺掌柜",
+      "avatar": "npc_shopkeeper.png",
+      "text": "你父亲来信说你要来学医，我答应了要好好教导你。不过嘛……行医先识药，这是规矩！",
+      "background": "bg_hanmedic.png",
+      "sound": null
+    },
+    {
+      "id": "step_006",
+      "speaker": "npc",
+      "name": "药铺掌柜",
+      "avatar": "npc_shopkeeper.png",
+      "text": "这样吧，你先去后山走一趟，采三株甘草回来，让我看看你的眼力。甘草性和，最能健脾益气，是入门第一药。",
+      "background": "bg_hanmedic.png",
+      "sound": null
+    },
+    {
+      "id": "step_007",
+      "speaker": "player",
+      "name": "你",
+      "avatar": "player_avatar.png",
+      "text": "（点头）掌柜放心，我这就去。",
+      "background": "bg_hanmedic.png",
+      "sound": null
+    },
+    {
+      "id": "step_008",
+      "speaker": "narrator",
+      "avatar": null,
+      "text": "你走出药铺，来到后山。山野之间，草木繁盛，药香隐隐。\n\n【操作提示】\nWASD 或方向键移动\n靠近草药后按 E 采集\nB 打开背包 | T 打开图谱",
+      "background": "bg_mountain.png",
+      "sound": null,
+      "isLastStep": true
+    }
+  ]
+}

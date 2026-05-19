@@ -5,8 +5,12 @@
 
 /**
  * 初始化 Phaser 游戏
+ * 使用 BootScene 作为启动场景，由它来决定跳转
  */
 function initGame() {
+    // 场景列表（BootScene 会负责检查并跳转）
+    const scenes = [window.BootScene, window.IntroScene, window.GameScene];
+
     const config = {
         type: Phaser.AUTO,
         width: window.GameConfig.GAME_WIDTH,
@@ -19,10 +23,11 @@ function initGame() {
                 debug: false
             }
         },
-        scene: window.GameScene  // 使用场景类
+        scene: scenes  // 使用场景数组，BootScene 是第一个，会自动启动
     };
 
     window.game = new Phaser.Game(config);
+    console.log('Main: 游戏初始化完成，等待 BootScene 跳转');
 }
 
 /**

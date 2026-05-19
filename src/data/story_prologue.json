@@ -1,0 +1,1001 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-19",
+  "description": "百草行 - 序章剧情数据（S01-S09）",
+  "storyId": "prologue",
+  "title": "序章·结业·灵宠·启程",
+  "scenes": [
+    {
+      "id": "S01",
+      "name": "开场黑屏独白",
+      "type": "monologue",
+      "duration": 45,
+      "steps": [
+        {
+          "id": "S01_001",
+          "type": "narration",
+          "text": "大草纪，中历三百四十七年秋。",
+          "textColorStart": "#8a7050",
+          "textColorEnd": "#8a7050",
+          "bgColor": "#000000",
+          "sound": null,
+          "nextDelay": 2000
+        },
+        {
+          "id": "S01_002",
+          "type": "narration",
+          "text": "华夏大地本草繁盛，山野之间，随处可见药农弯腰采摘的身影。",
+          "textColorStart": "#9a8060",
+          "textColorEnd": "#9a8060",
+          "bgColor": "#000000",
+          "sound": null,
+          "nextDelay": 2000
+        },
+        {
+          "id": "S01_003",
+          "type": "narration",
+          "text": "然自两年前起，各地陆续有传言——山中出现一种从未见过的灰绿色草，所经之处，寸草不生。",
+          "textColorStart": "#b89070",
+          "textColorEnd": "#b89070",
+          "bgColor": "#000000",
+          "sound": null,
+          "nextDelay": 2000
+        },
+        {
+          "id": "S01_004",
+          "type": "narration",
+          "text": "百姓称之为「蛊根草」。",
+          "textColorStart": "#d4a880",
+          "textColorEnd": "#d4a880",
+          "bgColor": "#000000",
+          "sound": null,
+          "nextDelay": 2000
+        },
+        {
+          "id": "S01_005",
+          "type": "narration",
+          "text": "而此时，岐黄学堂，一个年轻的医者，即将结业。",
+          "textColorStart": "#e8c8a0",
+          "textColorEnd": "#f0e8d4",
+          "bgColor": "#000000",
+          "sound": null,
+          "nextDelay": 500,
+          "triggerFadeIn": true,
+          "nextScene": "S02"
+        }
+      ]
+    },
+    {
+      "id": "S02",
+      "name": "岐黄学堂·清晨",
+      "type": "scene",
+      "duration": 90,
+      "background": "bg_school_yard.png",
+      "bgm": "bgm_school.mp3",
+      "steps": [
+        {
+          "id": "S02_001",
+          "type": "narration",
+          "text": "岐黄学堂，今日清晨格外静谧。",
+          "nextDelay": 2000
+        },
+        {
+          "id": "S02_002",
+          "type": "narration",
+          "text": "三年时光匆匆，今日，是你在这里的最后一天。",
+          "nextDelay": 2000,
+          "nextScene": "S03"
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "name": "结业典礼·白院长对话",
+      "type": "dialogue",
+      "duration": 180,
+      "background": "bg_school_yard.png",
+      "bgm": "bgm_school.mp3",
+      "steps": [
+        {
+          "id": "S03_001",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "孩子，在这学堂，你已勤修三载。今日结业，老夫甚是欣慰。",
+          "avatar": "bai_smile.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S03_002",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "本草之道，非书中所能尽述。真正的医者，须以山川为师，以百姓为鉴。",
+          "avatar": "bai_smile.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S03_003",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "thoughtful",
+          "name": "白院长",
+          "text": "只是……你此番出行，心中可有把握？",
+          "avatar": "bai_thoughtful.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S03_choice1",
+          "type": "choice",
+          "options": [
+            {
+              "text": "院长所传，学生铭记于心，自当竭力。",
+              "flag": "confident",
+              "response": {
+                "character": "bai",
+                "expression": "smile",
+                "name": "白院长",
+                "text": "（欣慰地点头）好，有此心气，前路虽远，终能到达。",
+                "avatar": "bai_smile.png",
+                "nextDelay": 500,
+                "nextStep": "S03_004"
+              }
+            },
+            {
+              "text": "学生尚浅，还望院长多加指点……",
+              "flag": "humble",
+              "response": {
+                "character": "bai",
+                "expression": "smile",
+                "name": "白院长",
+                "text": "（温和地笑）无妨，行医之路本就是边行边学。为师也曾如此走来。",
+                "avatar": "bai_smile.png",
+                "nextDelay": 500,
+                "nextStep": "S03_004"
+              }
+            },
+            {
+              "text": "只是想亲眼看看山川，看看百姓。",
+              "flag": "curious",
+              "response": {
+                "character": "bai",
+                "expression": "thoughtful",
+                "name": "白院长",
+                "text": "（眼中闪过赞许）好孩子，医者之心，正在此处。",
+                "avatar": "bai_thoughtful.png",
+                "nextDelay": 500,
+                "nextStep": "S03_004"
+              }
+            }
+          ]
+        },
+        {
+          "id": "S03_004",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "（点头）很好。结业之前，老夫还有最后一课要教你——随我去药圃吧。",
+          "avatar": "bai_smile.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S03_005",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "thoughtful",
+          "name": "白院长",
+          "text": "那里种着学堂最珍贵的几味药草。你且仔细看，日后行走江湖，这些可是救命的宝贝。",
+          "avatar": "bai_thoughtful.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S03_006",
+          "type": "narration",
+          "text": "（跟随白院长穿过回廊，空气中渐渐弥漫起草木的清香……）",
+          "nextDelay": 1500,
+          "nextScene": "S04"
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "name": "药圃·识药与采药",
+      "type": "scene",
+      "duration": 300,
+      "background": "herb_garden_bg",
+      "bgm": "bgm_school.mp3",
+      "steps": [
+        {
+          "id": "S04_001",
+          "type": "narration",
+          "text": "药圃之中，阳光透过竹帘洒落，各色草药在微风中轻轻摇曳。",
+          "nextDelay": 1500
+        },
+        {
+          "id": "S04_002",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "（走到一株植物前，蹲下身来）来，你且看——这株是甘草。",
+          "avatar": "bai_smile.png",
+          "overlayImage": "gancao_closeup",
+          "nextDelay": 500
+        },
+        {
+          "id": "S04_003",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "你看它的叶片，卵圆形，边缘有细齿；茎直立，表面有柔毛。记住这个样子。",
+          "avatar": "bai_smile.png",
+          "overlayImage": "gancao_closeup",
+          "nextDelay": 500
+        },
+        {
+          "id": "S04_choice1",
+          "type": "choice",
+          "options": [
+            {
+              "text": "（仔细观察）叶片卵圆，边缘有细齿……我记住了！",
+              "flag": "careful_observation",
+              "response": {
+                "character": "bai",
+                "expression": "smile",
+                "name": "白院长",
+                "text": "（赞许地点头）很好，观察入微是医者的基本功。现在走近它，亲手采一株试试。",
+                "avatar": "bai_smile.png",
+                "nextDelay": 500,
+                "nextStep": "S04_tutorial_1"
+              }
+            },
+            {
+              "text": "院长，甘草有什么功效呢？",
+              "flag": "ask_effect",
+              "response": {
+                "character": "bai",
+                "expression": "thoughtful",
+                "name": "白院长",
+                "text": "问得好。甘草味甘性平，能补脾益气、润肺止咳，更有调和诸药之能。被誉为「国老」，你且去采一株来。",
+                "avatar": "bai_thoughtful.png",
+                "nextDelay": 500,
+                "nextStep": "S04_tutorial_1"
+              }
+            }
+          ]
+        },
+        {
+          "id": "S04_tutorial_1",
+          "type": "tutorial",
+          "tutorialAction": "highlight_herb",
+          "herbId": "gancao",
+          "hint": "靠近甘草（金色光圈标记），走进半径50px以内触发交互（点击屏幕可跳过）",
+          "hintPosition": "bottom",
+          "pulseColor": 16766720,
+          "skippable": true,
+          "nextDelay": 0
+        },
+        {
+          "id": "S04_tutorial_2",
+          "type": "tutorial",
+          "tutorialAction": "show_collect_prompt",
+          "hint": "出现采集提示 ——·E 采集 甘草·—— ，按 E 键开始采集（点击屏幕可跳过）",
+          "hintPosition": "bottom",
+          "skippable": true,
+          "nextDelay": 0
+        },
+        {
+          "id": "S04_tutorial_3",
+          "type": "tutorial",
+          "tutorialAction": "play_collect_animation",
+          "hint": "播放采集动画（主角蹲下，绿色粒子飘散）→ 屏幕右上 +甘草×1 浮字（点击屏幕可跳过）",
+          "hintPosition": "bottom",
+          "skippable": true,
+          "nextDelay": 1000
+        },
+        {
+          "id": "S04_tutorial_4",
+          "type": "tutorial",
+          "tutorialAction": "open_backpack",
+          "hint": "引导：「按 B 键或点击背包图标」查看刚采集的甘草",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S04_005",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "（看着你手中的甘草，微微点头）不错。甘草，味甘性平，归心肺脾胃经。能补脾益气，润肺止咳，调和诸药。",
+          "avatar": "bai_smile.png",
+          "unlockHerb": "gancao",
+          "nextDelay": 500
+        },
+        {
+          "id": "S04_006",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "再来认识一味常用药——菊花。（走向右侧花丛）这便是了。",
+          "avatar": "bai_smile.png",
+          "overlayImage": "juhua_closeup",
+          "nextDelay": 500
+        },
+        {
+          "id": "S04_007",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "thoughtful",
+          "name": "白院长",
+          "text": "菊花，疏散风热、平肝明目。秋日采摘最佳，此时药力最盛。你去采两株回来。",
+          "avatar": "bai_thoughtful.png",
+          "overlayImage": "juhua_closeup",
+          "unlockHerb": "juhua",
+          "nextDelay": 500
+        },
+        {
+          "id": "S04_tutorial_5",
+          "type": "tutorial",
+          "tutorialAction": "collect_juhua",
+          "herbId": "juhua",
+          "requiredCount": 2,
+          "hint": "去采集菊花×2（靠近后按E），进度：0/2",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S04_008",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "serious",
+          "name": "白院长",
+          "text": "（满意地看着你的收获）记住——不同节气，草药药性有别；晨露未干时采摘，效力最佳。这是老夫毕生的经验。",
+          "avatar": "bai_serious.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S04_009",
+          "type": "reward",
+          "items": [
+            { "id": "gancao", "name": "甘草", "count": 1, "icon": "🌿" },
+            { "id": "juhua", "name": "菊花", "count": 2, "icon": "🌼" }
+          ],
+          "nextDelay": 1200
+        },
+        {
+          "id": "S04_010",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "这些草药先收好，日后必有用处。随我来，灵药房还有一样东西要交给你。",
+          "avatar": "bai_smile.png",
+          "nextDelay": 500,
+          "nextScene": "S05"
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "name": "灵药房·灵宠觉醒",
+      "type": "scene",
+      "duration": 200,
+      "background": "yaofang_bg",
+      "bgm": "bgm_spirit.mp3",
+      "steps": [
+        {
+          "id": "S05_001",
+          "type": "narration",
+          "text": "跟随白院长走进灵药房，室内光线柔和，空气中弥漫着一股奇异的草木气息。",
+          "nextDelay": 1500
+        },
+        {
+          "id": "S05_002",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "（走到石台前，指向三枚散发着微光的卵石）这些，是学堂代代相传的灵宠之卵。",
+          "avatar": "bai_smile.png",
+          "overlayImage": "eshi_closeup",
+          "hidePortrait": true,
+          "nextDelay": 500
+        },
+        {
+          "id": "S05_003",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "thoughtful",
+          "name": "白院长",
+          "text": "它们沉睡已久，只在有缘人靠近时才会苏醒。今日你结业，或有一枚与你有缘……上前感受一番吧。",
+          "avatar": "bai_thoughtful.png",
+          "overlayImage": "eshi_closeup",
+          "hidePortrait": true,
+          "nextDelay": 500
+        },
+        {
+          "id": "S05_004",
+          "type": "narration",
+          "text": "（你缓缓走向那三枚卵石。当你的手即将触碰到中间那枚淡绿色卵石的瞬间——）",
+          "nextDelay": 1500
+        },
+        {
+          "id": "S05_pet_select",
+          "type": "pet_selection",
+          "pets": [
+            {
+              "id": "qingmiao",
+              "name": "青苗",
+              "type": "plant",
+              "color": "#4a8c5c",
+              "description": "天赋：感知草木灵气，率先感知草药位置。擅长：寻药、辨药品质。",
+              "available": true
+            },
+            {
+              "id": "dancheng",
+              "name": "丹橙",
+              "type": "fire",
+              "color": "#d47a3a",
+              "description": "天赋：炮制感知，炼制药材时提升成功率。擅长：炮制、制丸。",
+              "available": false,
+              "unavailableText": "暂无缘分"
+            },
+            {
+              "id": "luzhu",
+              "name": "露珠",
+              "type": "water",
+              "color": "#4a7ca8",
+              "description": "天赋：溪涧感知，水边草药产量加成。擅长：溪谷采集、水煎。",
+              "available": false,
+              "unavailableText": "暂无缘分"
+            }
+          ],
+          "nextDelay": 0
+        },
+        {
+          "id": "S05_awakening",
+          "type": "cg",
+          "cgId": "CG_03",
+          "cgConfig": {
+            "image": "cg_03_awakening.png",
+            "fadeInDuration": 800,
+            "animation": "awakening",
+            "petId": "qingmiao"
+          },
+          "nextDelay": 1000
+        },
+        {
+          "id": "S05_005",
+          "type": "narration",
+          "text": "（卵石表面泛起翠绿色的光芒，一道温润的光芒从其中透出——一个小小的身影渐渐浮现。）",
+          "nextDelay": 2000
+        },
+        {
+          "id": "S05_006",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "surprised",
+          "name": "青苗",
+          "text": "（揉着眼睛，迷迷糊糊地坐起）唔……好亮的光……是哪里……？",
+          "avatar": "qingmiao_surprised.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S05_007",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "（猛地睁大眼睛，惊喜地跳起来）呀——！！是主人！主人的气息！青苗……青苗认识主人！！",
+          "avatar": "qingmiao_happy.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S05_008",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "surprised",
+          "name": "青苗",
+          "text": "（绕着你飞了一圈，停在你肩头）青苗等了好久好久！终于等到主人了！以后青苗帮主人找好多好多草药！",
+          "avatar": "qingmiao_surprised.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S05_009",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "（眼中满是欣慰）看来它认准你了。青苗是草木之灵，能感知方圆百里内的药草气息。此行有它在侧，如虎添翼。",
+          "avatar": "bai_smile.png",
+          "setPet": "qingmiao",
+          "nextDelay": 500
+        },
+        {
+          "id": "S05_010",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "（骄傲地挺胸）哼哼！青苗很厉害的！主人去哪青苗就去哪！永远在一起！",
+          "avatar": "qingmiao_happy.png",
+          "nextDelay": 500,
+          "nextScene": "S06"
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "name": "学堂门口·送别与行囊准备",
+      "type": "scene",
+      "duration": 160,
+      "background": "bg_school_gate.png",
+      "bgm": "bgm_school.mp3",
+      "steps": [
+        {
+          "id": "S06_001",
+          "type": "narration",
+          "text": "正准备整理行囊，学堂的杂役小兰气喘吁吁地跑来——",
+          "nextDelay": 1500
+        },
+        {
+          "id": "S06_002",
+          "type": "dialogue",
+          "character": "xiaolan",
+          "expression": "anxious",
+          "name": "小兰",
+          "text": "（上气不接下气）师兄/师姐！等一下！院长让我给你送东西来了！",
+          "avatar": "xiaolan_anxious.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S06_003",
+          "type": "dialogue",
+          "character": "xiaolan",
+          "expression": "grateful",
+          "name": "小兰",
+          "text": "（从身后拿出一个布袋）这是院长为你准备的行医背囊，里面还有两百文铜钱和一封推荐信。",
+          "avatar": "xiaolan_grateful.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S06_004",
+          "type": "narration",
+          "text": "（你接过沉甸甸的背囊，打开一看——整齐的内衬、分格的草药槽，还有夹层里的铜钱和推荐信。）",
+          "nextDelay": 1800
+        },
+        {
+          "id": "S06_005",
+          "type": "reward",
+          "items": [
+            { "id": "backpack", "name": "行医背囊", "description": "容量20格（可升级），采药必备", "icon": "🎒" },
+            { "id": "copper", "name": "铜钱", "count": 200, "description": "路费与药资", "icon": "💰" },
+            { "id": "recommendation", "name": "院长推荐信", "description": "各地药铺、村庄好感度+10", "icon": "📜" },
+            { "id": "herb_guide", "name": "本草基础册", "description": "记录已识别草药的图鉴", "icon": "📖" }
+          ],
+          "nextDelay": 2000
+        },
+        {
+          "id": "S06_006",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "（从肩头探头探脑）哇！好多东西！主人以后采的草药都可以放进去吗？！",
+          "avatar": "qingmiao_happy.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S06_007",
+          "type": "choice",
+          "options": [
+            {
+              "text": "当然，青苗帮主人找的草药都放这里。",
+              "flag": "kind_to_pet",
+              "response": {
+                "character": "qingmiao",
+                "expression": "happy",
+                "name": "青苗",
+                "text": "（开心得转圈圈）嘿嘿！青苗会努力的！找最好最好的草药给主人！",
+                "avatar": "qingmiao_happy.png",
+                "nextDelay": 500,
+                "nextStep": "S06_008"
+              }
+            },
+            {
+              "text": "嗯，不过要先学会辨认哪些是有用的草药。",
+              "flag": "pragmatic",
+              "response": {
+                "character": "qingmiao",
+                "expression": "surprised",
+                "name": "青苗",
+                "text": "（认真点头）青苗懂！青苗会帮主人分辨好的坏的！主人放心！",
+                "avatar": "qingmiao_surprised.png",
+                "nextDelay": 500,
+                "nextStep": "S06_008"
+              }
+            }
+          ]
+        },
+        {
+          "id": "S06_008",
+          "type": "dialogue",
+          "character": "xiaolan",
+          "expression": "anxious",
+          "name": "小兰",
+          "text": "（忽然想起什么，神色紧张）对了！今早翠竹村来了位老婆婆，说村里好多老人都病了，四肢乏力还咳个不停，药铺断货了……",
+          "avatar": "xiaolan_anxious.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S06_009",
+          "type": "dialogue",
+          "character": "xiaolan",
+          "expression": "anxious",
+          "name": "小兰",
+          "text": "院长脚伤走不得，叫我来问问你……说你正好要出门，能不能顺路去瞧瞧……",
+          "avatar": "xiaolan_anxious.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S06_choice2",
+          "type": "choice",
+          "options": [
+            {
+              "text": "翠竹村？我这就去！",
+              "flag": "active",
+              "response": {
+                "character": "xiaolan",
+                "expression": "grateful",
+                "name": "小兰",
+                "text": "（眼眶微红，深深鞠躬）谢谢师兄/师姐！老婆婆一定在等着的……",
+                "avatar": "xiaolan_grateful.png",
+                "nextDelay": 500,
+                "nextStep": "S06_010"
+              }
+            },
+            {
+              "text": "先说说具体病情，我好做准备。",
+              "flag": "cautious",
+              "response": {
+                "character": "xiaolan",
+                "expression": "anxious",
+                "name": "小兰",
+                "text": "（急得跺脚）说是最初几人咳嗽，后来越来越多人病倒，连村医都没办法了……求你快去吧！",
+                "avatar": "xiaolan_anxious.png",
+                "nextDelay": 500,
+                "nextStep": "S06_010"
+              }
+            }
+          ]
+        },
+        {
+          "id": "S06_010",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "serious",
+          "name": "白院长",
+          "text": "（从门口缓步走来，拄着拐杖）孩子，此行翠竹村，为师只嘱一事——先治病，再传道。百草之行，由此始。",
+          "avatar": "bai_serious.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S06_011",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "（目光温和）去吧。为师相信你。记住今日所学，以仁心济世，便是岐黄之道的真谛。",
+          "avatar": "bai_smile.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S06_012",
+          "type": "dialogue",
+          "character": "xiaolan",
+          "expression": "grateful",
+          "name": "小兰",
+          "text": "（挥手，眼中含泪）师兄/师姐一路平安！……记得平安回来啊！",
+          "avatar": "xiaolan_grateful.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S06_013",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "（跳上肩头，兴奋地晃动叶芽）出发啦出发啦！青苗已经感觉到翠竹村方向有好多的……呃，好像也有不好的味道……",
+          "avatar": "qingmiao_happy.png",
+          "nextDelay": 500,
+          "nextScene": "S07"
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "name": "行囊整理·初始物资教程",
+      "type": "tutorial",
+      "duration": 180,
+      "background": "bg_dean_room.png",
+      "bgm": "bgm_school.mp3",
+      "tutorialSteps": [
+        {
+          "id": "S07_001",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "主人主人！背囊能放二十格！以后采的草药都放这里！满了要记得去药铺卖掉哦！",
+          "avatar": "qingmiao_happy.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S07_tutorial_1",
+          "type": "tutorial",
+          "tutorialAction": "open_backpack_tutorial",
+          "hint": "点击右上角 背包按钮 或按 B 键，打开背包",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S07_tutorial_2",
+          "type": "tutorial",
+          "tutorialAction": "highlight_herb_info",
+          "herbId": "gancao",
+          "hint": "点击「甘草」格子——右侧显示 图鉴详情（性味归经、功效、科普故事）",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S07_tutorial_3",
+          "type": "tutorial",
+          "tutorialAction": "open_herb_pedia",
+          "hint": "点击右上角 图鉴按钮，可看到所有草药的解锁/未解锁状态",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S07_tutorial_4",
+          "type": "tutorial",
+          "tutorialAction": "close_backpack",
+          "hint": "关闭背包（ESC 或再按 B），准备出发",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S07_002",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "（指着本草基础册）这个册子！青苗也认识！甘草、菊花、薄荷……青苗都能感觉到它们在哪里！",
+          "avatar": "qingmiao_happy.png",
+          "unlockItem": "herb_guide",
+          "nextDelay": 500,
+          "nextScene": "S08"
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "name": "炮制间·炮制教程（可选）",
+      "type": "tutorial",
+      "duration": 240,
+      "background": "bg_processing_room.png",
+      "bgm": "bgm_school.mp3",
+      "skippable": true,
+      "steps": [
+        {
+          "id": "S08_001",
+          "type": "narration",
+          "text": "出发前，白院长引你到炮制间——",
+          "nextDelay": 1500
+        },
+        {
+          "id": "S08_002",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "采来的草药，大多不能直接入药。晾晒、碾磨，乃最基础的炮制。你在此试一试，然后便可上路了。",
+          "avatar": "bai_smile.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "S08_choice_skip",
+          "type": "choice",
+          "options": [
+            {
+              "text": "（开始炮制教程）",
+              "next": "S08_tutorial_start",
+              "flag": "do_tutorial"
+            },
+            {
+              "text": "（暂且跳过，以后再说）",
+              "next": "S08_skip",
+              "flag": "skip_tutorial"
+            }
+          ]
+        },
+        {
+          "id": "S08_tutorial_start",
+          "type": "tutorial",
+          "tutorialAction": "sun_drying",
+          "hint": "走近晒药台，按 E 键，打开晾晒界面",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S08_tutorial_2",
+          "type": "tutorial",
+          "tutorialAction": "drag_herb_to_tray",
+          "herbId": "juhua",
+          "hint": "将背包中的「菊花」拖拽至竹匾格子，点击「开始晾晒」",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S08_tutorial_3",
+          "type": "tutorial",
+          "tutorialAction": "wait_drying",
+          "hint": "等待进度条完成（教程中加速为3秒），获得「晒菊花」",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S08_tutorial_4",
+          "type": "tutorial",
+          "tutorialAction": "grind_herb",
+          "herbId": "gancao",
+          "hint": "走近药碾子，按 E ，进行碾磨操作（鼠标拖动）",
+          "hintPosition": "bottom",
+          "nextDelay": 0
+        },
+        {
+          "id": "S08_tutorial_5",
+          "type": "tutorial",
+          "tutorialAction": "complete_grinding",
+          "hint": "获得「甘草粉×1」——完成炮制教程",
+          "hintPosition": "bottom",
+          "nextDelay": 1000
+        },
+        {
+          "id": "S08_003",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "（欣慰）好。炮制之道，学无止境，此行你定能领悟更多。去吧。",
+          "avatar": "bai_smile.png",
+          "nextDelay": 500,
+          "nextStep": "S08_004"
+        },
+        {
+          "id": "S08_skip",
+          "type": "dialogue",
+          "character": "bai",
+          "expression": "smile",
+          "name": "白院长",
+          "text": "（微笑）也罢，你自有分寸。记得日后遇到炮制台，再来细细琢磨。去吧。",
+          "avatar": "bai_smile.png",
+          "setFlag": "tutorialSkipped.craft",
+          "nextDelay": 500,
+          "nextStep": "S08_004"
+        },
+        {
+          "id": "S08_004",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "出发！出发！青苗已经感觉到翠竹村方向有好多草药了！快走快走！",
+          "avatar": "qingmiao_happy.png",
+          "nextDelay": 500,
+          "nextScene": "S09"
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "name": "学堂南门·踏上旅途",
+      "type": "cg",
+      "duration": 120,
+      "cgId": "CG_04",
+      "cgConfig": {
+        "image": "cg_04_departure.png",
+        "fadeInDuration": 1000,
+        "kenBurns": {
+          "enabled": true,
+          "direction": "zoom-in",
+          "duration": 3000
+        },
+        "bgm": "bgm_journey.mp3",
+        "bgmFadeOut": "bgm_school.mp3",
+        "bgmFadeOutDuration": 2000
+      },
+      "steps": [
+        {
+          "id": "S09_001",
+          "type": "cg_display",
+          "cgId": "CG_04",
+          "text": "背着满满的行囊，带着白院长的嘱托，还有肩头这只充满好奇的小家伙——",
+          "textDelay": 1000,
+          "nextDelay": 2000
+        },
+        {
+          "id": "S09_002",
+          "type": "narration",
+          "text": "你迈出了学堂的大门。",
+          "nextDelay": 2000
+        },
+        {
+          "id": "S09_003",
+          "type": "narration",
+          "text": "前方的路有多远，你不知道。",
+          "nextDelay": 2000
+        },
+        {
+          "id": "S09_004",
+          "type": "narration",
+          "text": "但那些等待着草药、等待着医者的人们，你已经在路上了。",
+          "textColor": "#f0e8d4",
+          "nextDelay": 2000
+        },
+        {
+          "id": "S09_005",
+          "type": "title_card",
+          "text": "——百草行，开始了。",
+          "textColor": "#f0e8d4",
+          "bgColor": "#000000",
+          "duration": 2000,
+          "nextDelay": 1500
+        },
+        {
+          "id": "S09_reward",
+          "type": "reward",
+          "items": [
+            {
+              "id": "achievement",
+              "name": "成就解锁",
+              "description": "「百草行者」",
+              "icon": "🏆"
+            },
+            {
+              "id": "reputation",
+              "name": "声望",
+              "count": 10,
+              "description": "（学堂毕业生）",
+              "icon": "⭐"
+            },
+            {
+              "id": "map_cuizhu",
+              "name": "翠竹村地图",
+              "description": "解锁",
+              "icon": "🗺"
+            }
+          ],
+          "nextDelay": 1500
+        },
+        {
+          "id": "S09_end",
+          "type": "end",
+          "nextScene": "GameScene",
+          "fadeOutDuration": 1500,
+          "unlockSystems": [
+            "pet_follow",
+            "herb_collection",
+            "backpack_system",
+            "map_travel"
+          ]
+        }
+      ]
+    }
+  ]
+}
