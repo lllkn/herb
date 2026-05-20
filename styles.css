@@ -57,7 +57,7 @@ body {
 
 #loading-screen h1 {
     font-family: 'Ma Shan Zheng', cursive, sans-serif;
-    font-size: 80px;
+    font-size: 120px;
     color: #D4A857;
     margin-bottom: 10px;
     text-shadow: 
@@ -477,6 +477,17 @@ body {
     color: #fff;
 }
 
+/* 子分类标签（根茎/花叶等，略小） */
+.tag.sub-tag {
+    padding: 4px 10px;
+    font-size: 12px;
+    background: #f0e4d0;
+}
+
+.tag.sub-tag.active {
+    background: #c49a6c;
+}
+
 /* 物品格子（5列网格）*/
 .item-grid {
     display: grid;
@@ -523,6 +534,21 @@ body {
     transform: none;
     box-shadow: none;
     border-color: #d4b89a;
+}
+
+/* 物资类型角标（区分草药和物资） */
+.type-badge {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    font-size: 9px;
+    padding: 0 4px;
+    border-radius: 4px;
+    background: #c49a6c;
+    color: #fff;
+    font-weight: bold;
+    line-height: 14px;
+    z-index: 2;
 }
 
 .item-icon-emoji {
@@ -1373,4 +1399,313 @@ body {
 
 .settings-body::-webkit-scrollbar-thumb:hover {
     background: #6a8a42;
+}
+
+/* ==================== 《本草情籍》属性面板（国风卷轴风格） ==================== */
+
+.attr-modal {
+    width: 780px;
+    max-height: 560px;
+    background: linear-gradient(135deg, #2a1f0e 0%, #3d2c14 50%, #2a1f0e 100%);
+    border: 3px solid #8b6914;
+    border-radius: 12px;
+    box-shadow:
+        0 0 30px rgba(139, 105, 20, 0.3),
+        inset 0 0 60px rgba(0, 0, 0, 0.4);
+}
+
+.attr-header {
+    background: linear-gradient(90deg, #4a3520 0%, #6b4a28 50%, #4a3520 100%);
+    border-bottom: 2px solid #8b6914;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+}
+
+.attr-title {
+    font-size: 20px;
+    color: #f0d890 !important;
+    margin: 0 !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    font-family: 'KaiTi', 'STKaiti', 'SimSun', serif;
+    letter-spacing: 3px;
+}
+
+.attr-subtitle {
+    font-size: 13px;
+    color: #c4a060;
+    letter-spacing: 2px;
+}
+
+.attr-main {
+    display: flex;
+    gap: 0;
+    min-height: 360px;
+}
+
+/* 左侧：属性列表 */
+.attr-left {
+    flex: 1;
+    border-right: 1px solid #5a4020;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+    overflow: hidden;
+}
+
+#attr-category-tags {
+    padding: 0 12px 8px;
+    border-bottom: 1px dashed #5a4020;
+    margin-bottom: 8px;
+}
+
+#attr-category-tags .tag {
+    font-size: 12px;
+    padding: 4px 10px;
+}
+
+/* 属性列表区域 */
+.attr-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.attr-list::-webkit-scrollbar { width: 4px; }
+.attr-list::-webkit-scrollbar-track { background: transparent; }
+.attr-list::-webkit-scrollbar-thumb { background: #6a5030; border-radius: 2px; }
+
+/* 单个属性卡片 */
+.attr-card {
+    background: linear-gradient(135deg, rgba(60,45,25,0.9) 0%, rgba(45,33,18,0.9) 100%);
+    border: 1px solid #5a4020;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.attr-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--attr-color, #8b7355);
+    opacity: 0.6;
+    transition: opacity 0.25s;
+}
+
+.attr-card:hover {
+    border-color: #8b6914;
+    background: linear-gradient(135deg, rgba(75,55,30,0.95) 0%, rgba(55,40,22,0.95) 100%);
+    transform: translateX(3px);
+    box-shadow: 0 2px 12px rgba(139,105,20,0.15);
+}
+
+.attr-card.selected {
+    border-color: #c4a030;
+    background: linear-gradient(135deg, rgba(90,65,30,0.95) 0%, rgba(65,48,24,0.95) 100%);
+    box-shadow: 0 0 16px rgba(196,160,48,0.15);
+}
+
+.attr-card.selected::before { opacity: 1; }
+
+/* 属性图标 */
+.attr-icon {
+    font-size: 26px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+/* 属性名称和数值区 */
+.attr-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.attr-name-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.attr-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #e8d8b8;
+}
+
+.attr-value {
+    font-size: 16px;
+    font-weight: bold;
+    color: #f0d890;
+    font-family: 'Consolas', monospace;
+}
+
+.attr-desc {
+    font-size: 11px;
+    color: #a08868;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 进度条 */
+.attr-bar-wrap {
+    width: 100%;
+    height: 5px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+}
+
+.attr-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--attr-color, #8b7355), var(--attr-color-light, #c4a870));
+    transition: width 0.5s ease;
+    position: relative;
+}
+
+.attr-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+    animation: attr-bar-shine 2s infinite;
+}
+
+@keyframes attr-bar-shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+}
+
+/* 分类颜色变量 */
+.attr-card[data-cat="medical"] { --attr-color: #4a9a6a; --attr-color-light: #7acaa0; }
+.attr-card[data-cat="social"]   { --attr-color: #c49a30; --attr-color-light: #e8c860; }
+.attr-card[data-cat="special"] { --attr-color: #8a6ac4; --attr-color-light: #b09ae8; }
+
+/* 右侧：详情面板 */
+.attr-right {
+    width: 300px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    background: rgba(0,0,0,0.15);
+}
+
+#attr-detail-title {
+    font-size: 17px;
+    font-weight: bold;
+    color: #f0d890;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #5a4020;
+    font-family: 'KaiTi', 'STKaiti', serif;
+}
+
+#attr-detail-body {
+    flex: 1;
+    overflow-y: auto;
+    color: #c4b090;
+    font-size: 13px;
+    line-height: 1.85;
+}
+
+#attr-detail-body::-webkit-scrollbar { width: 3px; }
+#attr-detail-body::-webkit-scrollbar-track { background: transparent; }
+#attr-detail-body::-webkit-scrollbar-thumb { background: #5a4020; border-radius: 2px; }
+
+.attr-detail-section {
+    margin-bottom: 12px;
+}
+
+.attr-detail-label {
+    color: #e8d080;
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.attr-detail-text {
+    color: #c4b090;
+    font-size: 13px;
+}
+
+.attr-growth-rule {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: rgba(74,154,106,0.1);
+    border: 1px solid rgba(74,154,106,0.25);
+    border-radius: 6px;
+    font-size: 12px;
+    color: #7acaa0;
+}
+
+.attr-growth-rule .rule-label {
+    color: #7acaa0;
+    font-weight: bold;
+}
+
+/* 底部总评 */
+.attr-bottom {
+    padding: 10px 20px;
+    border-top: 2px solid #5a4020;
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: center;
+}
+
+.attr-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.summary-label {
+    color: #c4a060;
+    font-size: 14px;
+    font-family: 'KaiTi', 'STKaiti', serif;
+}
+
+.summary-rank {
+    font-size: 16px;
+    font-weight: bold;
+    color: #f0d890;
+    font-family: 'KaiTi', 'STKaiti', serif;
+    letter-spacing: 2px;
+}
+
+.summary-level {
+    font-size: 12px;
+    color: #8b7355;
+    background: rgba(139,115,85,0.2);
+    padding: 2px 10px;
+    border-radius: 10px;
+    border: 1px solid #5a4428;
+}
+
+.summary-desc {
+    font-size: 11px;
+    color: #a08060;
+    margin-left: 8px;
+    letter-spacing: 1px;
 }

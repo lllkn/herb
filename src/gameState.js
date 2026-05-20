@@ -15,10 +15,16 @@ class GameStateManager {
         this.state = {
             // 背包系统：{ herbId: count }
             backpack: {},
-            
+
+            // 物资/道具库存：{ itemId: count }（非草药类物品）
+            inventory: {},
+
+            // 铜钱数量
+            copper: 0,
+
             // 已解锁图鉴的草药ID列表
             unlockedHerbs: [],
-            
+
             // 总采集数量统计
             collectedCount: 0,
             
@@ -38,7 +44,10 @@ class GameStateManager {
             debugMode: false,
 
             // 游戏是否已开始
-            isGameStarted: false
+            isGameStarted: false,
+
+            // 《本草情籍》属性数值：{ attrId: value }
+            attributes: {}
         };
     }
 
@@ -183,6 +192,66 @@ class GameStateManager {
     }
 
     /**
+     * 初始化所有属性为初始值（序章结束时调用）
+     */
+    initAttributes() {
+        const ATTRIBUTES_DATA = window.GameData?.ATTRIBUTES_DATA || [];
+        this.state.attributes = {};
+        ATTRIBUTES_DATA.forEach(attr => {
+            this.state.attributes[attr.id] = attr.initialValue;
+        });
+        console.log('GameState: 属性已初始化', { ...this.state.attributes });
+    }
+
+    /**
+     * 获取指定属性的当前值
+     * @param {string} attrId - 属性ID
+     * @returns {number} 当前值（未初始化返回0）
+     */
+    getAttribute(attrId) {
+        return this.state.attributes[attrId] || 0;
+    }
+
+    /**
+     * 设置属性值（直接赋值，不超过最大值）
+     * @param {string} attrId - 属性ID
+     * @param {number} value - 目标值
+     * @returns {number} 实际设置后的值
+     */
+    setAttribute(attrId, value) {
+        const ATTRIBUTES_DATA = window.GameData?.ATTRIBUTES_DATA || [];
+        const def = ATTRIBUTES_DATA.find(a => a.id === attrId);
+        const maxVal = def ? def.maxValue : 999;
+        this.state.attributes[attrId] = Math.max(0, Math.min(value, maxVal));
+        return this.state.attributes[attrId];
+    }
+
+    /**
+     * 增加属性值（增量方式，用于剧情奖励等场景）
+     * @param {string} attrId - 属性ID
+     * @param {number} delta - 增量（可正可负）
+     * @returns {number} 增加后的实际值
+     */
+    addAttribute(attrId, delta) {
+        const current = this.getAttribute(attrId);
+        return this.setAttribute(attrId, current + delta);
+    }
+
+    /**
+     * 批量增加属性值（剧情奖励常用）
+     * @param {Array<{id:string, delta:number}>} changes - 变更数组 [{id:'reputation', delta:10}, ...]
+     */
+    batchAddAttributes(changes) {
+        if (!Array.isArray(changes)) return;
+        changes.forEach(change => {
+            if (change.id && typeof change.delta === 'number') {
+                this.addAttribute(change.id, change.delta);
+            }
+        });
+        console.log('GameState: 批量属性更新完成', { ...this.state.attributes });
+    }
+
+    /**
      * 序列化保存状态（可用于存档）
      * @returns {string} JSON字符串
      */
@@ -210,3 +279,70 @@ window.gameStateManager = new GameStateManager();
 
 // 向后兼容的快捷访问
 window.gameState = window.gameStateManager.state;
+
+// ==================== 剧情脚本便捷接口（全局函数）====================
+
+/**
+ * 【剧情脚本专用】增加主角属性值
+ * 用法: GameAttr.add('reputation', 15);
+ * @param {string} attrId - 属性ID（如 'herb_knowledge', 'gathering' 等）
+ * @param {number} delta - 增加量（可正可负，负数表示减少）
+ * @returns {number} 变更后的实际值
+ */
+window.GameAttr = {
+    /** 增加单个属性 */
+    add(attrId, delta) {
+        if (!window.gameStateManager) {
+            console.warn('GameAttr: gameStateManager 未初始化');
+            return 0;
+        }
+        return window.gameStateManager.addAttribute(attrId, delta);
+    },
+
+    /** 批量增加属性（剧情奖励推荐使用此方法）
+     * @param {...{id:string, delta:number}} changes - 属性变更列表
+     * 例: GameAttr.addMany(
+     *     { id: 'reputation', delta: 15 },
+     *     { id: 'diagnosis', delta: 8 },
+     *     { id: 'herb_knowledge', delta: 5 }
+     * );
+     */
+    addMany(...changes) {
+        if (!window.gameStateManager) return;
+        window.gameStateManager.batchAddAttributes(changes);
+        console.log('[GameAttr] 剧情属性更新:', changes);
+    },
+
+    /** 获取当前属性值 */
+    get(attrId) {
+        if (!window.gameStateManager) return 0;
+        return window.gameStateManager.getAttribute(attrId);
+    },
+
+    /** 设置属性为指定值（不超过最大值） */
+    set(attrId, value) {
+        if (!window.gameStateManager) return 0;
+        return window.gameStateManager.setAttribute(attrId, value);
+    },
+
+    /**
+     * 获取所有属性的当前值快照
+     * @returns {Object} { herb_knowledge: 23, gathering: 30, ... }
+     */
+    getAll() {
+        if (!window.gameStateManager) return {};
+        return { ...window.gameStateManager.state.attributes };
+    },
+
+    /**
+     * 刷新UI显示（属性变更后调用，可选）
+     * 通常不需要手动调用，打开弹窗时自动刷新
+     */
+    refreshUI() {
+        if (window.uiManager?.updateAttributesUI) {
+            window.uiManager.updateAttributesUI();
+        }
+    }
+};
+
+console.log('[GameAttr] 全局属性接口已就绪，用法: GameAttr.add("reputation", 10)');

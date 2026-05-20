@@ -12,7 +12,6 @@
     <!-- ==================== 加载界面 ==================== -->
     <div id="loading-screen">
         <h1>百草行</h1>
-        <p>中医药文化解谜游戏</p>
         <div id="progress-bar">
             <div id="progress-fill"></div>
         </div>
@@ -55,8 +54,9 @@
         <!-- 顶部右侧功能按钮 -->
         <div id="top-right-buttons">
             <button class="func-btn" data-modal="backpack">🎒 背包</button>
-            <button class="func-btn" data-modal="herb-guide">📖 图谱</button>
-            <button class="func-btn" data-modal="medicine-shop">💊 药铺</button>
+            <button class="func-btn" data-modal="herb-guide">📖 图鉴</button>
+            <button class="func-btn" data-modal="attributes">📜 情籍</button>
+            <button class="func-btn" data-modal="medicine-shop">💊 药斋</button>
             <button class="func-btn" data-modal="settings">⚙️ 设置</button>
         </div>
 
@@ -118,18 +118,21 @@
                 <div class="bag-left">
                     <!-- 分类标签 -->
                     <div class="tag-list" id="category-tags">
-                        <button class="tag active" data-category="all">全部药材</button>
-                        <button class="tag" data-category="root">根茎类</button>
-                        <button class="tag" data-category="flower">花叶类</button>
-                        <button class="tag" data-category="fruit">果实类</button>
-                        <button class="tag" data-category="mineral">矿石类</button>
-                        <button class="tag" data-category="pet">灵宠道具</button>
+                        <button class="tag active" data-category="all">全部物品</button>
+                        <button class="tag" data-category="herb_all">🌿 全部药材</button>
+                        <button class="tag sub-tag" data-category="root">根茎类</button>
+                        <button class="tag sub-tag" data-category="flower">花叶类</button>
+                        <button class="tag sub-tag" data-category="fruit">果实类</button>
+                        <button class="tag sub-tag" data-category="mineral">矿石类</button>
+                        <button class="tag" data-category="supplies">🎒 物资</button>
+                        <button class="tag" data-category="documents">📜 文书</button>
+                        <button class="tag" data-category="special">✨ 特殊</button>
                     </div>
                     
                     <!-- 空背包提示 -->
                     <div id="backpack-content">
                         <p style="text-align:center;color:#916c44;margin-top:80px;font-size:16px;">
-                            🌱 药篓空空如也<br><span style="font-size:13px;color:#b89a7a;">快去山野间采集草药吧！</span>
+                            🌱 药篓空空如也<br><span style="font-size:13px;color:#b89a7a;">快去山野间采集草药、收集物资吧！</span>
                         </p>
                     </div>
                     
@@ -195,15 +198,60 @@
             </div>
         </div>
 
+        <!-- 《本草情籍》属性弹窗（国风卷轴风格） -->
+        <div id="attributes-modal" class="modal attr-modal">
+            <div class="modal-header attr-header">
+                <h2 class="attr-title">📜 本草情籍</h2>
+                <div class="attr-subtitle">医者之路 · 步履记录</div>
+                <button class="modal-close">✕</button>
+            </div>
+
+            <div class="attr-main">
+                <!-- 左侧：分类标签 + 属性列表 -->
+                <div class="attr-left">
+                    <!-- 分类标签 -->
+                    <div class="tag-list" id="attr-category-tags">
+                        <button class="tag active" data-attr-category="all">📖 全部属性</button>
+                        <button class="tag" data-attr-category="medical">💊 医术能力</button>
+                        <button class="tag" data-attr-category="social">⭐ 声望交际</button>
+                        <button class="tag" data-attr-category="special">✨ 特殊天赋</button>
+                    </div>
+
+                    <!-- 属性卡片列表 -->
+                    <div id="attr-list" class="attr-list"></div>
+                </div>
+
+                <!-- 右侧：属性详情面板 -->
+                <div class="attr-right">
+                    <div class="detail-title" id="attr-detail-title">选择属性查看详情</div>
+                    <div id="attr-detail-body">
+                        <p style="text-align:center;color:#c4b5a0;padding:30px 0;line-height:1.8;">
+                            点击左侧属性<br>查看详细说明<br><br><span style="font-size:12px;color:#a08060;">每一次行医、每一味草药<br>都在书写你的本草情籍</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部总评 -->
+            <div class="attr-bottom">
+                <div class="attr-summary">
+                    <span class="summary-label">📊 综合评价：</span>
+                    <span class="summary-rank" id="attr-rank">初入医途</span>
+                    <span class="summary-level" id="attr-total-level">Lv.1</span>
+                    <span class="summary-desc" id="attr-rank-desc"></span>
+                </div>
+            </div>
+        </div>
+
         <!-- 药铺弹窗 -->
         <div id="medicine-shop-modal" class="modal">
             <div class="modal-header">
-                <h2>💊 药铺</h2>
+                <h2>💊 药斋</h2>
                 <button class="modal-close">✕</button>
             </div>
             <div class="modal-body">
                 <p style="text-align: center; color: #8b7355; margin-top: 50px; font-size: 18px;">
-                    🏪 药铺界面<br><br>
+                    🏪 药斋界面<br><br>
                     <span style="font-size: 14px;">此处将展示药材购买、处方配制药能</span>
                 </p>
             </div>

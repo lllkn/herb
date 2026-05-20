@@ -37,6 +37,18 @@ class IntroScene extends Phaser.Scene {
         // 角色立绘（全身体像）
         this.characterPortrait = null;
 
+        // 当前立绘角色（用于避免连续多幕重复播放出现特效）
+        this._currentPortraitCharacter = null;
+
+        // 当前特写图片key（用于避免连续多幕重复播放出现动画）
+        this._currentOverlayImageKey = null;
+
+        // 弹窗已关闭但教程待确认的标记（用于背包/图鉴交互）
+        this._modalClosedPendingConfirm = false;
+
+        // 背景色覆盖激活标记（用于信纸等场景结束后恢复原图）
+        this._bgColorOverrideActive = false;
+
         // 背景
         this.bgImage = null;
         this.bgMusic = null;
@@ -125,6 +137,12 @@ class IntroScene extends Phaser.Scene {
         // 加载师傅立绘（全身体像）- PNG透明背景版本
         this.load.image('bai_standing', 'src/assets/picture/师傅立绘1.png');
 
+        // 加载小兰立绘（全身体像）
+        this.load.image('xiaolan_standing', 'src/assets/picture/小兰.png');
+
+        // 加载灵宠立绘
+        this.load.image('lingchong_portrait', 'src/assets/picture/灵宠.png');
+
         // 加载青苗精灵图（用于粒子效果）
         this.load.image('pet_qingmiao', 'src/assets/pictures/characters/pet_qingmiao.png');
     }
@@ -155,6 +173,16 @@ class IntroScene extends Phaser.Scene {
         // 加载药房专用图片
         this.load.image('yaofang_bg', 'src/assets/picture/药房.png');
         this.load.image('eshi_closeup', 'src/assets/picture/鹅卵石特写.png');
+
+        // 加载学堂门口背景
+        this.load.image('xuetang_menkou', 'src/assets/picture/学堂门口.png');
+
+        // 加载炮制间专用背景
+        this.load.image('paozhijian_bg', 'src/assets/picture/炮制间.png');
+        this.load.image('guodao_bg', 'src/assets/picture/过道.png');
+
+        // 加载内室背景
+        this.load.image('neishi_bg', 'src/assets/picture/内室.png');
     }
 
     /**
@@ -260,32 +288,34 @@ class IntroScene extends Phaser.Scene {
         // 对话框容器
         this.dialogBox = this.add.container(0, 0).setDepth(10).setVisible(false);
 
-        // 对话框背景
+        // 对话框背景（宽度缩至3/4）
+        const dialogW = Math.floor((width - 100) * 3 / 4);
+        const dialogX = Math.floor((width - dialogW) / 2);
         const dialogBg = this.add.graphics();
         dialogBg.fillStyle(0x000000, 0.85);
-        dialogBg.fillRoundedRect(50, height - 250, width - 100, 200, 16);
+        dialogBg.fillRoundedRect(dialogX, height - 250, dialogW, 200, 16);
         dialogBg.lineStyle(3, 0x8b7355, 1);
-        dialogBg.strokeRoundedRect(50, height - 250, width - 100, 200, 16);
+        dialogBg.strokeRoundedRect(dialogX, height - 250, dialogW, 200, 16);
         this.dialogBox.add(dialogBg);
 
-        // 头像框
+        // 头像框（紧贴对话框内左侧）
         const avatarBg = this.add.graphics();
         avatarBg.fillStyle(0x8b7355, 1);
-        avatarBg.fillRoundedRect(70, height - 230, 80, 80, 8);
+        avatarBg.fillRoundedRect(dialogX + 16, height - 234, 76, 76, 8);
         avatarBg.lineStyle(2, 0xffffff, 0.5);
-        avatarBg.strokeRoundedRect(70, height - 230, 80, 80, 8);
+        avatarBg.strokeRoundedRect(dialogX + 16, height - 234, 76, 76, 8);
         this.dialogBox.add(avatarBg);
 
-        // 头像精灵
-        this.avatarSprite = this.add.text(110, height - 190, '', {
+        // 头像精灵（居中于头像框内）
+        this.avatarSprite = this.add.text(dialogX + 54, height - 196, '', {
             fontSize: '36px',
             color: '#ffffff',
             fontStyle: 'bold'
         }).setOrigin(0.5).setDepth(11);
         this.dialogBox.add(this.avatarSprite);
 
-        // 名称文本
-        this.nameText = this.add.text(170, height - 230, '', {
+        // 名称文本（在头像框右侧，与顶部对齐）
+        this.nameText = this.add.text(dialogX + 108, height - 230, '', {
             fontSize: '26px',
             color: '#ffcc00',
             fontStyle: 'bold',
@@ -293,11 +323,11 @@ class IntroScene extends Phaser.Scene {
         }).setDepth(11);
         this.dialogBox.add(this.nameText);
 
-        // 内容文本
-        this.contentText = this.add.text(170, height - 200, '', {
+        // 内容文本（在名称下方，wordWrap宽度适配缩小的对话框）
+        this.contentText = this.add.text(dialogX + 108, height - 198, '', {
             fontSize: '24px',
             color: '#ffffff',
-            wordWrap: { width: width - 280, useAdvancedWrap: true },
+            wordWrap: { width: dialogW - 168, useAdvancedWrap: true },
             lineSpacing: 8,
             fontFamily: '"FangSong", "KaiTi", "STFangsong", "STKaiti", serif'
         }).setDepth(11);
@@ -386,6 +416,26 @@ class IntroScene extends Phaser.Scene {
             this.overlayBorder = null;
         }
 
+        // 隐藏旁白文本（防止信纸等文字残留在新场景）
+        if (this.narrationText) {
+            this.narrationText.setVisible(false);
+        }
+
+        // 销毁CG旁白文本（防止CG文字残留到后续步骤/场景）
+        if (this._cgNarrationBox) {
+            this._cgNarrationBox.destroy();
+            this._cgNarrationBox = null;
+        }
+
+        // 隐藏角色立绘（场景切换时必须清除旧立绘）
+        this._hideCharacterPortrait();
+
+        // 清除立绘角色记录（新场景需要重新播放出现动画）
+        this._currentPortraitCharacter = null;
+
+        // 清除特写记录（新场景需要重新播放出现动画）
+        this._currentOverlayImageKey = null;
+
         this.currentSceneIndex = sceneIndex;
         const scene = this.prologueData.scenes[sceneIndex];
         this.currentSteps = scene.steps || [];
@@ -435,6 +485,46 @@ class IntroScene extends Phaser.Scene {
     }
 
     /**
+     * 应用步骤级别的背景覆盖（用于场景中途的过场切换）
+     * @param {string} backgroundKey - 背景图片key（不含.png后缀）
+     */
+    _applyBackgroundOverride(backgroundKey) {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        // 清除旧背景
+        if (this.bgImage) {
+            this.bgImage.destroy();
+            this.bgImage = null;
+        }
+
+        // 检查纹理是否存在
+        const textureKey = backgroundKey.replace('.png', '');
+        if (this.textures.exists(textureKey)) {
+            this.bgImage = this.add.image(width / 2, height / 2, textureKey)
+                .setDisplaySize(width, height)
+                .setDepth(0)
+                .setAlpha(0);
+
+            // 淡入新背景
+            this.tweens.add({
+                targets: this.bgImage,
+                alpha: 1,
+                duration: 600,
+                ease: 'Power2Out'
+            });
+
+            console.log('IntroScene: 背景已切换为', textureKey);
+        } else {
+            console.warn('IntroScene: 背景覆盖图片不存在', textureKey);
+            // 使用默认背景色
+            this.bgImage = this.add.rectangle(0, 0, width, height, 0x1a2a1a)
+                .setOrigin(0, 0)
+                .setDepth(0);
+        }
+    }
+
+    /**
      * 设置BGM
      * @param {Object} scene - 场景数据
      */
@@ -471,6 +561,18 @@ class IntroScene extends Phaser.Scene {
                 break;
             case 'tutorial':
                 this._showTutorial(step);
+                break;
+            case 'stepAlias':
+                // 步骤别名：跳转到指定步骤ID（用于多分支汇聚）
+                if (step.aliasTo) {
+                    const targetStep = this._findStepById(step.aliasTo);
+                    if (targetStep) {
+                        this.currentStepIndex = this.currentSteps.indexOf(targetStep);
+                        this._executeStep();
+                        return;
+                    }
+                }
+                this._nextStep();
                 break;
             case 'cg':
             case 'cg_display':
@@ -509,6 +611,12 @@ class IntroScene extends Phaser.Scene {
         // 隐藏特写图片和角色立绘
         this._hideOverlayImage();
         this._hideCharacterPortrait();
+
+        // 支持步骤级别的背景覆盖（用于过场切换）
+        if (step.backgroundOverride) {
+            this._applyBackgroundOverride(step.backgroundOverride);
+        }
+
         const currentScene = this.prologueData.scenes[this.currentSceneIndex];
         const hasBackgroundImage = currentScene && currentScene.background;
 
@@ -536,12 +644,22 @@ class IntroScene extends Phaser.Scene {
             };
         }
 
-        // 设置背景色（S01黑屏专用）
+        // 设置背景色（用于信纸等特殊场景）
         if (step.bgColor) {
             const color = parseInt(step.bgColor.replace('#', '0x'));
+            const width = this.cameras.main.width;
+            const height = this.cameras.main.height;
+
             if (this.bgImage) {
-                this.bgImage.setFillStyle(color);
+                this.bgImage.destroy();
             }
+
+            this.bgImage = this.add.rectangle(0, 0, width, height, color)
+                .setOrigin(0, 0)
+                .setDepth(0);
+
+            // 标记：下一步需恢复原图背景
+            this._bgColorOverrideActive = true;
         }
 
         // 打字机效果（输出到居中文本）
@@ -830,13 +948,24 @@ class IntroScene extends Phaser.Scene {
             // 打开背包弹窗
             window.uiManager.openModal('backpack-modal');
 
-            // 监听关闭事件，关闭后继续剧情
+            // 监听关闭事件：关闭后恢复对话框，等待玩家再点一次确认
             this._setupModalCloseCallback(() => {
-                console.log('IntroScene: 背包已关闭，继续剧情');
-                this._onTutorialComplete(step);
+                console.log('IntroScene: 背包已关闭，等待玩家点击确认');
+                this._modalClosedPendingConfirm = true;
+
+                // 隐藏UI元素（恢复序章隐藏状态）
+                const buttons = document.getElementById('top-right-buttons');
+                if (buttons) {
+                    buttons.style.display = 'none';
+                }
+
+                // 恢复对话框显示（让玩家看到"点击继续"提示）
+                this.dialogBox.setVisible(true);
+                this.waitingForInput = true;
+                this._showContinueHint(true);
             });
 
-            return; // 不自动完成，等待玩家关闭背包
+            return; // 不自动完成，等待玩家关闭背包后再点一次
         }
 
         // 如果uiManager不存在，直接完成
@@ -887,13 +1016,24 @@ class IntroScene extends Phaser.Scene {
             // 打开图鉴弹窗
             window.uiManager.openModal('herb-guide-modal');
 
-            // 监听关闭事件，关闭后继续剧情
+            // 监听关闭事件：关闭后恢复对话框，等待玩家再点一次确认
             this._setupModalCloseCallback(() => {
-                console.log('IntroScene: 图鉴已关闭，继续剧情');
-                this._onTutorialComplete(step);
+                console.log('IntroScene: 图鉴已关闭，等待玩家点击确认');
+                this._modalClosedPendingConfirm = true;
+
+                // 隐藏UI元素（恢复序章隐藏状态）
+                const buttons = document.getElementById('top-right-buttons');
+                if (buttons) {
+                    buttons.style.display = 'none';
+                }
+
+                // 恢复对话框显示（让玩家看到"点击继续"提示）
+                this.dialogBox.setVisible(true);
+                this.waitingForInput = true;
+                this._showContinueHint(true);
             });
 
-            return; // 不自动完成，等待玩家关闭图鉴
+            return; // 不自动完成，等待玩家关闭图鉴后再点一次
         }
 
         // 如果uiManager不存在，直接完成
@@ -982,6 +1122,43 @@ class IntroScene extends Phaser.Scene {
      * 教程点击回调
      */
     _onTutorialClick() {
+        // 优先检查：弹窗已关闭，等待玩家点击确认完成教程
+        if (this._modalClosedPendingConfirm) {
+            console.log('IntroScene: 玩家确认完成（弹窗已关闭后点击）');
+            this._modalClosedPendingConfirm = false;
+            this._onTutorialComplete(this._currentTutorialStep);
+            return;
+        }
+
+        // 主动检测：背包/图鉴弹窗是否已被用户手动关闭
+        // （兼容 MutationObserver 未及时触发的边界情况）
+        if (this._currentTutorialStep) {
+            const action = this._currentTutorialStep.tutorialAction;
+            if (action === 'open_backpack' || action === 'open_backpack_tutorial' || action === 'open_herb_pedia') {
+                const overlay = document.getElementById('modal-overlay');
+                const isOverlayHidden = !overlay ||
+                    overlay.style.display === 'none' ||
+                    overlay.classList.contains('hidden') ||
+                    overlay.offsetParent === null;
+
+                if (isOverlayHidden) {
+                    console.log('IntroScene: 检测到弹窗已关闭（主动检测），完成教程', action);
+                    this._modalClosedPendingConfirm = false;
+                    // 清理监听器
+                    this._modalCloseCallback = null;
+                    if (this._modalObserver) {
+                        this._modalObserver.disconnect();
+                        this._modalObserver = null;
+                    }
+                    // 隐藏UI元素
+                    const buttons = document.getElementById('top-right-buttons');
+                    if (buttons) buttons.style.display = 'none';
+                    this._onTutorialComplete(this._currentTutorialStep);
+                    return;
+                }
+            }
+        }
+
         // 检查当前教程是否可跳过
         if (this._currentTutorialStep && this._currentTutorialStep.skippable) {
             console.log('IntroScene: 跳过教程', this._currentTutorialStep.id);
@@ -1000,6 +1177,12 @@ class IntroScene extends Phaser.Scene {
         // 清理弹窗关闭回调（如果存在）
         this._modalCloseCallback = null;
 
+        // 清理 MutationObserver
+        if (this._modalObserver) {
+            this._modalObserver.disconnect();
+            this._modalObserver = null;
+        }
+
         this.tutorialActive = false;
         this.tutorialOverlay.hide(() => {
             this._nextStep();
@@ -1014,39 +1197,69 @@ class IntroScene extends Phaser.Scene {
         // 保存回调
         this._modalCloseCallback = callback;
 
-        // 监听ESC键关闭弹窗
+        // 防止重复触发（同一回调只执行一次）
+        let callbackFired = false;
+        const fireOnce = () => {
+            if (callbackFired) return;
+            callbackFired = true;
+            this._handleModalClosed();
+        };
+
+        // 1. 监听ESC键关闭弹窗
         const escHandler = (event) => {
             if (event.key === 'Escape') {
-                this._handleModalClosed();
+                fireOnce();
                 document.removeEventListener('keydown', escHandler);
             }
         };
         document.addEventListener('keydown', escHandler);
 
-        // 监听遮罩层点击关闭
+        // 2. 监听遮罩层点击关闭
         setTimeout(() => {
             const overlay = document.getElementById('modal-overlay');
             if (overlay) {
                 const clickHandler = () => {
-                    this._handleModalClosed();
+                    fireOnce();
                     overlay.removeEventListener('click', clickHandler);
                 };
                 overlay.addEventListener('click', clickHandler);
             }
         }, 100);
+
+        // 3. 使用 MutationObserver 检测弹窗被隐藏/移除（最可靠）
+        setTimeout(() => {
+            const modalOverlay = document.getElementById('modal-overlay');
+            const targetNode = modalOverlay || document.body;
+
+            this._modalObserver = new MutationObserver((mutations) => {
+                for (const mutation of mutations) {
+                    // 检查弹窗是否变为不可见或被移除
+                    const overlay = document.getElementById('modal-overlay');
+                    if (!overlay || overlay.style.display === 'none' || overlay.classList.contains('hidden')) {
+                        fireOnce();
+                        break;
+                    }
+                }
+            });
+
+            this._modalObserver.observe(targetNode, {
+                childList: true,
+                attributes: true,
+                subtree: true,
+                attributeFilter: ['style', 'class']
+            });
+        }, 200);
     }
 
     /**
      * 处理弹窗被关闭的事件
      */
     _handleModalClosed() {
-        if (this._modalCloseCallback && !this.tutorialActive) {
+        if (this._modalCloseCallback) {
             console.log('IntroScene: 弹窗已关闭，执行回调');
             const cb = this._modalCloseCallback;
             this._modalCloseCallback = null;
             cb();
-        } else if (this._modalCloseCallback) {
-            console.log('IntroScene: 弹窗关闭但教程仍激活，稍后处理');
         }
     }
 
@@ -1090,11 +1303,17 @@ class IntroScene extends Phaser.Scene {
      * @param {Object} step - 步骤数据
      */
     _showCGNarration(step) {
+        // 先销毁旧的CG旁白（防止残留）
+        if (this._cgNarrationBox) {
+            this._cgNarrationBox.destroy();
+            this._cgNarrationBox = null;
+        }
+
         // 创建CG旁白文本框
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        const narrationBox = this.add.text(width / 2, height - 100, '', {
+        this._cgNarrationBox = this.add.text(width / 2, height - 100, '', {
             fontSize: '24px',
             color: '#f0e8d4',
             fontFamily: '"FangSong", "KaiTi", "STFangsong", "STKaiti", serif',
@@ -1106,11 +1325,14 @@ class IntroScene extends Phaser.Scene {
 
         // 打字机效果
         this.typewriter.start(step.text, {
-            targetField: narrationBox,
+            targetField: this._cgNarrationBox,
             speed: 60,
             onComplete: () => {
                 this.time.delayedCall(step.textDelay || 1000, () => {
-                    narrationBox.destroy();
+                    if (this._cgNarrationBox) {
+                        this._cgNarrationBox.destroy();
+                        this._cgNarrationBox = null;
+                    }
                     this._nextStep();
                 });
             }
@@ -1169,27 +1391,43 @@ class IntroScene extends Phaser.Scene {
         const items = step.items || [];
         let rewardText = '获得：\n';
 
+        // 获取草药ID列表，用于判断奖励类型
+        const HERB_IDS = (window.GameData && window.GameData.HERBS_DATA)
+            ? window.GameData.HERBS_DATA.map(h => h.id) : [];
+
+        // 数值类物品（不加入背包，仅展示）
+        const SKIP_IDS = ['reputation', 'achievement'];
+
+        // 状态管理器引用（统一写入目标）
+        const gsmState = window.gameStateManager ? window.gameStateManager.state : this.gameState;
+
         items.forEach(item => {
             const count = item.count ? `×${item.count}` : '';
             rewardText += `${item.icon || '📦'} ${item.name}${count}\n`;
 
-            // 真实添加到背包/游戏状态
-            if (window.gameStateManager) {
-                // 使用 gameStateManager 添加草药（会自动解锁图鉴）
-                if (['gancao', 'juhua'].includes(item.id)) {
-                    for (let i = 0; i < (item.count || 1); i++) {
-                        window.gameStateManager.addHerbToBackpack(item.id);
-                    }
-                }
+            // 跳过数值类（声望、成就等）
+            if (SKIP_IDS.includes(item.id)) {
+                return;
             }
 
-            // 其他物品直接操作 gameState
-            if (item.id === 'copper') {
-                this.gameState.copper = (this.gameState.copper || 0) + item.count;
-            } else if (!['gancao', 'juhua'].includes(item.id)) {
-                // 非草药、非铜钱物品（背包、推荐信、图谱等）
-                this.gameState.inventory[item.id] = (this.gameState.inventory[item.id] || 0) + 1;
+            // 判断是草药还是物资
+            const isHerb = HERB_IDS.includes(item.id);
+
+            if (isHerb && window.gameStateManager) {
+                // 草药：通过 gameStateManager 添加（自动解锁图鉴）
+                for (let i = 0; i < (item.count || 1); i++) {
+                    window.gameStateManager.addHerbToBackpack(item.id);
+                }
+            } else if (item.id === 'copper') {
+                // 铜钱：写入 gameStateManager.state.copper
+                gsmState.copper = (gsmState.copper || 0) + item.count;
+            } else {
+                // 其他物资：写入 gameStateManager.state.inventory
+                if (!gsmState.inventory) gsmState.inventory = {};
+                gsmState.inventory[item.id] = (gsmState.inventory[item.id] || 0) + (item.count || 1);
             }
+
+            console.log('IntroScene: 物品已添加', item.id, '→', isHerb ? 'backpack' : 'inventory');
         });
 
         // 刷新UI（如果存在）
@@ -1292,6 +1530,15 @@ class IntroScene extends Phaser.Scene {
         this.waitingForInput = false;
         this._showContinueHint(false);
 
+        // 如果上一步用了 bgColor 覆盖背景（如信纸），恢复当前场景的原图
+        if (this._bgColorOverrideActive) {
+            this._bgColorOverrideActive = false;
+            const currentScene = this.prologueData.scenes[this.currentSceneIndex];
+            if (currentScene) {
+                this._setBackground(currentScene);
+            }
+        }
+
         this.currentStepIndex++;
 
         // 检查是否有 nextScene 跳转
@@ -1317,11 +1564,14 @@ class IntroScene extends Phaser.Scene {
      * @param {string} avatarKey - 头像texture key
      */
     _updateAvatar(character, avatarKey) {
+        const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        const dialogW = Math.floor((width - 100) * 3 / 4);
+        const dialogX = Math.floor((width - dialogW) / 2);
 
         if (!character) {
             this.avatarSprite.setText('📖');
-            this.avatarSprite.setPosition(110, height - 190);
+            this.avatarSprite.setPosition(dialogX + 54, height - 196);
             return;
         }
 
@@ -1334,7 +1584,7 @@ class IntroScene extends Phaser.Scene {
             this.avatarSprite.setText(this._getCharacterEmoji(character));
         }
 
-        this.avatarSprite.setPosition(110, height - 190);
+        this.avatarSprite.setPosition(dialogX + 54, height - 196);
     }
 
     /**
@@ -1358,9 +1608,12 @@ class IntroScene extends Phaser.Scene {
      * @param {string} name - 名称
      */
     _updateName(name) {
+        const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        const dialogW = Math.floor((width - 100) * 3 / 4);
+        const dialogX = Math.floor((width - dialogW) / 2);
         this.nameText.setText(name);
-        this.nameText.setPosition(170, height - 230);
+        this.nameText.setPosition(dialogX + 108, height - 230);
     }
 
     /**
@@ -1376,32 +1629,44 @@ class IntroScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // 角色立绘映射表（角色ID -> {纹理key, 位置}）
+        // 角色立绘映射表（角色ID -> {纹理key, 位置, 大小}）
         const portraitMap = {
-            'bai': { texture: 'bai_standing', position: 'center' }, // 白师傅居中显示
-            'xiaolan': { texture: null, position: 'left' },    // 可以后续添加
-            'qingmiao': { texture: null, position: 'left' },   // 可以后续添加
+            'bai': { texture: 'bai_standing', position: 'center', scale: 1 },       // 白师傅居中，标准大小
+            'xiaolan': { texture: 'xiaolan_standing', position: 'center', scale: 0.5 }, // 小兰居中，缩小一半
+            'qingmiao': { texture: 'lingchong_portrait', position: 'center', scale: 0.5, offsetY: -80 }, // 灵宠居中，缩小一半且上移
             'player': { texture: null, position: 'right' }     // 玩家在右侧
         };
 
         const config = portraitMap[character];
 
         if (config && config.texture && this.textures.exists(config.texture)) {
-            // 设置立绘纹理并显示
-            this.characterPortrait.setTexture(config.texture);
-
-            // 根据位置设置X坐标（右侧、左侧或居中）
+            // 根据位置设置坐标
             let targetX;
             if (config.position === 'center') {
-                targetX = width / 2;       // 居中：画面正中央
+                targetX = width / 2;
             } else if (config.position === 'right') {
-                targetX = width - 150;     // 右侧：距离右边缘150px
+                targetX = width - 150;
             } else {
-                targetX = 120;             // 左侧：距离左边缘120px
+                targetX = 120;
+            }
+            const targetY = height * 0.6 + (config.offsetY || 0);
+            const scale = config.scale || 1;
+
+            // 判断是否需要播放出现动画
+            // 同一角色连续出场 + 立绘已可见 → 跳过动画，直接持续显示
+            const isSameCharacter = (this._currentPortraitCharacter === character);
+            const isAlreadyVisible = this.characterPortrait.visible && this.characterPortrait.alpha > 0.9;
+
+            if (isSameCharacter && isAlreadyVisible) {
+                // 同一角色连续多幕：仅更新位置和缩放，不播放动画
+                this.characterPortrait.setPosition(targetX, targetY);
+                this.characterPortrait.setScale(scale);
+                return;
             }
 
-            // 立绘位于画面中央垂直位置
-            const targetY = height * 0.6;
+            // 新角色或立绘不可见：设置纹理并播放滑入+淡入动画
+            this.characterPortrait.setTexture(config.texture);
+            this.characterPortrait.setScale(scale);
 
             // 先设置最终位置，再显示
             this.characterPortrait.setPosition(targetX, targetY);
@@ -1418,6 +1683,9 @@ class IntroScene extends Phaser.Scene {
                 duration: 400,
                 ease: 'Power2Out'
             });
+
+            // 记录当前角色
+            this._currentPortraitCharacter = character;
         } else {
             // 没有立绘资源，隐藏
             this._hideCharacterPortrait();
@@ -1428,6 +1696,9 @@ class IntroScene extends Phaser.Scene {
      * 隐藏角色立绘
      */
     _hideCharacterPortrait() {
+        // 清除当前角色记录（隐藏后下次出现需要重新播放动画）
+        this._currentPortraitCharacter = null;
+
         if (this.characterPortrait && this.characterPortrait.visible) {
             this.tweens.add({
                 targets: this.characterPortrait,
@@ -1451,23 +1722,37 @@ class IntroScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // 如果已有特写图片，先销毁
-        if (this.overlayImage) {
-            this.overlayImage.destroy();
-            this.overlayImage = null;
-        }
-
         // 检查纹理是否存在
         if (!this.textures.exists(imageKey)) {
             console.warn('IntroScene: 特写图片不存在', imageKey);
             return;
         }
 
-        // 创建特写图片（右侧显示，半透明背景）
+        // 判断是否需要播放出现动画
+        // 同一特写连续多幕 + 已完全可见 → 跳过动画，直接持续显示
+        const isSameImage = (this._currentOverlayImageKey === imageKey);
+        const isAlreadyVisible = this.overlayImage && this.overlayImage.visible && this.overlayImage.alpha > 0.9;
+
+        if (isSameImage && isAlreadyVisible) {
+            // 同一张特写连续出现：保持现状，不重建不播动画
+            return;
+        }
+
+        // 新特写或之前被隐藏：销毁旧的，创建新的并播放淡入动画
+        if (this.overlayImage) {
+            this.overlayImage.destroy();
+            this.overlayImage = null;
+        }
+        if (this.overlayBorder) {
+            this.overlayBorder.destroy();
+            this.overlayBorder = null;
+        }
+
+        // 创建特写图片（右侧显示）
         this.overlayImage = this.add.image(width * 0.75, height * 0.4, imageKey)
             .setDisplaySize(400, 300)
             .setOrigin(0.5, 0.5)
-            .setDepth(7)  // 在背景之上，立绘之下
+            .setDepth(7)
             .setAlpha(0);
 
         // 添加边框效果
@@ -1485,14 +1770,18 @@ class IntroScene extends Phaser.Scene {
             ease: 'Power2Out'
         });
 
-        // 保存边框引用，以便后续清理
+        // 保存引用和记录当前key
         this.overlayBorder = overlayBorder;
+        this._currentOverlayImageKey = imageKey;
     }
 
     /**
      * 隐藏特写图片
      */
     _hideOverlayImage() {
+        // 清除当前特写记录（隐藏后下次出现需要重新播放动画）
+        this._currentOverlayImageKey = null;
+
         // 立即停止所有相关动画
         if (this.overlayImage) {
             this.tweens.killTweensOf(this.overlayImage);
@@ -1652,14 +1941,60 @@ class IntroScene extends Phaser.Scene {
     }
 
     /**
+     * 初始化《本草情籍》属性（序章结束时调用）
+     * 基于初始值 + 序章剧情中的学习/经历给予额外加成
+     */
+    _initPrologueAttributes() {
+        if (!window.gameStateManager) return;
+
+        // 1. 先用 data.js 中的 initialValue 初始化所有属性
+        window.gameStateManager.initAttributes();
+
+        // 2. 序章剧情加成 —— 根据序章中的学习经历额外增加属性值
+        const bonusChanges = [
+            // 草药学识+8（白院长药圃识药教学、图谱托付）
+            { id: 'herb_knowledge', delta: 8 },
+            // 采药技艺+10（亲手采集甘草、菊花教程）
+            { id: 'gathering', delta: 10 },
+            // 炮制药能+5（炮制间晾晒、碾磨教程）
+            { id: 'crafting', delta: 5 },
+            // 望闻问切+3（白院长诊断思路熏陶）
+            { id: 'diagnosis', delta: 3 },
+            // 医者声望+10（学堂毕业身份，来自S09奖励的reputation）
+            { id: 'reputation', delta: 10 },
+            // 交际人脉+3（白院长推荐信、小兰送信）
+            { id: 'social', delta: 3 },
+            // 灵宠羁绊+25（灵药房缔结灵契，与青苗初次相遇）
+            { id: 'spirit_bond', delta: 25 },
+            // 行医机缘+2（踏上旅程，机缘初开）
+            { id: 'luck', delta: 2 }
+        ];
+
+        window.gameStateManager.batchAddAttributes(bonusChanges);
+
+        console.log('《本草情籍》属性初始化完成:', { ...window.gameStateManager.state.attributes });
+    }
+
+    /**
      * 结束序章
      * @param {Object} step - 结束步骤数据
      */
     _endPrologue(step) {
         console.log('IntroScene: 序章结束');
 
+        // 立即隐藏所有文字和UI（防止与淡出效果重叠）
+        if (this.dialogBox) this.dialogBox.setVisible(false);
+        if (this.narrationText) this.narrationText.setVisible(false);
+        if (this._cgNarrationBox) { this._cgNarrationBox.destroy(); this._cgNarrationBox = null; }
+        if (this.characterPortrait) this.characterPortrait.setVisible(false);
+        // 隐藏CG容器（含标题卡文字、CG图片等）
+        if (this.cgDisplay) this.cgDisplay.hide();
+
         // 清理特写图片
         this._hideOverlayImage();
+
+        // 初始化《本草情籍》属性（序章结束时赋予初始值 + 剧情加成）
+        this._initPrologueAttributes();
 
         // 保存游戏状态
         this._saveGameState();
@@ -1739,6 +2074,18 @@ class IntroScene extends Phaser.Scene {
         if (this.cgDisplay) {
             this.cgDisplay.destroy();
             this.cgDisplay = null;
+        }
+
+        // 清理CG旁白文字
+        if (this._cgNarrationBox) {
+            this._cgNarrationBox.destroy();
+            this._cgNarrationBox = null;
+        }
+
+        // 清理弹窗监听器
+        if (this._modalObserver) {
+            this._modalObserver.disconnect();
+            this._modalObserver = null;
         }
 
         // 清理特写图片

@@ -91,16 +91,10 @@ function startLoadingSequence() {
                     setTimeout(() => {
                         ui.updateProgress(100, '加载完成！');
 
-                        setTimeout(() => {
-                            // 显示游戏界面
-                            ui.showGameContainer();
-
-                            // 初始化 Phaser 游戏
-                            initGame();
-
-                            // 启动时辰系统
-                            startTimeSystem();
-                        }, 500);
+                        // 显示游戏容器并立即初始化（无额外等待）
+                        ui.showGameContainer();
+                        initGame();
+                        startTimeSystem();
                     }, 300);
                 }, 200);
             }, 200);

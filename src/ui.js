@@ -404,6 +404,18 @@ class UIManager {
                 e.stopPropagation();
                 return;
             }
+
+            // 《本草情籍》分类标签点击切换
+            const attrTag = e.target.closest('#attr-category-tags .tag');
+            if (attrTag) {
+                document.querySelectorAll('#attr-category-tags .tag').forEach(t => t.classList.remove('active'));
+                attrTag.classList.add('active');
+                this.currentAttrCategory = attrTag.dataset.attrCategory || 'all';
+                this.selectedAttrId = null;
+                this.updateAttributesUI();
+                e.stopPropagation();
+                return;
+            }
         });
 
         // 遮罩层点击关闭
@@ -481,6 +493,23 @@ class UIManager {
         }
         if (this.modalOverlay) {
             this.modalOverlay.classList.add('active');
+        }
+
+        // 打开《本草情籍》弹窗时，刷新属性面板数据
+        if (modalId === 'attributes-modal') {
+            this.selectedAttrId = null;
+            this.currentAttrCategory = 'all';
+            this.updateAttributesUI();
+        }
+
+        // 打开图鉴弹窗时刷新
+        if (modalId === 'herb-guide-modal') {
+            this.updateHerbGuideUI?.();
+        }
+
+        // 打开背包弹窗时刷新
+        if (modalId === 'backpack-modal') {
+            this.updateBackpackUI?.();
         }
     }
 
@@ -569,13 +598,15 @@ class UIManager {
     
     // 当前选中的物品
     selectedHerbId = null;
+    // 当前选中的类型（'herb' 或 'item'）
+    selectedItemType = 'herb';
     // 当前筛选的分类
     currentCategory = 'all';
     // 总格子数（5列 x 4行）
     TOTAL_SLOTS = 20;
 
     /**
-     * 更新背包UI显示（国风药篓版）
+     * 更新背包UI显示（国风药篓版）—— 支持草药+物资混合展示
      */
     updateBackpackUI() {
         const grid = document.getElementById('backpack-grid');
@@ -583,19 +614,42 @@ class UIManager {
         if (!grid || !content) return;
 
         const state = window.gameStateManager.getState();
-        const HERBS_DATA = window.GameData.HERBS_DATA;
-        const CATEGORY_MAP = window.GameData.CATEGORY_MAP;
+        const HERBS_DATA = window.GameData.HERBS_DATA || [];
+        const ITEMS_DATA = window.GameData.ITEMS_DATA || [];
+        const CATEGORY_MAP = window.GameData.CATEGORY_MAP || {};
 
-        // 筛选当前分类下的草药
+        // 根据当前分类筛选物品（草药 + 物资统一处理）
         let filteredItems = [];
+
+        // 1. 筛选草药
         HERBS_DATA.forEach(herb => {
             const count = state.backpack[herb.id] || 0;
             if (count > 0) {
-                // 检查分类匹配
-                if (this.currentCategory === 'all') {
-                    filteredItems.push({ ...herb, count });
+                if (this.currentCategory === 'all' || this.currentCategory === 'herb_all') {
+                    filteredItems.push({ ...herb, count, itemType: 'herb' });
                 } else if (CATEGORY_MAP[herb.category] === this.currentCategory) {
-                    filteredItems.push({ ...herb, count });
+                    filteredItems.push({ ...herb, count, itemType: 'herb' });
+                }
+            }
+        });
+
+        // 2. 筛选物资/道具
+        ITEMS_DATA.forEach(item => {
+            let count = 0;
+
+            // 铜钱特殊处理：存放在 gameState.copper
+            if (item.id === 'copper') {
+                count = state.copper || 0;
+            } else if (state.inventory && state.inventory[item.id]) {
+                count = state.inventory[item.id];
+            }
+
+            if (count > 0) {
+                // 检查物品分类匹配
+                if (this.currentCategory === 'all') {
+                    filteredItems.push({ ...item, count, itemType: 'item' });
+                } else if (item.category === this._categoryLabelToName(this.currentCategory)) {
+                    filteredItems.push({ ...item, count, itemType: 'item' });
                 }
             }
         });
@@ -609,8 +663,8 @@ class UIManager {
             grid.innerHTML = '';
 
             // 渲染物品格子
-            filteredItems.forEach(herb => {
-                const cell = this.createItemCell(herb);
+            filteredItems.forEach(item => {
+                const cell = this.createItemCell(item);
                 grid.appendChild(cell);
             });
 
@@ -621,42 +675,58 @@ class UIManager {
                 grid.appendChild(emptyCell);
             }
 
-            // 如果之前选中了物品，重新显示详情
+            // 恢复选中状态或默认选中第一个
             if (this.selectedHerbId) {
-                this.showDetailPanel(this.selectedHerbId);
+                const found = filteredItems.find(it => it.id === this.selectedHerbId);
+                if (found) {
+                    this.showDetailPanel(this.selectedHerbId, this.selectedItemType);
+                } else {
+                    this.selectItem(filteredItems[0].id, filteredItems[0].itemType);
+                }
             } else if (filteredItems.length > 0) {
-                // 默认选中第一个
-                this.selectItem(filteredItems[0].id);
+                this.selectItem(filteredItems[0].id, filteredItems[0].itemType);
             }
         }
 
         // 更新顶部统计
-        this.updateBackpackHeader(state, HERBS_DATA);
+        this.updateBackpackHeader(state);
         
         // 绑定分类标签事件
         this.bindCategoryEvents();
     }
 
     /**
-     * 创建单个物品格子
-     * @param {Object} herb - 草药数据
+     * 分类 ID 转中文名称映射（用于物资分类匹配）
+     */
+    _categoryLabelToName(catId) {
+        const map = { 'supplies': '物资', 'documents': '文书', 'special': '特殊', 'pet': '灵宠道具' };
+        return map[catId] || catId;
+    }
+
+    /**
+     * 创建单个物品格子（支持草药和物资）
+     * @param {Object} item - 草药或物品数据
      * @returns {HTMLElement}
      */
-    createItemCell(herb) {
+    createItemCell(item) {
         const cell = document.createElement('div');
-        cell.className = 'item-cell' + (this.selectedHerbId === herb.id ? ' selected' : '');
-        cell.dataset.herbId = herb.id;
+        cell.className = 'item-cell' + (this.selectedHerbId === item.id ? ' selected' : '');
+        cell.dataset.itemId = item.id;
+
+        // 根据类型显示不同样式标记
+        const typeBadge = item.itemType === 'item' ? '<span class="type-badge item-type">物</span>' : '';
 
         cell.innerHTML = `
-            <span class="rarity-dot ${herb.rarity}"></span>
-            <span class="item-icon-emoji">${herb.icon}</span>
-            <span class="item-name-label">${herb.name}</span>
-            ${herb.count > 1 ? `<span class="item-num">×</span>${herb.count}` : ''}
+            ${typeBadge}
+            <span class="rarity-dot ${item.rarity}"></span>
+            <span class="item-icon-emoji">${item.icon}</span>
+            <span class="item-name-label">${item.name}</span>
+            ${item.count > 1 ? `<span class="item-num">×${item.count}</span>` : ''}
         `;
 
         // 点击选中
         cell.addEventListener('click', () => {
-            this.selectItem(herb.id);
+            this.selectItem(item.id, item.itemType || 'herb');
         });
 
         return cell;
@@ -664,69 +734,121 @@ class UIManager {
 
     /**
      * 选中某个物品并显示详情
-     * @param {string} herbId - 草药ID
+     * @param {string} itemId - 物品ID
+     * @param {string} type - 'herb' 或 'item'
      */
-    selectItem(herbId) {
-        this.selectedHerbId = herbId;
+    selectItem(itemId, type) {
+        this.selectedHerbId = itemId;
+        this.selectedItemType = type || 'herb';
 
         // 更新选中状态样式
         document.querySelectorAll('#backpack-grid .item-cell').forEach(cell => {
-            cell.classList.toggle('selected', cell.dataset.herbId === herbId);
+            cell.classList.toggle('selected', cell.dataset.itemId === itemId);
         });
 
         // 显示详情面板
-        this.showDetailPanel(herbId);
+        this.showDetailPanel(itemId, type);
     }
 
     /**
-     * 显示右侧详情面板
-     * @param {string} herbId - 草药ID
+     * 显示右侧详情面板（支持草药和物资两种详情模板）
+     * @param {string} itemId - 物品ID
+     * @param {string} type - 'herb' 或 'item'
      */
-    showDetailPanel(herbId) {
+    showDetailPanel(itemId, type) {
         const detailBody = document.getElementById('detail-body');
         const detailTitle = document.getElementById('detail-title');
         if (!detailBody || !detailTitle) return;
 
-        const herb = window.GameData.HERBS_DATA.find(h => h.id === herbId);
-        if (!herb) return;
+        const rarityColors = window.GameConfig.rarityColors || {};
 
-        const count = window.gameStateManager.getHerbCount(herbId);
-        const rarityColors = window.GameConfig.rarityColors;
-        const rarityColor = rarityColors[herb.rarity] || '#88AA77';
+        if (type === 'item') {
+            // ===== 物资/道具详情 =====
+            const item = (window.GameData.ITEMS_DATA || []).find(i => i.id === itemId);
+            if (!item) return;
+            const count = this._getItemCount(itemId);
+            const rarityColor = rarityColors[item.rarity] || '#88AA77';
 
-        detailTitle.textContent = `${herb.icon} ${herb.name}`;
-        detailTitle.style.color = rarityColor;
+            detailTitle.textContent = `${item.icon} ${item.name}`;
+            detailTitle.style.color = rarityColor;
 
-        detailBody.innerHTML = `
-            <div class="detail-icon-big" style="filter: drop-shadow(0 0 10px ${rarityColor}40)">${herb.icon}</div>
-            <div class="detail-desc">
-                <div class="desc-row"><span class="desc-label">【药性】</span>${herb.property}</div>
-                <div class="desc-row"><span class="desc-label">【归经】</span>${herb.meridian}</div>
-                <div class="desc-row"><span class="desc-label">【功效】</span>${herb.effect}</div>
-                <div class="desc-row"><span class="desc-label">【时节】</span>${herb.season}</div>
-                <div class="desc-row"><span class="desc-label">【产地】</span>${herb.origin}</div>
-                ${count > 0 ? `<div class="desc-row" style="color:#6AAA5A;font-weight:bold;margin-top:6px;">🎒 药篓中拥有：×${count}</div>` : ''}
-            </div>
-            <div class="pet-tip">${herb.petTip || ''}</div>
-        `;
+            detailBody.innerHTML = `
+                <div class="detail-icon-big" style="filter: drop-shadow(0 0 10px ${rarityColor}40)">${item.icon}</div>
+                <div class="detail-desc">
+                    <div class="desc-row"><span class="desc-label">【类型】</span>${this._getItemTypeLabel(item.type)}</div>
+                    <div class="desc-row"><span class="desc-label">【描述】</span>${item.description || ''}</div>
+                    ${count > 0 ? `<div class="desc-row" style="color:#6AAA5A;font-weight:bold;margin-top:6px;">🎒 拥有数量：×${count}</div>` : ''}
+                </div>
+                <div class="pet-tip" style="margin-top:8px;font-size:12px;color:#a08060;">${item.descDetail || ''}</div>
+            `;
+        } else {
+            // ===== 草药详情（原有逻辑）=====
+            const herb = (window.GameData.HERBS_DATA || []).find(h => h.id === itemId);
+            if (!herb) return;
+
+            const count = window.gameStateManager.getHerbCount(itemId);
+            const rarityColor = rarityColors[herb.rarity] || '#88AA77';
+
+            detailTitle.textContent = `${herb.icon} ${herb.name}`;
+            detailTitle.style.color = rarityColor;
+
+            detailBody.innerHTML = `
+                <div class="detail-icon-big" style="filter: drop-shadow(0 0 10px ${rarityColor}40)">${herb.icon}</div>
+                <div class="detail-desc">
+                    <div class="desc-row"><span class="desc-label">【药性】</span>${herb.property}</div>
+                    <div class="desc-row"><span class="desc-label">【归经】</span>${herb.meridian}</div>
+                    <div class="desc-row"><span class="desc-label">【功效】</span>${herb.effect}</div>
+                    <div class="desc-row"><span class="desc-label">【时节】</span>${herb.season}</div>
+                    <div class="desc-row"><span class="desc-label">【产地】</span>${herb.origin}</div>
+                    ${count > 0 ? `<div class="desc-row" style="color:#6AAA5A;font-weight:bold;margin-top:6px;">🎒 药篓中拥有：×${count}</div>` : ''}
+                </div>
+                <div class="pet-tip">${herb.petTip || ''}</div>
+            `;
+        }
+    }
+
+    /** 获取物品数量（支持铜钱、inventory等不同存储位置） */
+    _getItemCount(itemId) {
+        const state = window.gameStateManager.getState();
+        if (itemId === 'copper') return state.copper || 0;
+        return (state.inventory && state.inventory[itemId]) || 0;
+    }
+
+    /** 物品类型中文名 */
+    _getItemTypeLabel(type) {
+        const map = { currency: '货币', equipment: '装备', document: '文书', special: '特殊物品' };
+        return map[type] || type;
     }
 
     /**
-     * 更新背包头部信息（标题、负重和节气）
+     * 更新背包头部信息（标题、负重和节气）—— 包含草药+物资统计
      */
-    updateBackpackHeader(state, HERBS_DATA) {
+    updateBackpackHeader(state) {
         let totalCount = 0;
         let typesCount = 0;
-        HERBS_DATA.forEach(herb => {
+
+        // 统计草药
+        (window.GameData.HERBS_DATA || []).forEach(herb => {
             const c = state.backpack[herb.id] || 0;
             totalCount += c;
             if (c > 0) typesCount++;
         });
 
+        // 统计物资
+        (window.GameData.ITEMS_DATA || []).forEach(item => {
+            if (item.id === 'copper') {
+                const c = state.copper || 0;
+                if (c > 0) { totalCount += Math.ceil(c / 50); typesCount++; } // 铜钱按50=1单位算负重
+            } else if (state.inventory && state.inventory[item.id]) {
+                totalCount += state.inventory[item.id];
+                typesCount++;
+            }
+        });
+
         // 更新标题
         const titleEl = document.querySelector('#backpack-modal .bag-title');
         if (titleEl) {
-            titleEl.textContent = `🌿 百草药篓`;
+            titleEl.textContent = '🌿 百草行囊';
         }
 
         // 更新负重
@@ -766,10 +888,17 @@ class UIManager {
         }
     }
 
-    /** 辅助：计算当前负重数 */
+    /** 辅助：计算当前负重数（草药+物资） */
     _calcWeight(state) {
         let total = 0;
         (window.GameData.HERBS_DATA || []).forEach(h => { total += (state.backpack[h.id] || 0); });
+        (window.GameData.ITEMS_DATA || []).forEach(item => {
+            if (item.id === 'copper') {
+                total += Math.ceil((state.copper || 0) / 50);
+            } else {
+                total += (state.inventory && state.inventory[item.id]) || 0;
+            }
+        });
         return Math.min(total, 50);
     }
 
@@ -1003,7 +1132,233 @@ class UIManager {
         });
     }
 
-    // ==================== 任务进度 ====================
+    // ==================== 《本草情籍》属性面板 UI ====================
+
+    // 当前选中的属性ID
+    selectedAttrId = null;
+    // 当前筛选的属性分类
+    currentAttrCategory = 'all';
+
+    /**
+     * 更新《本草情籍》属性面板UI
+     */
+    updateAttributesUI() {
+        const list = document.getElementById('attr-list');
+        if (!list) return;
+
+        const state = window.gameStateManager.getState();
+        const ATTRIBUTES_DATA = window.GameData.ATTRIBUTES_DATA || [];
+        const CATEGORY_MAP = { medical: 'medical', social: 'social', special: 'special' };
+
+        // 按分类筛选
+        let filtered = [];
+        ATTRIBUTES_DATA.forEach(attr => {
+            if (this.currentAttrCategory === 'all' || CATEGORY_MAP[this.currentAttrCategory] === attr.category) {
+                filtered.push(attr);
+            }
+        });
+
+        list.innerHTML = '';
+
+        if (filtered.length === 0) {
+            list.innerHTML = `<p style="text-align:center;color:#916c44;padding:40px 0;font-size:14px;">暂无该类属性</p>`;
+            return;
+        }
+
+        // 渲染属性卡片
+        filtered.forEach(attr => {
+            const currentVal = this._getAttrValue(attr.id, attr);
+            const pct = Math.round((currentVal / attr.maxValue) * 100);
+            const card = document.createElement('div');
+            card.className = 'attr-card' + (this.selectedAttrId === attr.id ? ' selected' : '');
+            card.dataset.attrId = attr.id;
+            card.dataset.cat = attr.category;
+            card.style.setProperty('--attr-color', this._getAttrColor(attr.category));
+            card.style.setProperty('--attr-color-light', this._getAttrColorLight(attr.category));
+
+            card.innerHTML = `
+                <div class="attr-icon">${attr.icon}</div>
+                <div class="attr-info">
+                    <div class="attr-name-row">
+                        <span class="attr-name">${attr.name}</span>
+                        <span class="attr-value">${currentVal}<small style="font-size:11px;color:#8a7355;">/${attr.maxValue}</small></span>
+                    </div>
+                    <div class="attr-desc">${attr.description}</div>
+                    <div class="attr-bar-wrap">
+                        <div class="attr-bar-fill" style="width:${pct}%"></div>
+                    </div>
+                </div>
+            `;
+
+            card.addEventListener('click', () => this.selectAttribute(attr.id));
+            list.appendChild(card);
+        });
+
+        // 绑定分类标签事件（已改用事件委托，无需每次调用）
+        // this.bindAttrCategoryEvents();
+
+        // 更新底部总评
+        this.updateAttrSummary(state, ATTRIBUTES_DATA);
+
+        // 恢复选中详情
+        if (this.selectedAttrId) {
+            this.showAttrDetail(this.selectedAttrId);
+        } else if (filtered.length > 0) {
+            this.selectAttribute(filtered[0].id);
+        }
+    }
+
+    /**
+     * 获取属性当前值（统一数据源：已初始化用实际值，未初始化用定义中的 initialValue）
+     * @param {string} attrId
+     * @param {Object} [attrDef] - 属性定义对象（可选，用于 fallback）
+     * @returns {number}
+     */
+    _getAttrValue(attrId, attrDef) {
+        const state = window.gameStateManager?.getState();
+        const val = state?.attributes?.[attrId];
+        // 已存储则返回实际值；否则返回定义的初始值（避免显示0）
+        if (val !== undefined && val !== null) return val;
+        return attrDef ? attrDef.initialValue : 0;
+    }
+
+    /** 获取属性主题色 */
+    _getAttrColor(category) {
+        return { medical: '#4a9a6a', social: '#c49a30', special: '#8a6ac4' }[category] || '#8b7355';
+    }
+
+    _getAttrColorLight(category) {
+        return { medical: '#7acaa0', social: '#e8c860', special: '#b09ae8' }[category] || '#c4a870';
+    }
+
+    /**
+     * 选中某个属性并显示详情
+     */
+    selectAttribute(attrId) {
+        this.selectedAttrId = attrId;
+
+        document.querySelectorAll('#attr-list .attr-card').forEach(card => {
+            card.classList.toggle('selected', card.dataset.attrId === attrId);
+        });
+
+        this.showAttrDetail(attrId);
+    }
+
+    /**
+     * 显示右侧属性详情面板
+     */
+    showAttrDetail(attrId) {
+        const body = document.getElementById('attr-detail-body');
+        const title = document.getElementById('attr-detail-title');
+        if (!body || !title) return;
+
+        const attr = (window.GameData.ATTRIBUTES_DATA || []).find(a => a.id === attrId);
+        if (!attr) return;
+
+        const currentVal = this._getAttrValue(attrId, attr);
+        const pct = Math.round((currentVal / attr.maxValue) * 100);
+        const color = this._getAttrColor(attr.category);
+
+        title.innerHTML = `${attr.icon} ${attr.name}`;
+        title.style.color = color;
+
+        body.innerHTML = `
+            <div style="text-align:center;margin-bottom:14px;">
+                <span style="font-size:42px;filter:drop-shadow(0 0 12px ${color}50)">${attr.icon}</span>
+            </div>
+            <div class="attr-detail-section">
+                <div class="attr-detail-label">【当前数值】</div>
+                <div class="attr-detail-text" style="font-size:22px;font-weight:bold;color:${color};">
+                    ${currentVal} <span style="font-size:13px;color:#8a7355;">/ ${attr.maxValue}</span>
+                    <span style="margin-left:8px;font-size:12px;background:${color}22;color:${color};padding:2px 8px;border-radius:8px;border:1px solid ${color}44;">${pct}%</span>
+                </div>
+                <div class="attr-bar-wrap" style="margin-top:8px;height:8px;">
+                    <div class="attr-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${color},${this._getAttrColorLight(attr.category)})"></div>
+                </div>
+            </div>
+            <div class="attr-detail-section">
+                <div class="attr-detail-label">【属性简介】</div>
+                <div class="attr-detail-text">${attr.description}</div>
+            </div>
+            <div class="attr-detail-section">
+                <div class="attr-detail-label">【详细说明】</div>
+                <div class="attr-detail-text" style="line-height:2;">${attr.detail || ''}</div>
+            </div>
+            <div class="attr-growth-rule">
+                <span class="rule-label">📈 成长规则：</span>${attr.growthRule || '-'}
+            </div>
+        `;
+    }
+
+    /**
+     * 更新底部总评（综合评价 + 等级）
+     * 评级规则：基于核心属性（医术+声望）的加权均值
+     *   Lv.0 学徒未成   avg < 5%   — 刚入门，基础薄弱
+     *   Lv.1 初入医途   avg < 15%  — 堂毕业，略知皮毛
+     *  Lv.2 小有名气   avg < 30%  — 能处理常见病症
+     *   Lv.3 乡野良医   avg < 50%  — 四方百姓信赖
+     *   Lv.4 杏林名家   avg < 70%  — 医术精湛，声名远播
+     *   Lv.5 国手圣医   avg >= 70% — 妙手回春，一代宗师
+     */
+    // 评级规则表（供剧情脚本参考使用）
+    ATTR_RANK_RULES = [
+        { minPct: 0,   level: 0, rank: '学徒未成',   color: '#808080', desc: '初识药理，尚需勤学' },
+        { minPct: 5,   level: 1, rank: '初入医途',   color: '#8b7355', desc: '堂毕业，略知皮毛' },
+        { minPct: 15,  level: 2, rank: '小有名气',   color: '#4a9a6a', desc: '能治常见病症' },
+        { minPct: 30,  level: 3, rank: '乡野良医',   color: '#2a8a5a', desc: '四方百姓信赖' },
+        { minPct: 50,  level: 4, rank: '杏林名家',   color: '#c49a30', desc: '医术精湛，声名远播' },
+        { minPct: 70,  level: 5, rank: '国手圣医',   color: '#e04040', desc: '妙手回春，一代宗师' }
+    ];
+
+    updateAttrSummary(state, ATTRIBUTES_DATA) {
+        const rankEl = document.getElementById('attr-rank');
+        const levelEl = document.getElementById('attr-total-level');
+        if (!rankEl || !levelEl) return;
+
+        // 核心属性：医术(权重1.2) + 声望(权重1.0)，排除特殊类
+        const coreAttrs = ATTRIBUTES_DATA.filter(a => a.category !== 'special');
+        if (coreAttrs.length === 0) return;
+
+        let weightedSum = 0;
+        let totalWeight = 0;
+        coreAttrs.forEach(a => {
+            const val = this._getAttrValue(a.id, a);
+            const weight = a.category === 'medical' ? 1.2 : 1.0; // 医术属性权重更高
+            weightedSum += (val / a.maxValue) * 100 * weight;
+            totalWeight += weight;
+        });
+        const avgPct = Math.round(weightedSum / totalWeight);
+
+        // 查表确定段位（从高到低匹配）
+        let matched = this.ATTR_RANK_RULES[0];
+        for (let i = this.ATTR_RANK_RULES.length - 1; i >= 0; i--) {
+            if (avgPct >= this.ATTR_RANK_RULES[i].minPct) {
+                matched = this.ATTR_RANK_RULES[i];
+                break;
+            }
+        }
+
+        rankEl.textContent = matched.rank;
+        rankEl.style.color = matched.color;
+        levelEl.textContent = `Lv.${matched.level}`;
+        levelEl.style.color = matched.color;
+        levelEl.style.borderColor = matched.color + '66';
+
+        // 设置段位描述
+        const descEl = document.getElementById('attr-rank-desc');
+        if (descEl) {
+            descEl.textContent = `— ${matched.desc}`;
+            descEl.style.color = matched.color + 'aa';
+        }
+    }
+
+    /**
+     * 绑定属性面板分类标签事件（事件委托，在bindEvents中一次性绑定）
+     */
+    bindAttrCategoryEvents() {
+        // 事件委托已移至 bindEvents() 中统一处理，此处保留为空以兼容调用
+        // 不再每次渲染时重复绑定
+    }
 
     /**
      * 更新任务进度显示

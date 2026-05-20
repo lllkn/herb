@@ -337,7 +337,7 @@ class CGDisplaySystem {
         this.scene.tweens.add({
             targets: overlay,
             alpha: 1,
-            duration: 1500,
+            duration: 600,
             onComplete: () => {
                 if (onComplete) onComplete();
             }
