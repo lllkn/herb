@@ -94,7 +94,14 @@ class GameScene extends Phaser.Scene {
         // UI
         window.uiManager.updateBackpackUI();
         window.uiManager.updateHerbGuideUI();
-        
+        window.uiManager.updateMinimapTitle();
+
+        // 生成小地图缩略图并初始化玩家位置
+        this.generateMinimap();
+        if (this.player) {
+            window.uiManager.updateMinimap(this.player.x, this.player.y);
+        }
+
         console.log('GameScene: 创建完成');
     }
 
@@ -274,10 +281,17 @@ class GameScene extends Phaser.Scene {
             this.cameras.main.setBounds(0, 0, w, h);
             
             console.log('===== 手动地图创建完成:', w, 'x', h, '=====');
-            
+
+            // 保存地图实际尺寸供小地图使用
+            this.config.currentMapWidth = w;
+            this.config.currentMapHeight = h;
+
             // 5. 设置背景色
             this.cameras.main.setBackgroundColor('#1a3a0a');
-            
+
+            // 生成小地图缩略图（异步加载完成后）
+            this.generateMinimap();
+
         } catch (e) {
             console.error('===== 手动创建地图失败 =====');
             console.error(e);
@@ -425,6 +439,10 @@ class GameScene extends Phaser.Scene {
 
             console.log('===== 地图加载完成:', w, 'x', h, '=====');
 
+            // 保存地图实际尺寸供小地图使用
+            this.config.currentMapWidth = w;
+            this.config.currentMapHeight = h;
+
         } catch (e) {
             console.error('===== 地图初始化失败 =====');
             console.error(e);
@@ -528,6 +546,60 @@ class GameScene extends Phaser.Scene {
     useBackgroundImage() {
         console.log('使用背景图片模式');
         // 可以用 src/assets/picture/地图.png 作为背景
+    }
+
+    /**
+     * 生成小地图缩略图
+     */
+    generateMinimap() {
+        if (!this.tiledMap || !this.player) return;
+
+        const mapW = this.tiledMap.widthInPixels;
+        const mapH = this.tiledMap.heightInPixels;
+        if (!mapW || !mapH) return;
+
+        // 保存当前摄像机状态
+        const oldZoom = this.cameras.main.zoom;
+        const oldScrollX = this.cameras.main.scrollX;
+        const oldScrollY = this.cameras.main.scrollY;
+
+        // 停止跟随玩家并隐藏玩家
+        this.cameras.main.stopFollow();
+        this.player.setVisible(false);
+
+        // 计算能显示完整地图的缩放比例
+        const viewW = this.cameras.main.width;
+        const viewH = this.cameras.main.height;
+        const zoom = Math.min(viewW / mapW, viewH / mapH);
+
+        // 设置摄像机查看完整地图
+        this.cameras.main.setZoom(zoom);
+        this.cameras.main.centerOn(mapW / 2, mapH / 2);
+
+        // 截取一帧作为缩略图
+        this.game.renderer.snapshot((image) => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = image.width;
+                canvas.height = image.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(image, 0, 0);
+                const dataUrl = canvas.toDataURL('image/png');
+
+                if (window.uiManager && typeof window.uiManager.setMinimapBackground === 'function') {
+                    window.uiManager.setMinimapBackground(dataUrl, image.width, image.height, mapW, mapH);
+                }
+            } catch (e) {
+                console.warn('小地图缩略图生成失败:', e);
+            }
+
+            // 恢复摄像机状态
+            this.player.setVisible(true);
+            this.cameras.main.setZoom(oldZoom);
+            this.cameras.main.setScroll(oldScrollX, oldScrollY);
+            const cam = this.config.camera;
+            this.cameras.main.startFollow(this.player, true, cam.followLerpX, cam.followLerpY);
+        });
     }
 
     /**
