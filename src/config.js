@@ -95,6 +95,45 @@ const GameConfig = {
     camera: {
         followLerpX: 0.08,
         followLerpY: 0.08
+    },
+
+    // ==================== 地图配置 ====================
+    
+    // 地图定义
+    maps: {
+        // 地图1 - 平原 (5个瓦片集)
+        'plain': {
+            jsonPath: 'src/maps/平原.json',
+            tileImages: [
+                'src/tilesets/Gemini_Generated_Image_npnymcnpnymcnpny.png',
+                'src/tilesets/Gemini_Generated_Image_a0qfh7a0qfh7a0qf.png',
+                'src/tilesets/Gemini_Generated_Image_21rixx21rixx21ri.png',
+                'src/tilesets/Gemini_Generated_Image_bh33dibh33dibh33.png',
+                'src/tilesets/Gemini_Generated_Image_i693pii693pii693.png'
+            ],
+            playerStart: { x: 400, y: 300 }
+        },
+        // 地图2 - 溪流
+        'stream': {
+            jsonPath: 'src/maps/溪流.json',
+            tileImages: [
+                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g.png',
+                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (1).png',
+                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (2).png',
+                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (3).png'
+            ],
+            playerStart: { x: 300, y: 400 }
+        }
+    },
+
+    // 当前地图ID
+    currentMapId: 'plain',
+
+    // 默认地图设置
+    defaultMapSettings: {
+        collisionLayerName: 'collision',    // 碰撞图层名称
+        objectLayerName: 'objects',         // 对象图层名称
+        groundLayerName: 'ground'           // 地面图层名称
     }
 };
 

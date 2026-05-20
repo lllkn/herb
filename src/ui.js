@@ -5,9 +5,13 @@
 
 class UIManager {
     constructor() {
+        console.log('UIManager: 开始初始化...');
         this.cacheElements();
+        console.log('UIManager: 元素缓存完成');
         this.bindEvents();
+        console.log('UIManager: 事件绑定完成');
         this.initSettings();
+        console.log('UIManager: 初始化完成');
     }
 
     // ==================== 设置页面管理 ====================
@@ -381,19 +385,25 @@ class UIManager {
      * 绑定 UI 事件监听器
      */
     bindEvents() {
-        // 功能按钮点击事件
-        document.querySelectorAll('.func-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const modalId = btn.dataset.modal + '-modal';
+        // 使用事件委托绑定功能按钮点击事件
+        document.addEventListener('click', (e) => {
+            // 功能按钮点击
+            const funcBtn = e.target.closest('.func-btn');
+            if (funcBtn) {
+                const modalId = funcBtn.dataset.modal + '-modal';
+                console.log('UIManager: 点击功能按钮, modalId:', modalId);
                 this.openModal(modalId);
-            });
-        });
-
-        // 关闭按钮事件
-        document.querySelectorAll('.modal-close').forEach(btn => {
-            btn.addEventListener('click', () => {
+                e.stopPropagation();
+                return;
+            }
+            
+            // 关闭按钮点击
+            const closeBtn = e.target.closest('.modal-close');
+            if (closeBtn) {
                 this.closeAllModals();
-            });
+                e.stopPropagation();
+                return;
+            }
         });
 
         // 遮罩层点击关闭
@@ -404,27 +414,28 @@ class UIManager {
         }
 
         // 任务栏点击高亮
-        document.querySelectorAll('.task-item').forEach(item => {
-            item.addEventListener('click', () => {
-                item.classList.toggle('selected');
-            });
+        document.addEventListener('click', (e) => {
+            const taskItem = e.target.closest('.task-item');
+            if (taskItem) {
+                taskItem.classList.toggle('selected');
+            }
         });
 
         // 小地图点击打开大地图
-        const minimap = document.getElementById('minimap');
-        if (minimap) {
-            minimap.addEventListener('click', () => {
+        document.addEventListener('click', (e) => {
+            const minimap = e.target.closest('#minimap');
+            if (minimap) {
                 this.openModal('map-modal');
-            });
-        }
+            }
+        });
 
         // 清禾药斋入口按钮
-        const qingheBtn = document.getElementById('btn-qinghe-shop');
-        if (qingheBtn) {
-            qingheBtn.addEventListener('click', () => {
+        document.addEventListener('click', (e) => {
+            const qingheBtn = e.target.closest('#btn-qinghe-shop');
+            if (qingheBtn) {
                 this.goToQingheShop();
-            });
-        }
+            }
+        });
     }
 
     // ==================== 加载界面 ====================

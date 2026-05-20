@@ -28,7 +28,7 @@ body {
     background: #2d5016;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
     display: none;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Phaser画布样式 */
@@ -264,6 +264,37 @@ body {
     background: rgba(74, 124, 40, 0.9);
     border-color: #f0e6d3;
     box-shadow: 0 0 15px rgba(240, 230, 211, 0.3);
+}
+
+/* ==================== 地图切换按钮 ==================== */
+#map-switch-buttons {
+    position: absolute;
+    top: 60px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.map-btn {
+    padding: 8px 16px;
+    background: rgba(74, 124, 40, 0.8);
+    border: 2px solid #6aaa3a;
+    border-radius: 15px;
+    color: #f0e6d3;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.map-btn:hover {
+    background: rgba(100, 160, 60, 0.9);
+    box-shadow: 0 0 10px rgba(100, 160, 60, 0.5);
+}
+
+.map-btn.active {
+    background: rgba(255, 215, 0, 0.3);
+    border-color: #ffd700;
 }
 
 /* ==================== 弹窗通用样式 ==================== */

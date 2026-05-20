@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>百草行 - 中医药文化解谜游戏</title>
     
-    <!-- 古风字体 - Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Long+Cang&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
-    
     <!-- 游戏样式表 -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -93,9 +90,16 @@
                 <button class="modal-close">✕</button>
             </div>
             <div class="modal-body">
-                <p style="text-align: center; color: #8b7355; font-size: 18px;">
-                    🗺️ 大地图界面<br><br>
-                    <span style="font-size: 14px;">此处将展示完整地图，可查看区域、NPC位置等信息</span>
+                <p style="text-align: center; color: #8b7355; font-size: 18px; margin-bottom: 20px;">
+                    🗺️ 选择要前往的区域
+                </p>
+                <!-- 地图切换按钮 -->
+                <div id="map-switch-buttons" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                    <button id="btn-plain" class="map-btn" data-map="plain">🏞️ 平原</button>
+                    <button id="btn-stream" class="map-btn" data-map="stream">🏞️ 溪流</button>
+                </div>
+                <p style="text-align: center; color: #8b7355; font-size: 14px;">
+                    点击上方按钮切换当前所在地图
                 </p>
             </div>
         </div>
@@ -349,8 +353,8 @@
 
     <!-- ==================== 脚本加载（按依赖顺序）==================== -->
     
-    <!-- Phaser 引擎 (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <!-- Phaser 引擎 (本地) -->
+    <script src="node_modules/phaser/dist/phaser.js"></script>
     
     <!-- 游戏模块：配置和数据（无依赖） -->
     <script src="src/config.js"></script>
@@ -384,6 +388,129 @@
             startLoadingSequence();
         }, 100); // 延迟100ms，确保引擎就绪
     });
+    
+    // 确保按钮点击一定有效（最后一道保险）
+    setTimeout(function() {
+        var btns = document.querySelectorAll('.func-btn');
+        console.log('最终检查: 找到按钮数量 =', btns.length);
+        
+        btns.forEach(function(btn) {
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                console.log('按钮被点击:', this.textContent.trim(), '-> 目标:', this.dataset.modal);
+                var modalId = this.dataset.modal + '-modal';
+                var modal = document.getElementById(modalId);
+                if (modal) {
+                    // 先关闭所有弹窗
+                    document.querySelectorAll('.modal').forEach(function(m) {
+                        m.style.display = 'none';
+                    });
+                    // 打开目标弹窗
+                    modal.style.display = 'block';
+                    modal.style.position = 'absolute';
+                    modal.style.top = '50%';
+                    modal.style.left = '50%';
+                    modal.style.transform = 'translate(-50%, -50%)';
+                    modal.style.zIndex = '2000';
+                    console.log('弹窗已显示:', modalId);
+                } else {
+                    console.log('未找到弹窗:', modalId);
+                }
+            };
+        });
+        
+        // 小地图点击打开大地图
+        var minimap = document.getElementById('minimap');
+        if (minimap) {
+            minimap.onclick = function() {
+                console.log('小地图被点击');
+                var modal = document.getElementById('map-modal');
+                if (modal) {
+                    document.querySelectorAll('.modal').forEach(function(m) {
+                        m.style.display = 'none';
+                    });
+                    modal.style.display = 'block';
+                    modal.style.position = 'absolute';
+                    modal.style.top = '50%';
+                    modal.style.left = '50%';
+                    modal.style.transform = 'translate(-50%, -50%)';
+                    modal.style.zIndex = '2000';
+                    console.log('地图弹窗已显示');
+                }
+            };
+        }
+        
+        // 关闭按钮事件
+        var closeBtns = document.querySelectorAll('.modal-close');
+        console.log('最终检查: 找到关闭按钮数量 =', closeBtns.length);
+        
+        closeBtns.forEach(function(btn) {
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                console.log('关闭按钮被点击');
+                // 关闭所有弹窗
+                document.querySelectorAll('.modal').forEach(function(m) {
+                    m.style.display = 'none';
+                });
+                console.log('弹窗已关闭');
+            };
+        });
+        
+        // ESC 键关闭弹窗
+        document.onkeydown = function(e) {
+            if (e.key === 'Escape') {
+                console.log('ESC 键按下');
+                document.querySelectorAll('.modal').forEach(function(m) {
+                    m.style.display = 'none';
+                });
+            }
+        };
+        
+        // 地图切换按钮
+        var btnPlain = document.getElementById('btn-plain');
+        var btnStream = document.getElementById('btn-stream');
+        
+        function switchMap(mapId) {
+            console.log('切换地图到:', mapId);
+            if (window.GameConfig) {
+                window.GameConfig.currentMapId = mapId;
+                // 更新按钮状态
+                if (btnPlain) {
+                    btnPlain.classList.toggle('active', mapId === 'plain');
+                }
+                if (btnStream) {
+                    btnStream.classList.toggle('active', mapId === 'stream');
+                }
+                // 关闭地图弹窗
+                var mapModal = document.getElementById('map-modal');
+                if (mapModal) mapModal.style.display = 'none';
+                
+                // 使用 scene.start 重新启动场景（会重新调用 preload 和 create）
+                if (window.game) {
+                    var gameScene = window.game.scene.getScene('GameScene');
+                    if (gameScene) {
+                        gameScene.scene.start('GameScene');
+                        console.log('场景已重新启动');
+                    }
+                }
+            }
+        }
+        
+        if (btnPlain) {
+            btnPlain.onclick = function() { switchMap('plain'); };
+        }
+        if (btnStream) {
+            btnStream.onclick = function() { switchMap('stream'); };
+        }
+        
+        // 设置当前地图按钮为激活状态
+        if (window.GameConfig && btnPlain && btnStream) {
+            btnPlain.classList.toggle('active', window.GameConfig.currentMapId === 'plain');
+            btnStream.classList.toggle('active', window.GameConfig.currentMapId === 'stream');
+        }
+        
+        console.log('所有事件绑定完成');
+    }, 1000); // 延迟1秒后执行
 </script>
 </body>
 </html>
