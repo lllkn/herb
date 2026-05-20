@@ -103,6 +103,7 @@ const GameConfig = {
     maps: {
         // 地图1 - 平原 (5个瓦片集)
         'plain': {
+            name: '平原',
             jsonPath: 'src/maps/平原.json',
             tileImages: [
                 'src/tilesets/Gemini_Generated_Image_npnymcnpnymcnpny.png',
@@ -115,6 +116,7 @@ const GameConfig = {
         },
         // 地图2 - 溪流
         'stream': {
+            name: '溪流',
             jsonPath: 'src/maps/溪流.json',
             tileImages: [
                 'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g.png',
@@ -125,6 +127,10 @@ const GameConfig = {
             playerStart: { x: 300, y: 400 }
         }
     },
+
+    // 当前地图实际像素尺寸（由 GameScene 动态设置）
+    currentMapWidth: 1600,
+    currentMapHeight: 1200,
 
     // 当前地图ID
     currentMapId: 'plain',

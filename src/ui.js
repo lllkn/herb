@@ -503,16 +503,71 @@ class UIManager {
      * @param {number} playerX - 玩家X坐标
      * @param {number} playerY - 玩家Y坐标
      */
+    setMinimapBackground(dataUrl, imageWidth, imageHeight, mapWidth, mapHeight) {
+        this.minimapBackground = {
+            url: dataUrl,
+            imageWidth,
+            imageHeight,
+            mapWidth,
+            mapHeight
+        };
+
+        const minimapContent = document.getElementById('minimap-content');
+        if (!minimapContent) return;
+
+        minimapContent.style.backgroundImage = `url(${dataUrl})`;
+        minimapContent.style.backgroundRepeat = 'no-repeat';
+        minimapContent.style.backgroundPosition = 'center center';
+        minimapContent.style.backgroundSize = `${Math.round(imageWidth * 3)}px ${Math.round(imageHeight * 3)}px`;
+    }
+
     updateMinimap(playerX, playerY) {
         if (!this.playerDot || !window.GameConfig) return;
 
-        const mapWidth = 220;
-        const mapHeight = 130;
-        const x = (playerX / window.GameConfig.WORLD_WIDTH) * mapWidth + 10;
-        const y = (playerY / window.GameConfig.WORLD_HEIGHT) * mapHeight + 10;
+        const minimapContent = document.getElementById('minimap-content');
+        if (!minimapContent) return;
+
+        const minimapWidth = minimapContent.clientWidth;
+        const minimapHeight = minimapContent.clientHeight;
+
+        if (this.minimapBackground && this.minimapBackground.url) {
+            const { imageWidth, imageHeight, mapWidth, mapHeight } = this.minimapBackground;
+            const zoom = 0.9;
+            const scaledWidth = imageWidth * zoom;
+            const scaledHeight = imageHeight * zoom;
+            const playerImageX = (playerX / mapWidth) * scaledWidth;
+            const playerImageY = (playerY / mapHeight) * scaledHeight;
+            let offsetX = Math.round(playerImageX - minimapWidth / 2);
+            let offsetY = Math.round(playerImageY - minimapHeight / 2);
+            offsetX = Math.min(Math.max(offsetX, 0), Math.max(0, scaledWidth - minimapWidth));
+            offsetY = Math.min(Math.max(offsetY, 0), Math.max(0, scaledHeight - minimapHeight));
+
+            minimapContent.style.backgroundSize = `${scaledWidth}px ${scaledHeight}px`;
+            minimapContent.style.backgroundPosition = `-${offsetX}px -${offsetY}px`;
+
+            this.playerDot.style.left = minimapWidth / 2 + 'px';
+            this.playerDot.style.top = minimapHeight / 2 + 'px';
+            return;
+        }
+
+        const worldW = window.GameConfig.currentMapWidth || window.GameConfig.WORLD_WIDTH;
+        const worldH = window.GameConfig.currentMapHeight || window.GameConfig.WORLD_HEIGHT;
+        const x = (playerX / worldW) * minimapWidth;
+        const y = (playerY / worldH) * minimapHeight;
 
         this.playerDot.style.left = x + 'px';
         this.playerDot.style.top = y + 'px';
+    }
+
+    /**
+     * 更新小地图标题
+     */
+    updateMinimapTitle() {
+        const title = document.getElementById('minimap-title');
+        if (!title || !window.GameConfig) return;
+        const mapConfig = window.GameConfig.maps[window.GameConfig.currentMapId];
+        const mapName = mapConfig ? mapConfig.name : '未知';
+        title.textContent = '🗺️ ' + mapName;
     }
 
     // ==================== 时间显示 ====================
