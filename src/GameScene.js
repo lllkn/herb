@@ -56,6 +56,20 @@ class GameScene extends Phaser.Scene {
             }
             console.log(`预加载地图: ${mapId} - ${mapConfig.jsonPath}`);
         }
+
+        // ── 清除旧玩家纹理和动画缓存 ──
+        if (this.textures.exists('player')) {
+            this.textures.remove('player');
+        }
+        ['walk_down', 'walk_left', 'walk_right', 'walk_up', 'idle'].forEach(k => {
+            if (this.anims.exists(k)) this.anims.remove(k);
+        });
+
+        // ── 加载新角色精灵表（终稿.png，1920×1920，480px/帧，4×4=16帧）──
+        this.load.spritesheet('player', 'src/assets/sprites/player_final.png', {
+            frameWidth: 480,
+            frameHeight: 480
+        });
     }
 
     /**
@@ -424,6 +438,9 @@ class GameScene extends Phaser.Scene {
 
             console.log(`成功创建 ${layerCount} 个图层`);
 
+            // 3.5 设置行走层碰撞
+            this.setupWalkCollision();
+
             // 4. 加载对象层（草药、传送门、NPC）
             const objectLayers = this.tiledMap.layers.filter(l =>
                 l.type === 'ObjectLayer' || l.type === 'objectgroup'
@@ -449,6 +466,74 @@ class GameScene extends Phaser.Scene {
             this.showError('地图初始化失败: ' + e.message);
             this.tiledMap = null;
         }
+    }
+
+    /**
+     * 根据"行走层"设置碰撞
+     * 行走层有瓦片 = 玩家可走，无瓦片 = 阻挡
+     * 创建反向碰撞层：在行走层为空的位置放置碰撞瓦片
+     */
+    setupWalkCollision() {
+        if (!this.tiledMap) return;
+
+        // 从原始 JSON 读取行走层（tiledMap.layers[i].data 是 2D Tile对象，不能用）
+        const rawJson = this.cache.json.get('gameMap');
+        if (!rawJson) {
+            console.warn('未找到地图JSON缓存，跳过碰撞');
+            return;
+        }
+
+        const walkLayer = rawJson.layers.find(l => l.name === '行走层');
+        if (!walkLayer || !walkLayer.data) {
+            console.warn('未找到行走层，跳过碰撞');
+            return;
+        }
+
+        const data = walkLayer.data;        // 原始 1D GID 数组（0=空, >0=有瓦片）
+        const mapW = this.tiledMap.width;
+        const mapH = this.tiledMap.height;
+        const tileW = this.tiledMap.tileWidth;
+        const tileH = this.tiledMap.tileHeight;
+
+        // 反向：行走层空(0) → 碰撞=1（阻挡），有瓦片 → 碰撞=0（通行）
+        const collisionData = [];
+        let blocked = 0;
+        for (let i = 0; i < data.length; i++) {
+            const v = data[i] === 0 ? 1 : 0;
+            collisionData.push(v);
+            if (v) blocked++;
+        }
+        console.log(`行走层碰撞: ${blocked}/${data.length} 瓦片阻挡 (${(blocked/data.length*100).toFixed(1)}%)`);
+
+        // 生成碰撞瓦片纹理
+        if (!this.textures.exists('_collision_tile')) {
+            const gfx = this.make.graphics({ add: false });
+            gfx.fillStyle(0xff0000, 1);
+            gfx.fillRect(0, 0, tileW, tileH);
+            gfx.generateTexture('_collision_tile', tileW, tileH);
+            gfx.destroy();
+        }
+
+        // 创建碰撞 tilemap
+        this.collisionMap = this.make.tilemap({
+            data: collisionData,
+            tileWidth: tileW,
+            tileHeight: tileH,
+            width: mapW,
+            height: mapH
+        });
+
+        const ts = this.collisionMap.addTilesetImage('_collision_tile');
+        this.collisionLayer = this.collisionMap.createLayer(0, ts, 0, 0);
+        this.collisionLayer.setVisible(false);
+        this.collisionLayer.setCollision(1);  // gid=1 的瓦片触发碰撞
+
+        // 玩家与碰撞层碰撞
+        if (this.player && this.player.body) {
+            this.physics.add.collider(this.player, this.collisionLayer);
+        }
+
+        console.log('行走层碰撞设置完成');
     }
 
     /**
@@ -603,24 +688,54 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * 创建玩家
+     * 创建玩家（精灵表动画版）
+     * 精灵表 1920×1920，480px/帧，4列×4行=16帧
+     * 行0=下 行1=左 行2=右 行3=上，每行4帧
      */
     createPlayer() {
         const cfg = this.config;
-        const p = cfg.player;
+        const startX = cfg.GAME_WIDTH / 2;
+        const startY = cfg.GAME_HEIGHT / 2;
 
-        const graphics = this.add.graphics();
-        graphics.fillStyle(0x4a7c28, 1);
-        graphics.fillCircle(0, 0, p.radius);
-        graphics.lineStyle(2, 0xffffff, 1);
-        graphics.strokeCircle(0, 0, p.radius);
+        const COLS = 4; // 4列4行
 
-        const arrow = this.add.triangle(0, -25, 8, 0, 0, 15, 16, 15, 0xffffff);
+        // ── 注册四方向走路动画 ──
+        this.anims.create({
+            key: 'walk_down',
+            frames: this.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+            frameRate: 8, repeat: -1
+        });
+        this.anims.create({
+            key: 'walk_left',
+            frames: this.anims.generateFrameNumbers('player', { start: COLS, end: COLS + 3 }),
+            frameRate: 8, repeat: -1
+        });
+        this.anims.create({
+            key: 'walk_right',
+            frames: this.anims.generateFrameNumbers('player', { start: COLS * 2, end: COLS * 2 + 3 }),
+            frameRate: 8, repeat: -1
+        });
+        this.anims.create({
+            key: 'walk_up',
+            frames: this.anims.generateFrameNumbers('player', { start: COLS * 3, end: COLS * 3 + 3 }),
+            frameRate: 8, repeat: -1
+        });
+        this.anims.create({
+            key: 'idle',
+            frames: [{ key: 'player', frame: 0 }],
+            frameRate: 1, repeat: 0
+        });
 
-        this.player = this.add.container(cfg.GAME_WIDTH / 2, cfg.GAME_HEIGHT / 2, [graphics, arrow]);
-        this.physics.add.existing(this.player);
+        // ── 创建物理精灵（480px/帧，缩小至约192px显示）──
+        this.player = this.physics.add.sprite(startX, startY, 'player', 0);
+        this.player.setScale(0.4);
         this.player.body.setCollideWorldBounds(true);
-        this.player.body.setSize(p.size, p.size);
+        this.player.body.setSize(80, 100);
+        this.player.body.setOffset(200, 190); // 碰撞框居中
+        this.player.setDepth(10);
+        this.player.anims.play('idle');
+
+        console.log('✅ 玩家创建完成（终稿精灵表 1920x1920，480px/帧，4×4=16帧）');
     }
 
     /**
@@ -652,6 +767,13 @@ class GameScene extends Phaser.Scene {
     setupCamera() {
         const cam = this.config.camera;
         this.cameras.main.startFollow(this.player, true, cam.followLerpX, cam.followLerpY);
+
+        // 溪流地图缩小显示（2400×1792 在 1280×720 画布上太拥挤）
+        const mapId = this.config.currentMapId;
+        if (mapId === 'stream') {
+            this.cameras.main.setZoom(0.5);
+            console.log('溪流地图：摄像机缩放 0.5');
+        }
     }
 
     /**
@@ -686,7 +808,6 @@ class GameScene extends Phaser.Scene {
         if (!this.player || !this.player.body) return;
 
         this.updateMovement();
-        this.updateArrow();
         window.uiManager.updateMinimap(this.player.x, this.player.y);
         this.checkCollection();
 
@@ -700,38 +821,39 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * 移动
+     * 移动 + 方向动画
      */
     updateMovement() {
         const speed = this.config.player.speed;
         let vx = 0, vy = 0;
+        let animKey = null;
 
-        if (this.cursors.left.isDown || this.wasd.A.isDown) vx = -speed;
-        else if (this.cursors.right.isDown || this.wasd.D.isDown) vx = speed;
-
-        if (this.cursors.up.isDown || this.wasd.W.isDown) vy = -speed;
-        else if (this.cursors.down.isDown || this.wasd.S.isDown) vy = speed;
-
-        if (vx && vy) {
-            vx *= 0.707;
-            vy *= 0.707;
+        if (this.cursors.left.isDown || this.wasd.A.isDown) {
+            vx = -speed;
+            animKey = 'walk_left';
+        } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
+            vx = speed;
+            animKey = 'walk_right';
         }
 
+        if (this.cursors.up.isDown || this.wasd.W.isDown) {
+            vy = -speed;
+            if (!vx) animKey = 'walk_up';
+        } else if (this.cursors.down.isDown || this.wasd.S.isDown) {
+            vy = speed;
+            if (!vx) animKey = 'walk_down';
+        }
+
+        if (vx && vy) { vx *= 0.707; vy *= 0.707; }
+
         this.player.body.setVelocity(vx, vy);
-    }
 
-    /**
-     * 箭头方向
-     */
-    updateArrow() {
-        if (this.player.length < 2) return;
-        const arrow = this.player.getAt(1);
-        const b = this.player.body;
-
-        if (b.velocity.x > 0) arrow.setRotation(0);
-        else if (b.velocity.x < 0) arrow.setRotation(Math.PI);
-        else if (b.velocity.y < 0) arrow.setRotation(-Math.PI / 2);
-        else if (b.velocity.y > 0) arrow.setRotation(Math.PI / 2);
+        if (animKey) {
+            this.player.anims.play(animKey, true);
+        } else {
+            this.player.anims.stop();
+            this.player.setFrame(0);
+        }
     }
 
     /**

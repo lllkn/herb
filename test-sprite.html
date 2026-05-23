@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>精灵表测试</title>
+<style>
+body { background: #1a3a0a; color: #fff; font-family: monospace; padding: 20px; }
+canvas { border: 1px solid #fff; margin: 4px; image-rendering: pixelated; }
+.row { display: flex; align-items: center; margin: 8px 0; gap: 8px; }
+.label { width: 80px; font-size: 13px; color: #8fc; }
+</style>
+</head>
+<body>
+<h2 style="color:#8fc">精灵表帧检查 (hero1.png 96×96 × 4×4)</h2>
+<div id="output"></div>
+<script>
+const img = new Image();
+img.src = 'src/assets/sprites/hero1.png';
+img.onload = () => {
+    const out = document.getElementById('output');
+    const dirs = ['朝下 (row0)', '朝左 (row1)', '朝右 (row2)', '朝上 (row3)'];
+    const FRAME_W = 96, FRAME_H = 96, COLS = 4, SCALE = 2;
+
+    out.innerHTML += `<p>图片尺寸: ${img.width} × ${img.height}</p>`;
+    out.innerHTML += `<p>预期: 384 × 384 (4列×4行, 每帧96×96)</p>`;
+    out.innerHTML += `<p style="color:${img.width===384&&img.height===384?'#8fc':'#f88'}">${img.width===384&&img.height===384?'✅ 尺寸正确':'❌ 尺寸不匹配'}</p>`;
+
+    dirs.forEach((dir, row) => {
+        const div = document.createElement('div');
+        div.className = 'row';
+        div.innerHTML = `<span class="label">${dir}</span>`;
+
+        for (let col = 0; col < COLS; col++) {
+            const c = document.createElement('canvas');
+            c.width = FRAME_W * SCALE;
+            c.height = FRAME_H * SCALE;
+            c.title = `帧${row*COLS+col}`;
+            const ctx = c.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(img,
+                col * FRAME_W, row * FRAME_H, FRAME_W, FRAME_H,
+                0, 0, FRAME_W * SCALE, FRAME_H * SCALE
+            );
+            // 画边框
+            ctx.strokeStyle = '#f00';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, c.width-1, c.height-1);
+            // 帧号标签
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(0, 0, 30, 16);
+            ctx.fillStyle = '#ff0';
+            ctx.font = '11px monospace';
+            ctx.fillText(`F${row*COLS+col}`, 2, 12);
+            div.appendChild(c);
+        }
+        out.appendChild(div);
+    });
+};
+img.onerror = () => {
+    document.getElementById('output').innerHTML = '<p style="color:red">❌ 图片加载失败！</p>';
+};
+</script>
+</body>
+</html>

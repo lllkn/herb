@@ -25,6 +25,7 @@
     "phaser": "^3.90.0"
   },
   "devDependencies": {
+    "jimp": "^1.6.1",
     "nodemon": "^3.1.14"
   },
   "engines": {
