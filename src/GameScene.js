@@ -16,6 +16,72 @@ class GameScene extends Phaser.Scene {
 
         this.config = window.GameConfig;
         this.gameData = window.GameData;
+
+        this.walkCollisionData = null;
+        this.walkCollisionTileWidth = null;
+        this.walkCollisionTileHeight = null;
+    }
+
+    /**
+     * 判断指定世界坐标是否被行走层阻挡
+     */
+    isWalkBlockedAtWorldXY(x, y) {
+        if (!this.walkCollisionData || !this.walkCollisionTileWidth || !this.walkCollisionTileHeight) {
+            return false;
+        }
+
+        const tx = Math.floor(x / this.walkCollisionTileWidth);
+        const ty = Math.floor(y / this.walkCollisionTileHeight);
+        if (tx < 0 || ty < 0 || ty >= this.walkCollisionData.length || tx >= this.walkCollisionData[0].length) {
+            return true;
+        }
+        return this.walkCollisionData[ty][tx] === 1;
+    }
+
+    /**
+     * 根据当前玩家候选移动速度，应答 x/y 轴的碰撞约束
+     */
+    applyWalkCollision(vx, vy) {
+        if (!this.player || !this.player.body || !this.walkCollisionData) {
+            return { vx, vy };
+        }
+
+        const body = this.player.body;
+        const delta = this.game.loop.delta / 1000;
+        const nextX = body.x + vx * delta;
+        const nextY = body.y + vy * delta;
+        const width = body.width;
+        const height = body.height;
+
+        const checkTile = (wx, wy) => this.isWalkBlockedAtWorldXY(wx, wy);
+
+        let canMoveX = true;
+        let canMoveY = true;
+
+        if (vx !== 0) {
+            const signX = Math.sign(vx);
+            const testX = signX > 0 ? nextX + width - 1 : nextX;
+            const topY = nextY + 2;
+            const bottomY = nextY + height - 2;
+            if (checkTile(testX, topY) || checkTile(testX, bottomY)) {
+                canMoveX = false;
+            }
+        }
+
+        if (vy !== 0) {
+            const signY = Math.sign(vy);
+            const testY = signY > 0 ? nextY + height - 1 : nextY;
+            const leftX = nextX + 2;
+            const rightX = nextX + width - 2;
+            if (checkTile(leftX, testY) || checkTile(rightX, testY)) {
+                canMoveY = false;
+            }
+        }
+
+        if (!canMoveX) vx = 0;
+        if (!canMoveY) vy = 0;
+
+        return { vx, vy };
     }
 
     /**
@@ -31,7 +97,7 @@ class GameScene extends Phaser.Scene {
             // 清除旧的地图缓存，防止切换地图时键冲突
             if (this.cache.json.exists('gameMap')) {
                 this.cache.json.remove('gameMap');
-                console.log('已清除旧地图JSON缓存');
+                console.log('已清除旧缓存: gameMap');
             }
             
             // 清除旧的瓦片纹理缓存
@@ -44,7 +110,7 @@ class GameScene extends Phaser.Scene {
                 }
             }
             
-            // 使用 Phaser 内置的 Tiled JSON 加载
+            // 使用 Phaser 内置的 Tiled JSON 加载（存入 tilemap cache）
             this.load.tilemapTiledJSON('gameMap', mapConfig.jsonPath);
             
             // 加载瓦片图片
@@ -83,6 +149,15 @@ class GameScene extends Phaser.Scene {
         
         // 创建玩家
         this.createPlayer();
+        console.log('玩家创建后，准备绑定碰撞', {
+            hasPlayer: !!this.player,
+            hasBody: !!(this.player && this.player.body),
+            bodySize: this.player && this.player.body ? { width: this.player.body.width, height: this.player.body.height } : null,
+            bodyOffset: this.player && this.player.body ? { x: this.player.body.offset.x, y: this.player.body.offset.y } : null
+        });
+
+        // 玩家创建后，绑定行走层碰撞（仅 initTiledMap/Phaser缓存路径）
+        this.bindWalkCollider();
         
         // 如果没地图，用默认
         if (!this.tiledMap) {
@@ -294,17 +369,29 @@ class GameScene extends Phaser.Scene {
             this.physics.world.setBounds(0, 0, w, h);
             this.cameras.main.setBounds(0, 0, w, h);
             
-            console.log('===== 手动地图创建完成:', w, 'x', h, '=====');
+            console.log(`===== 手动地图创建完成: ${w} x ${h} =====`);
 
             // 保存地图实际尺寸供小地图使用
             this.config.currentMapWidth = w;
             this.config.currentMapHeight = h;
 
-            // 5. 设置背景色
+            // 设置背景色
             this.cameras.main.setBackgroundColor('#1a3a0a');
 
             // 生成小地图缩略图（异步加载完成后）
             this.generateMinimap();
+
+            // 保存地图 JSON 供 setupWalkCollision 使用
+            this._rawMapJson = mapData;
+
+            // 设置行走层碰撞
+            this.setupWalkCollision();
+            // 绑定碰撞（fetch异步回调此时玩家已创建）
+            this.bindWalkCollider();
+            console.log('createMapFromData: 已调用 setupWalkCollision 和 bindWalkCollider', {
+                hasCollisionLayer: !!this.collisionLayer,
+                bindStatus: this._walkColliderBound
+            });
 
         } catch (e) {
             console.error('===== 手动创建地图失败 =====');
@@ -341,6 +428,15 @@ class GameScene extends Phaser.Scene {
 
         try {
             console.log('===== 初始化 Tiled 地图 =====');
+
+            // 0. 保存原始 JSON 数据（供 setupWalkCollision 使用）
+            //    必须在 make.tilemap 之前读取，因为部分 Phaser 版本会清理 JSON 缓存
+            this._rawMapJson = this.cache.json.get('gameMap');
+            if (!this._rawMapJson) {
+                console.warn('JSON缓存中无 gameMap，碰撞功能将受限');
+            } else {
+                console.log('✅ _rawMapJson 已保存，图层:', this._rawMapJson.layers.map(l => l.name).join(', '));
+            }
 
             // 1. 创建 tilemap
             this.tiledMap = this.make.tilemap({ key: 'gameMap' });
@@ -440,6 +536,7 @@ class GameScene extends Phaser.Scene {
 
             // 3.5 设置行走层碰撞
             this.setupWalkCollision();
+            this.bindWalkCollider();
 
             // 4. 加载对象层（草药、传送门、NPC）
             const objectLayers = this.tiledMap.layers.filter(l =>
@@ -472,40 +569,68 @@ class GameScene extends Phaser.Scene {
      * 根据"行走层"设置碰撞
      * 行走层有瓦片 = 玩家可走，无瓦片 = 阻挡
      * 创建反向碰撞层：在行走层为空的位置放置碰撞瓦片
+     * 读取 this._rawMapJson（由 initTiledMap / createMapFromData 在调用前存入）
      */
     setupWalkCollision() {
-        if (!this.tiledMap) return;
+        console.log('🔍 setupWalkCollision 被调用', {
+            hasTiledMap: !!this.tiledMap,
+            hasCachedRaw: !!this._rawMapJson
+        });
 
-        // 从原始 JSON 读取行走层（tiledMap.layers[i].data 是 2D Tile对象，不能用）
-        const rawJson = this.cache.json.get('gameMap');
+        if (!this.tiledMap) {
+            console.warn('❌ setupWalkCollision: no tiledMap');
+            return;
+        }
+
+        const rawJson = this._rawMapJson;
         if (!rawJson) {
-            console.warn('未找到地图JSON缓存，跳过碰撞');
+            console.warn('❌ 未找到地图JSON缓存（this._rawMapJson 为空），跳过碰撞');
             return;
         }
 
-        const walkLayer = rawJson.layers.find(l => l.name === '行走层');
-        if (!walkLayer || !walkLayer.data) {
-            console.warn('未找到行走层，跳过碰撞');
+        // 列出所有图层名，方便调试
+        console.log('📋 地图图层:', rawJson.layers.map(l => `"${l.name}"(${l.type})`).join(', '));
+
+        const walkLayer = rawJson.layers.find(l => l.name === '行走层')
+            || rawJson.layers.find(l => typeof l.name === 'string' && /行走层/i.test(l.name))
+            || rawJson.layers.find(l => typeof l.name === 'string' && /walk/i.test(l.name));
+
+        if (!walkLayer || !Array.isArray(walkLayer.data)) {
+            console.warn('❌ 未找到有效的行走层，跳过碰撞。已检查图层:',
+                rawJson.layers.map(l => `"${l.name}"(${l.type})`).join(', ')
+            );
             return;
         }
 
-        const data = walkLayer.data;        // 原始 1D GID 数组（0=空, >0=有瓦片）
+        const data = walkLayer.data;
         const mapW = this.tiledMap.width;
         const mapH = this.tiledMap.height;
         const tileW = this.tiledMap.tileWidth;
         const tileH = this.tiledMap.tileHeight;
 
-        // 反向：行走层空(0) → 碰撞=1（阻挡），有瓦片 → 碰撞=0（通行）
+        if (data.length !== mapW * mapH) {
+            console.warn('行走层数据长度与地图尺寸不匹配:', data.length, '!=', mapW * mapH,
+                `layerWidth=${walkLayer.width}, layerHeight=${walkLayer.height}`);
+        }
+
         const collisionData = [];
         let blocked = 0;
-        for (let i = 0; i < data.length; i++) {
-            const v = data[i] === 0 ? 1 : 0;
-            collisionData.push(v);
-            if (v) blocked++;
+        for (let y = 0; y < mapH; y++) {
+            const row = [];
+            for (let x = 0; x < mapW; x++) {
+                const idx = y * mapW + x;
+                const gid = idx < data.length ? data[idx] : 0;
+                const v = (gid === 0 || gid === undefined) ? 1 : 0;
+                row.push(v);
+                if (v === 1) blocked++;
+            }
+            collisionData.push(row);
         }
-        console.log(`行走层碰撞: ${blocked}/${data.length} 瓦片阻挡 (${(blocked/data.length*100).toFixed(1)}%)`);
+        this.walkCollisionData = collisionData;
+        this.walkCollisionTileWidth = tileW;
+        this.walkCollisionTileHeight = tileH;
+        console.log(`行走层碰撞: ${blocked}/${mapW * mapH} 阻挡瓦片 (${((blocked / (mapW * mapH)) * 100).toFixed(1)}%)`);
 
-        // 生成碰撞瓦片纹理
         if (!this.textures.exists('_collision_tile')) {
             const gfx = this.make.graphics({ add: false });
             gfx.fillStyle(0xff0000, 1);
@@ -514,7 +639,6 @@ class GameScene extends Phaser.Scene {
             gfx.destroy();
         }
 
-        // 创建碰撞 tilemap
         this.collisionMap = this.make.tilemap({
             data: collisionData,
             tileWidth: tileW,
@@ -523,17 +647,100 @@ class GameScene extends Phaser.Scene {
             height: mapH
         });
 
-        const ts = this.collisionMap.addTilesetImage('_collision_tile');
-        this.collisionLayer = this.collisionMap.createLayer(0, ts, 0, 0);
-        this.collisionLayer.setVisible(false);
-        this.collisionLayer.setCollision(1);  // gid=1 的瓦片触发碰撞
+        const ts = this.collisionMap.addTilesetImage(
+            '_collision_tile',
+            '_collision_tile',
+            tileW,
+            tileH,
+            0,
+            0,
+            1
+        );
 
-        // 玩家与碰撞层碰撞
-        if (this.player && this.player.body) {
-            this.physics.add.collider(this.player, this.collisionLayer);
+        this.collisionLayer = this.collisionMap.createLayer(0, ts, 0, 0);
+        if (this.collisionLayer) {
+            const usedIndexes = new Set();
+            this.collisionLayer.layer.data.forEach(row => {
+                row.forEach(tile => {
+                    if (tile && tile.index > 0) {
+                        usedIndexes.add(tile.index);
+                    }
+                });
+            });
+
+            const collisionIndexes = [...usedIndexes].sort((a, b) => a - b);
+            if (collisionIndexes.length > 0) {
+                this.collisionLayer.setCollision(collisionIndexes, true, true);
+                this.collisionLayer.setCollisionBetween(collisionIndexes[0], collisionIndexes[collisionIndexes.length - 1], true, true);
+                console.log('collisionLayer setCollision indexes:', collisionIndexes);
+            } else {
+                this.collisionLayer.setCollision(1, true, true);
+                this.collisionLayer.setCollisionBetween(1, 1, true, true);
+                console.log('collisionLayer setCollision default: [1]');
+            }
+
+            this.collisionLayer.setCollisionByExclusion([-1], true, true);
+            this.collisionLayer.setVisible(false);
+
+            const collisionTiles = this.collisionLayer.layer.data.reduce((sum, row) => {
+                return sum + row.filter(tile => tile && tile.index > 0).length;
+            }, 0);
+            console.log('collisionLayer 已创建，碰撞瓦片数量:', collisionTiles);
+
+            console.log('行走层碰撞层创建完成，等待 bindWalkCollider() 绑定');
+        } else {
+            console.warn('❌ 无法创建 collisionLayer');
+        }
+    }
+
+    /**
+     * 绑定行走层碰撞器（防重复，只绑一次）
+     */
+    bindWalkCollider() {
+        if (this._walkColliderBound) return;
+        console.log('bindWalkCollider: 尝试绑定', {
+            hasLayer: !!this.collisionLayer,
+            hasPlayer: !!this.player,
+            hasBody: !!(this.player && this.player.body)
+        });
+        if (!this.collisionLayer || !this.player || !this.player.body) {
+            console.warn('bindWalkCollider: 条件未满足（collisionLayer/player/body）', {
+                hasLayer: !!this.collisionLayer,
+                hasPlayer: !!this.player,
+                hasBody: !!(this.player && this.player.body)
+            });
+            if (!this._walkColliderRetryEvent) {
+                this._walkColliderRetryEvent = this.time.addEvent({
+                    delay: 100,
+                    callback: this.bindWalkCollider,
+                    callbackScope: this,
+                    loop: true
+                });
+            }
+            return;
+        }
+        if (this.collisionLayer.setCollisionBetween) {
+            this.collisionLayer.setCollisionBetween(1, 1, true, true);
+            console.log('collisionLayer.setCollisionBetween(1,1) 已调用');
+        }
+        const colliderCallback = window.gameStateManager && window.gameStateManager.state.debugMode
+            ? () => console.log('walk tile collision callback触发')
+            : null;
+        this.physics.add.collider(this.player, this.collisionLayer, colliderCallback, null, this);
+        this._walkColliderBound = true;
+        if (this._walkColliderRetryEvent) {
+            this._walkColliderRetryEvent.remove(false);
+            this._walkColliderRetryEvent = null;
         }
 
-        console.log('行走层碰撞设置完成');
+        const playerTile = this.collisionLayer.getTileAtWorldXY(this.player.x, this.player.y, true);
+        console.log('✅ 行走层碰撞已绑定', {
+            layerType: this.collisionLayer.constructor.name,
+            tilemapLayer: !!this.collisionLayer.layer,
+            tileCount: this.collisionLayer.layer ? this.collisionLayer.layer.data.reduce((sum,row) => sum + row.filter(tile => tile && tile.index > 0).length, 0) : 0,
+            playerTileIndex: playerTile ? playerTile.index : null,
+            playerTileHasCollision: playerTile ? (playerTile.collideUp || playerTile.collideDown || playerTile.collideLeft || playerTile.collideRight) : false
+        });
     }
 
     /**
@@ -730,8 +937,11 @@ class GameScene extends Phaser.Scene {
         this.player = this.physics.add.sprite(startX, startY, 'player', 0);
         this.player.setScale(0.4);
         this.player.body.setCollideWorldBounds(true);
-        this.player.body.setSize(80, 100);
-        this.player.body.setOffset(200, 190); // 碰撞框居中
+
+        const bodyWidth = 80;
+        const bodyHeight = 100;
+        this.player.body.setSize(bodyWidth, bodyHeight, true);
+
         this.player.setDepth(10);
         this.player.anims.play('idle');
 
@@ -846,7 +1056,8 @@ class GameScene extends Phaser.Scene {
 
         if (vx && vy) { vx *= 0.707; vy *= 0.707; }
 
-        this.player.body.setVelocity(vx, vy);
+        const movement = this.applyWalkCollision(vx, vy);
+        this.player.body.setVelocity(movement.vx, movement.vy);
 
         if (animKey) {
             this.player.anims.play(animKey, true);

@@ -80,7 +80,10 @@ class IntroScene extends Phaser.Scene {
     preload() {
         console.log('IntroScene: 预加载资源');
 
-        // 加载序章剧情数据
+        // 加载序章剧情数据（先清除旧缓存，防止 BootScene 传过来的缓存在场景切换时丢失）
+        if (this.cache.json.exists('prologue_data')) {
+            this.cache.json.remove('prologue_data');
+        }
         this.load.json('prologue_data', 'src/data/story_prologue.json');
 
         // 加载CG图片（如果有的话）
@@ -195,11 +198,35 @@ class IntroScene extends Phaser.Scene {
         this.prologueData = this.cache.json.get('prologue_data');
 
         if (!this.prologueData || !this.prologueData.scenes) {
-            console.error('IntroScene: 剧情数据加载失败，使用内嵌数据');
-            this.prologueData = this._getFallbackData();
+            console.warn('IntroScene: Phaser缓存中无剧情数据，尝试fetch兜底加载...');
+            // fetch 兜底：直接加载 JSON 再初始化
+            fetch('src/data/story_prologue.json')
+                .then(r => {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(data => {
+                    console.log('IntroScene: fetch兜底加载成功');
+                    this.prologueData = data;
+                    this._initScene();
+                })
+                .catch(err => {
+                    console.error('IntroScene: fetch兜底加载失败', err);
+                    this.prologueData = this._getFallbackData();
+                    this._initScene();
+                });
+            return; // 等待 fetch 完成后再初始化
         }
 
         console.log('IntroScene: 剧情数据加载成功', this.prologueData.title);
+        this._initScene();
+    }
+
+    /**
+     * 初始化场景（数据就绪后调用）
+     */
+    _initScene() {
+        console.log('IntroScene: 初始化场景 -', this.prologueData.title);
 
         // 初始化子系统
         this._initSubsystems();
