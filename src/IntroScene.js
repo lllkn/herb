@@ -277,47 +277,10 @@ class IntroScene extends Phaser.Scene {
                 }
             }
 
-            // 根据 window._loadChapter 决定加载哪章剧情（非调试启动时）
-            if (!this.prologueData) {
-                const loadChapter = window._loadChapter || 0;
-
-                if (loadChapter >= 1 && window._chapter1Data) {
-                    this.prologueData = window._chapter1Data;
-                    this._isChapter1 = true;
-                    console.log('IntroScene: 加载第一章剧情', this.prologueData.title);
-                } else {
-                    this.prologueData = this.cache.json.get('prologue_data');
-                    if (!this.prologueData || !this.prologueData.scenes) {
-                        console.warn('IntroScene: Phaser缓存中无剧情数据，尝试fetch兜底加载...');
-            // fetch 兜底：直接加载 JSON 再初始化
-            fetch('src/data/story_prologue.json')
-                .then(r => {
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return r.json();
-                })
-                .then(data => {
-                    console.log('IntroScene: fetch兜底加载成功');
-                    this.prologueData = data;
-                    this._initScene();
-                })
-                .catch(err => {
-                    console.error('IntroScene: fetch兜底加载失败', err);
-                                this.prologueData = this._getFallbackData();
-                    }
-                    this._isChapter1 = false;
-                    console.log('IntroScene: 加载序章剧情', this.prologueData.title);
-                }
-                        this._initScene();
-                });
-            return; // 等待 fetch 完成后再初始化
-        }
-        this._initScene();
-    }
-
-    /**
-     * 初始化场景（数据就绪后调用）
-     */
-    _initScene() {
+        /**
+         * 初始化场景（数据就绪后调用）
+         */
+        this._initScene = function() {
         console.log('IntroScene: 初始化场景 -', this.prologueData.title);
 
             // 初始化子系统
@@ -371,6 +334,46 @@ class IntroScene extends Phaser.Scene {
                 canvasWidth: this.cameras.main.width,
                 canvasHeight: this.cameras.main.height
             });
+        };
+
+            // 根据 window._loadChapter 决定加载哪章剧情（非调试启动时）
+            if (!this.prologueData) {
+                const loadChapter = window._loadChapter || 0;
+
+                if (loadChapter >= 1 && window._chapter1Data) {
+                    this.prologueData = window._chapter1Data;
+                    this._isChapter1 = true;
+                    console.log('IntroScene: 加载第一章剧情', this.prologueData.title);
+                } else {
+                    this._isChapter1 = false;
+                    this.prologueData = this.cache.json.get('prologue_data');
+                    if (!this.prologueData || !this.prologueData.scenes) {
+                        console.warn('IntroScene: Phaser缓存中无剧情数据，尝试fetch兜底加载...');
+                        // fetch 兜底：直接加载 JSON 再初始化
+                        fetch('src/data/story_prologue.json')
+                            .then(r => {
+                                if (!r.ok) throw new Error('HTTP ' + r.status);
+                                return r.json();
+                            })
+                            .then(data => {
+                                console.log('IntroScene: fetch兜底加载成功');
+                                this.prologueData = data;
+                                this._initScene();
+                            })
+                            .catch(err => {
+                                console.error('IntroScene: fetch兜底加载失败', err);
+                                this.prologueData = this._getFallbackData();
+                                this._initScene();
+                            });
+                        return; // 等待 fetch 完成后再初始化
+                    }
+                    console.log('IntroScene: 加载序章剧情', this.prologueData.title);
+                }
+                this._initScene();
+            } else {
+                // prologueData 已在调试模式中设置（如 forceChapter1），直接初始化
+                this._initScene();
+            }
 
         } catch (error) {
             console.error('!!! IntroScene.create() 发生致命错误 !!!', error);
