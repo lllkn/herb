@@ -104,7 +104,7 @@ const GameConfig = {
         // 地图1 - 平原 (5个瓦片集)
         'plain': {
             name: '平原',
-            jsonPath: 'src/maps/平原.json',
+            jsonPath: 'src/maps/平原新.json',
             tileImages: [
                 'src/tilesets/Gemini_Generated_Image_npnymcnpnymcnpny.png',
                 'src/tilesets/Gemini_Generated_Image_a0qfh7a0qfh7a0qf.png',
@@ -112,19 +112,19 @@ const GameConfig = {
                 'src/tilesets/Gemini_Generated_Image_bh33dibh33dibh33.png',
                 'src/tilesets/Gemini_Generated_Image_i693pii693pii693.png'
             ],
-            playerStart: { x: 400, y: 300 }
+            playerStart: { x: 664, y: 744 }  // 行走层(41,46)中心
         },
         // 地图2 - 溪流
         'stream': {
             name: '溪流',
-            jsonPath: 'src/maps/溪流.json',
+            jsonPath: 'src/maps/溪流新.json',
             tileImages: [
                 'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g.png',
                 'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (1).png',
                 'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (2).png',
                 'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (3).png'
             ],
-            playerStart: { x: 300, y: 400 }
+            playerStart: { x: 2330, y: 1250 }
         }
     },
 

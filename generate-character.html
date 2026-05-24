@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>角色精灵表生成器</title>
+    <style>
+        body { margin: 20px; font-family: sans-serif; background: #1a1a2e; color: #eee; }
+        canvas { border: 2px solid #444; image-rendering: pixelated; margin: 10px; }
+        .controls { margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #4a7c59; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #5a9b6a; }
+        .info { margin: 10px 0; color: #aaa; }
+    </style>
+</head>
+<body>
+    <h2>像素角色精灵表生成器</h2>
+    <div class="info">生成 4 方向 × 3 帧的走路动画精灵表（64×64 像素/帧）</div>
+    <div class="controls">
+        <button onclick="generateSpriteSheet()">生成新角色</button>
+        <button onclick="downloadSpriteSheet()">下载 PNG</button>
+    </div>
+    <canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const FRAME_W = 64, FRAME_H = 64;
+const COLS = 3, ROWS = 4;
+canvas.width = FRAME_W * COLS;
+canvas.height = FRAME_H * ROWS;
+
+// 禁用平滑缩放，保持像素清晰
+ctx.imageSmoothingEnabled = false;
+
+function generateSpriteSheet() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // 颜色主题 - 类似参考图的风格
+    const colors = {
+        skin: '#F5D0C5',
+        skinShadow: '#E8B8A8',
+        hair: '#8B4513',
+        hairHighlight: '#A0522D',
+        hairShadow: '#654321',
+        dress: '#90EE90',
+        dressDark: '#7FCD7F',
+        dressLight: '#A8F0A8',
+        ribbon: '#87CEEB',
+        ribbonDark: '#6BB6D6',
+        eye: '#4A3728',
+        cheek: '#FFB6C1',
+        herb: '#7CFC00',
+        herbPot: '#DEB887'
+    };
+    
+    for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+            const ox = col * FRAME_W;
+            const oy = row * FRAME_H;
+            drawCharacter(ctx, ox, oy, row, col, colors);
+        }
+    }
+    
+    console.log('精灵表已生成:', canvas.width, 'x', canvas.height);
+}
+
+function drawCharacter(ctx, ox, oy, direction, frame, colors) {
+    const cx = ox + FRAME_W / 2;
+    const cy = oy + FRAME_H / 2;
+    
+    // 走路动画偏移
+    const bob = (frame === 1) ? -2 : (frame === 2) ? 0 : 0;
+    const legOffset = (frame === 1) ? -3 : (frame === 2) ? 3 : 0;
+    
+    ctx.save();
+    
+    // 阴影
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(cx, oy + FRAME_H - 8, 12, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    if (direction === 0) { // 正面（朝下）
+        drawFront(ctx, cx, cy + bob, legOffset, colors);
+    } else if (direction === 1) { // 左面
+        drawSide(ctx, cx, cy + bob, legOffset, colors, -1);
+    } else if (direction === 2) { // 右面
+        drawSide(ctx, cx, cy + bob, legOffset, colors, 1);
+    } else { // 背面（朝上）
+        drawBack(ctx, cx, cy + bob, legOffset, colors);
+    }
+    
+    ctx.restore();
+}
+
+function drawFront(ctx, cx, cy, legOffset, colors) {
+    // 腿
+    ctx.fillStyle = colors.dressDark;
+    ctx.fillRect(cx - 8 + legOffset, cy + 12, 6, 14);
+    ctx.fillRect(cx + 2 - legOffset, cy + 12, 6, 14);
+    
+    // 裙子
+    ctx.fillStyle = colors.dress;
+    ctx.beginPath();
+    ctx.moveTo(cx - 14, cy + 14);
+    ctx.lineTo(cx + 14, cy + 14);
+    ctx.lineTo(cx + 10, cy - 2);
+    ctx.lineTo(cx - 10, cy - 2);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 裙子上部
+    ctx.fillStyle = colors.dressLight;
+    ctx.fillRect(cx - 10, cy - 8, 20, 10);
+    
+    // 袖子
+    ctx.fillStyle = colors.dress;
+    ctx.fillRect(cx - 16, cy - 6, 8, 14);
+    ctx.fillRect(cx + 8, cy - 6, 8, 14);
+    
+    // 手（拿药草）
+    ctx.fillStyle = colors.skin;
+    ctx.fillRect(cx + 10, cy - 2, 6, 6);
+    
+    // 药草
+    ctx.fillStyle = colors.herbPot;
+    ctx.fillRect(cx + 12, cy - 8, 4, 6);
+    ctx.fillStyle = colors.herb;
+    ctx.fillRect(cx + 13, cy - 14, 2, 6);
+    ctx.fillRect(cx + 11, cy - 12, 6, 2);
+    
+    // 头
+    ctx.fillStyle = colors.skin;
+    ctx.beginPath();
+    ctx.arc(cx, cy - 18, 14, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 头发（前面）
+    ctx.fillStyle = colors.hair;
+    ctx.beginPath();
+    ctx.arc(cx, cy - 22, 15, Math.PI, 0);
+    ctx.fill();
+    ctx.fillRect(cx - 16, cy - 22, 32, 10);
+    
+    // 头发两侧
+    ctx.fillRect(cx - 18, cy - 18, 6, 16);
+    ctx.fillRect(cx + 12, cy - 18, 6, 16);
+    
+    // 眼睛
+    ctx.fillStyle = colors.eye;
+    ctx.fillRect(cx - 7, cy - 20, 4, 5);
+    ctx.fillRect(cx + 3, cy - 20, 4, 5);
+    
+    // 高光
+    ctx.fillStyle = '#FFF';
+    ctx.fillRect(cx - 6, cy - 19, 2, 2);
+    ctx.fillRect(cx + 4, cy - 19, 2, 2);
+    
+    // 腮红
+    ctx.fillStyle = colors.cheek;
+    ctx.fillRect(cx - 11, cy - 16, 4, 3);
+    ctx.fillRect(cx + 7, cy - 16, 4, 3);
+    
+    // 嘴巴
+    ctx.fillStyle = '#D4847C';
+    ctx.fillRect(cx - 2, cy - 12, 4, 2);
+    
+    // 发带
+    ctx.fillStyle = colors.ribbon;
+    ctx.fillRect(cx - 8, cy - 28, 16, 4);
+    ctx.fillRect(cx + 12, cy - 26, 8, 4);
+}
+
+function drawSide(ctx, cx, cy, legOffset, colors, dir) {
+    const d = dir; // 1 = 右, -1 = 左
+    
+    // 腿
+    ctx.fillStyle = colors.dressDark;
+    ctx.fillRect(cx - 4 + legOffset * d, cy + 12, 5, 14);
+    ctx.fillRect(cx + 1 - legOffset * d, cy + 12, 4, 14);
+    
+    // 裙子
+    ctx.fillStyle = colors.dress;
+    ctx.beginPath();
+    ctx.moveTo(cx - 10 * d, cy + 14);
+    ctx.lineTo(cx + 8 * d, cy + 14);
+    ctx.lineTo(cx + 6 * d, cy - 2);
+    ctx.lineTo(cx - 8 * d, cy - 2);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 身体
+    ctx.fillStyle = colors.dressLight;
+    ctx.fillRect(cx - 8 * d, cy - 8, 14 * d, 10);
+    
+    // 袖子
+    ctx.fillStyle = colors.dress;
+    ctx.fillRect(cx - 12 * d, cy - 6, 6 * d, 12);
+    
+    // 头（侧向）
+    ctx.fillStyle = colors.skin;
+    ctx.beginPath();
+    ctx.arc(cx - 2 * d, cy - 18, 13, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 头发
+    ctx.fillStyle = colors.hair;
+    ctx.beginPath();
+    ctx.arc(cx - 4 * d, cy - 22, 14, Math.PI * 0.8, Math.PI * 2.2);
+    ctx.fill();
+    ctx.fillRect(cx - 16 * d, cy - 24, 20 * d, 10);
+    
+    // 头发后面
+    ctx.fillRect(cx + 6 * d, cy - 20, 8 * d, 18);
+    
+    // 眼睛（侧向）
+    ctx.fillStyle = colors.eye;
+    ctx.fillRect(cx + 4 * d, cy - 20, 3, 5);
+    
+    // 高光
+    ctx.fillStyle = '#FFF';
+    ctx.fillRect(cx + 5 * d, cy - 19, 2, 2);
+    
+    // 发带
+    ctx.fillStyle = colors.ribbon;
+    ctx.fillRect(cx - 10 * d, cy - 28, 14 * d, 4);
+    ctx.fillRect(cx + 8 * d, cy - 26, 8 * d, 4);
+}
+
+function drawBack(ctx, cx, cy, legOffset, colors) {
+    // 腿
+    ctx.fillStyle = colors.dressDark;
+    ctx.fillRect(cx - 7 + legOffset, cy + 12, 5, 14);
+    ctx.fillRect(cx + 2 - legOffset, cy + 12, 5, 14);
+    
+    // 裙子
+    ctx.fillStyle = colors.dress;
+    ctx.beginPath();
+    ctx.moveTo(cx - 13, cy + 14);
+    ctx.lineTo(cx + 13, cy + 14);
+    ctx.lineTo(cx + 9, cy - 2);
+    ctx.lineTo(cx - 9, cy - 2);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 身体
+    ctx.fillStyle = colors.dressLight;
+    ctx.fillRect(cx - 9, cy - 8, 18, 10);
+    
+    // 袖子
+    ctx.fillStyle = colors.dress;
+    ctx.fillRect(cx - 15, cy - 6, 7, 12);
+    ctx.fillRect(cx + 8, cy - 6, 7, 12);
+    
+    // 头（背面）
+    ctx.fillStyle = colors.hair;
+    ctx.beginPath();
+    ctx.arc(cx, cy - 20, 15, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 头发细节
+    ctx.fillRect(cx - 16, cy - 24, 32, 10);
+    ctx.fillRect(cx - 18, cy - 20, 8, 18);
+    ctx.fillRect(cx + 10, cy - 20, 8, 18);
+    
+    // 发带（从后面看）
+    ctx.fillStyle = colors.ribbonDark;
+    ctx.fillRect(cx - 8, cy - 28, 16, 4);
+    ctx.fillRect(cx + 10, cy - 26, 8, 4);
+}
+
+function downloadSpriteSheet() {
+    const link = document.createElement('a');
+    link.download = 'character-sprite-sheet.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+
+// 初始生成
+generateSpriteSheet();
+</script>
+</body>
+</html>
