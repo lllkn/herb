@@ -264,30 +264,30 @@
                 <button class="modal-close">✕</button>
             </div>
             <div class="modal-body settings-body">
-                <!-- 音频设置 -->
-                <div class="settings-section">
-                    <h3 class="settings-section-title">🔊 音频设置</h3>
-                    <div class="setting-item">
-                        <div class="setting-label">
-                            <span class="setting-icon">🎵</span>
-                            <span class="setting-name">背景音乐</span>
-                        </div>
-                        <div class="slider-container">
-                            <input type="range" class="setting-slider" id="bgm-volume" min="0" max="100" value="80">
-                            <span class="slider-value" id="bgm-value">80%</span>
-                        </div>
-                    </div>
-                    <div class="setting-item">
-                        <div class="setting-label">
-                            <span class="setting-icon">🔔</span>
-                            <span class="setting-name">游戏音效</span>
-                        </div>
-                        <div class="slider-container">
-                            <input type="range" class="setting-slider" id="sfx-volume" min="0" max="100" value="90">
-                            <span class="slider-value" id="sfx-value">90%</span>
-                        </div>
-                    </div>
+        <!-- 音频设置 -->
+        <div class="settings-section">
+            <h3 class="settings-section-title">🔊 音频设置</h3>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span class="setting-icon">🎵</span>
+                    <span class="setting-name">背景音乐</span>
                 </div>
+                <div class="slider-container">
+                    <input type="range" class="setting-slider" id="settings-bgm-volume" name="bgm-volume" min="0" max="100" value="80">
+                    <span class="slider-value" id="bgm-value">80%</span>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span class="setting-icon">🔔</span>
+                    <span class="setting-name">游戏音效</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" class="setting-slider" id="settings-sfx-volume" name="sfx-volume" min="0" max="100" value="90">
+                    <span class="slider-value" id="sfx-value">90%</span>
+                </div>
+            </div>
+        </div>
 
                 <!-- 画质设置 -->
                 <div class="settings-section">
@@ -424,6 +424,10 @@
     <script src="src/GameScene.js"></script>
     <script src="src/BootScene.js"></script>
     <script src="src/IntroScene.js"></script>
+    <script src="src/FlowerIdGame.js"></script>
+    <script src="src/DryFlowerGame.js"></script>
+    <script src="src/DiagnosisMinigame.js"></script>
+    <script src="src/DebugManager.js"></script>
     
     <!-- 游戏入口（依赖所有模块） -->
     <script src="src/main.js"></script>

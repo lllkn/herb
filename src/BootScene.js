@@ -45,20 +45,48 @@ class BootScene extends Phaser.Scene {
 
         // 加载序章剧情数据
         this.load.json('prologue_data', 'src/data/story_prologue.json');
+
+        // 加载第一章剧情数据
+        this.load.json('chapter1_data', 'src/data/story_chapter1.json');
+
+        // 加载地图事件配置
+        this.load.json('map_events_data', 'src/data/map_events.json');
     }
 
     create() {
-        console.log('BootScene: 每次启动都显示新手引导剧情');
+        console.log('BootScene: 启动场景，判断加载哪章剧情');
+
+        // 检查当前章节状态
+        const currentChapter = (window.gameStateManager && window.gameStateManager.state.currentChapter) || 0;
 
         // 检查剧情数据是否加载成功
         const prologueData = this.cache.json.get('prologue_data');
         if (prologueData && prologueData.scenes) {
             console.log('BootScene: 序章剧情数据加载成功，共', prologueData.scenes.length, '个场景');
         } else {
-            console.warn('BootScene: 序章剧情数据加载失败，将使用内嵌数据');
+            console.warn('BootScene: 序章剧情数据加载失败');
         }
 
-        // 每次都跳转到引导场景
+        const chapter1Data = this.cache.json.get('chapter1_data');
+        if (chapter1Data && chapter1Data.scenes) {
+            console.log('BootScene: 第一章剧情数据加载成功，共', chapter1Data.scenes.length, '个场景');
+            window._chapter1Data = chapter1Data;
+        }
+
+        // 根据章节状态决定跳转
+        // 优先尊重调试面板/手动设置的 window._loadChapter（用于F3调试器切换章节）
+        if (window._loadChapter >= 1 && window._chapter1Data) {
+            console.log('BootScene: 跳转到第一章剧情（手动指定或已通关）');
+            // 保持 window._loadChapter 不变（已经是1）
+        } else if (currentChapter >= 1 && window._chapter1Data) {
+            console.log('BootScene: 跳转到第一章剧情（存档记录）');
+            window._loadChapter = 1;
+        } else {
+            console.log('BootScene: 跳转到序章剧情');
+            window._loadChapter = 0;
+        }
+
+        // 跳转到引导场景
         this.scene.start('IntroScene');
     }
 }

@@ -120,8 +120,8 @@ class UIManager {
      */
     updateSettingsUI() {
         // 音量滑块
-        const bgmSlider = document.getElementById('bgm-volume');
-        const sfxSlider = document.getElementById('sfx-volume');
+        const bgmSlider = document.getElementById('settings-bgm-volume');
+        const sfxSlider = document.getElementById('settings-sfx-volume');
         const bgmValue = document.getElementById('bgm-value');
         const sfxValue = document.getElementById('sfx-value');
         
@@ -171,8 +171,8 @@ class UIManager {
      */
     bindSettingsEvents() {
         // 音量滑块
-        const bgmSlider = document.getElementById('bgm-volume');
-        const sfxSlider = document.getElementById('sfx-volume');
+        const bgmSlider = document.getElementById('settings-bgm-volume');
+        const sfxSlider = document.getElementById('settings-sfx-volume');
         
         if (bgmSlider) {
             bgmSlider.addEventListener('input', (e) => {

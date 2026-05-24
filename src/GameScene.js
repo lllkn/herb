@@ -91,10 +91,13 @@ class GameScene extends Phaser.Scene {
         // 输入
         this.setupInput();
         
-        // UI
+        // UI — 更新内容
         window.uiManager.updateBackpackUI();
         window.uiManager.updateHerbGuideUI();
         window.uiManager.updateMinimapTitle();
+
+        // ★ 确保主页面所有UI面板可见（防御性措施：即使IntroScene未正确恢复，此处保证显示）
+        this._ensureMainUI();
 
         // 生成小地图缩略图并初始化玩家位置
         this.generateMinimap();
@@ -103,6 +106,38 @@ class GameScene extends Phaser.Scene {
         }
 
         console.log('GameScene: 创建完成');
+    }
+
+    /**
+     * ★ 确保主页面所有UI面板可见（防御性措施）
+     * 当从剧情场景返回到主游戏场景时，确保所有HUD元素正确显示
+     */
+    _ensureMainUI() {
+        try {
+            const gameContainer = document.getElementById('game-container');
+            if (gameContainer) {
+                gameContainer.style.display = 'block';  // CSS 默认 display:none，必须显式设 block
+            }
+
+            // 确保所有永久HUD面板可见
+            const uiElements = [
+                'top-left-panel',     // 左上角：小地图 + 时间日期
+                'task-panel',         // 任务栏
+                'top-right-buttons',  // 顶部右侧功能按钮
+                'controls-hint',      // 底部操作提示
+                'debug-panel',        // 调试面板
+                'modal-overlay'       // 模态框遮罩
+            ];
+
+            uiElements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.display = '';
+                }
+            });
+        } catch (e) {
+            console.warn('GameScene: _ensureMainUI 失败:', e.message);
+        }
     }
 
     /**

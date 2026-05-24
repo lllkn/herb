@@ -1,0 +1,1205 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-22",
+  "description": "百草行 - 第一章剧情数据（C01-C16），IntroScene格式",
+  "storyId": "chapter_1",
+  "title": "第一章·翠竹村的春天",
+  "scenes": [
+    
+    {
+      "id": "C01",
+      "name": "出生区搭车过场",
+      "type": "scene",
+      "background": "bg_plains_entry.png",
+      "bgm": "bgm_journey.mp3",
+      "_trigger": {
+        "type": "zone",
+        "zoneId": "zone_map_entry",
+        "once": true,
+        "dialogType": "overlay",
+        "eventId": "EVT_PLAINS_ENTRY"
+      },
+      "steps": [
+        {
+          "id": "C01_001",
+          "type": "narration",
+          "text": "山路蜿蜒，赶车的老伯在翠竹村岔路口将你放下。\n「小大夫，往南走，见到竹林就到了。」",
+          "nextDelay": 2500
+        },
+        {
+          "id": "C01_002",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "（从背囊里探出头）终于到了！主人，这里草药的气息好浓！往南走——青苗感觉到了！",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C01_003",
+          "type": "tutorial",
+          "tutorialAction": "movement_hint",
+          "hint": "WASD 移动 · 靠近草药按 E 采集 · 靠近 NPC 按 E 对话",
+          "hintPosition": "bottom-center",
+          "nextDelay": 0
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C02",
+      "name": "第一株甘草",
+      "type": "scene",
+      "background": "bg_plains_road.png",
+      "bgm": "bgm_journey.mp3",
+      "_trigger": {
+        "type": "zone",
+        "zoneId": "zone_first_herbs",
+        "once": true,
+        "dialogType": "bubble",
+        "eventId": "EVT_FIRST_HERB"
+      },
+      "steps": [
+        {
+          "id": "C02_001",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "主人！甘草！路边就有！快采！",
+          "avatar": "qingmiao.png",
+          "nextDelay": 300
+        },
+        {
+          "id": "C02_002",
+          "type": "tutorial",
+          "tutorialAction": "collect_gancao",
+          "herbId": "gancao",
+          "requiredCount": 2,
+          "hint": "采集路旁甘草 ×2（靠近后按 E）",
+          "nextDelay": 0
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C03",
+      "name": "砍柴老汉问路",
+      "type": "dialogue",
+      "background": "bg_plains_road.png",
+      "bgm": "bgm_journey.mp3",
+      "_trigger": {
+        "type": "npc",
+        "npcId": "woodcutter_npc",
+        "once": false,
+        "dialogType": "overlay",
+        "eventId": "EVT_WOODCUTTER"
+      },
+      "steps": [
+        {
+          "id": "C03_001",
+          "type": "dialogue",
+          "character": "woodcutter",
+          "expression": "normal",
+          "name": "砍柴老伯",
+          "text": "（停下斧头，打量你）咦，背着药囊的……是大夫？打哪儿来？",
+          "avatar": "woodcutter.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C03_choice1",
+          "type": "choice",
+          "options": [
+            {
+              "text": "「岐黄学堂来的，去翠竹村给人看病。」",
+              "flag": "told_purpose",
+              "response": {
+                "type": "dialogue",
+                "character": "woodcutter",
+                "expression": "normal",
+                "name": "砍柴老伯",
+                "text": "哎！好！翠竹村啊，那边可需要大夫！往南走，看见那片竹林向右拐，看见牌坊就是了。村里好些老人病着呢。",
+                "avatar": "woodcutter.png",
+                "nextDelay": 500,
+                "nextStep": "C03_002"
+              }
+            },
+            {
+              "text": "「请问翠竹村怎么走？」",
+              "flag": "asked_directions",
+              "response": {
+                "type": "dialogue",
+                "character": "woodcutter",
+                "expression": "normal",
+                "name": "砍柴老伯",
+                "text": "翠竹村？就在南边，竹林旁边。你走路的话，小半个时辰就到了——对了，你是大夫吗？那边正缺人哩！",
+                "avatar": "woodcutter.png",
+                "nextDelay": 500,
+                "nextStep": "C03_002"
+              }
+            }
+          ]
+        },
+        {
+          "id": "C03_002",
+          "type": "dialogue",
+          "character": "woodcutter",
+          "expression": "normal",
+          "name": "砍柴老伯",
+          "text": "（指着南方）路上草药多，顺手采些带着。这条路的甘草最好，我家老伴年年来摘。",
+          "avatar": "woodcutter.png",
+          "nextDelay": 500
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C04",
+      "name": "废弃草药篓",
+      "type": "scene",
+      "background": "bg_plains_woods.png",
+      "bgm": "bgm_journey.mp3",
+      "_trigger": {
+        "type": "object",
+        "objectId": "abandoned_basket",
+        "once": true,
+        "dialogType": "bubble",
+        "eventId": "EVT_ABANDONED_BASKET"
+      },
+      "steps": [
+        {
+          "id": "C04_001",
+          "type": "dialogue",
+          "character": "narrator",
+          "name": "旁白",
+          "text": "（检查）一只遗落的竹编药篓，已经半朽，里面残留着几片干枯的叶片——像是金银花，但已辨认不清。",
+          "nextDelay": 1500
+        },
+        {
+          "id": "C04_002",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "surprised",
+          "name": "青苗",
+          "text": "（凑近嗅一嗅）……有人最近来过这里采药，但是放弃了。气味……有点不对。不像是自然枯萎。",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500,
+          "setFlag": "clue_herbs_dying"
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C05",
+      "name": "洗衣村妇",
+      "type": "dialogue",
+      "background": "bg_plains_river.png",
+      "bgm": "bgm_journey.mp3",
+      "_trigger": {
+        "type": "npc",
+        "npcId": "washerwoman_npc",
+        "once": false,
+        "dialogType": "overlay",
+        "eventId": "EVT_WASHERWOMAN"
+      },
+      "steps": [
+        {
+          "id": "C05_001",
+          "type": "dialogue",
+          "character": "washerwoman",
+          "expression": "normal",
+          "name": "洗衣妇",
+          "text": "（抬头）哎，外乡来的？去翠竹村？那里可惨了……村里老人一个接一个倒，药铺又没货，大夫又请不来……",
+          "avatar": "washerwoman.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C05_002",
+          "type": "dialogue",
+          "character": "washerwoman",
+          "expression": "normal",
+          "name": "洗衣妇",
+          "text": "（压低声音）我倒是听村里人说，从入秋起，南边草场长了种怪草，灰绿色的，那之后药材就越来越少……可别去踩那东西，晦气。",
+          "avatar": "washerwoman.png",
+          "nextDelay": 500,
+          "setFlag": "clue_gugen_early"
+        },
+        {
+          "id": "C05_003",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "surprised",
+          "name": "青苗",
+          "text": "（小声对主人）主人……蛊根草从这里就开始了？",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C06",
+      "name": "行商王掌柜",
+      "type": "dialogue",
+      "background": "bg_plains_south.png",
+      "bgm": "bgm_journey.mp3",
+      "_trigger": {
+        "type": "npc",
+        "npcId": "merchant_npc",
+        "once": false,
+        "dialogType": "overlay",
+        "eventId": "EVT_MERCHANT"
+      },
+      "steps": [
+        {
+          "id": "C06_001",
+          "type": "dialogue",
+          "character": "merchant",
+          "expression": "normal",
+          "name": "行商 王掌柜",
+          "text": "（招手）哎，小大夫，背囊里有草药不？这一带草药紧俏，我收购！",
+          "avatar": "merchant.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C06_choice1",
+          "type": "choice",
+          "options": [
+            {
+              "text": "「我自己要用，暂不出售。」",
+              "flag": "declined_merchant",
+              "response": {
+                "type": "dialogue",
+                "character": "merchant",
+                "expression": "normal",
+                "name": "行商 王掌柜",
+                "text": "哦，自己用的。行，那到了翠竹村，若有余货，村东头药铺找我——对了，那药铺现在没掌柜，等新大夫来了才能开。",
+                "avatar": "merchant.png",
+                "nextDelay": 500,
+                "nextStep": "C06_002"
+              }
+            },
+            {
+              "text": "「价格怎么样？」",
+              "flag": "asked_price",
+              "response": {
+                "type": "dialogue",
+                "character": "merchant",
+                "expression": "normal",
+                "name": "行商 王掌柜",
+                "text": "甘草三文一株，菊花五文，金银花十五文一束——金银花现在稀少，价格涨了。你若攒够一批，合算。",
+                "avatar": "merchant.png",
+                "nextDelay": 500,
+                "nextStep": "C06_002"
+              }
+            }
+          ]
+        },
+        {
+          "id": "C06_002",
+          "type": "tutorial",
+          "tutorialAction": "shop_price_hint",
+          "hint": "草药可在药铺出售获得铜钱！\n稀有草药售价更高，留意节气采集时机",
+          "hintPosition": "top-center",
+          "nextDelay": 0
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C07",
+      "name": "翠竹村牌坊",
+      "type": "scene",
+      "background": "bg_village_gate.png",
+      "bgm": "bgm_village.mp3",
+      "_trigger": {
+        "type": "zone",
+        "zoneId": "zone_village_gate",
+        "once": true,
+        "dialogType": "overlay",
+        "eventId": "EVT_VILLAGE_GATE"
+      },
+      "steps": [
+        {
+          "id": "C07_001",
+          "type": "narration",
+          "text": "竹林尽头，一座石牌坊出现在眼前——「翠竹村」三字苍劲古朴，石缝间爬满青苔。",
+          "nextDelay": 2500
+        },
+        {
+          "id": "C07_002",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "到了！到了！主人，村里有好多人的气息……还有草药！还有……（停顿）……还有一种说不清楚的怪味。",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C07_003",
+          "type": "narration",
+          "text": "一个身材魁梧、面色憨厚的老汉从牌坊后绕出来，一见你便大步迎上。",
+          "nextDelay": 1500
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C08",
+      "name": "村长接委托",
+      "type": "dialogue",
+      "background": "bg_village_entrance.png",
+      "bgm": "bgm_village.mp3",
+      "_trigger": {
+        "type": "zone",
+        "zoneId": "zone_village_entrance",
+        "once": true,
+        "dialogType": "overlay",
+        "eventId": "EVT_CUNZHANG_INTRO",
+        "locComplete": null
+      },
+      "steps": [
+        {
+          "id": "C08_001",
+          "type": "dialogue",
+          "character": "cunzhang",
+          "expression": "happy",
+          "name": "村长 张老汉",
+          "text": "（搓手）哎呀！岐黄学堂来的吧！小兰托人捎话说要来，我等了你大半天！快快快，进村！",
+          "avatar": "village_chief.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C08_002",
+          "type": "dialogue",
+          "character": "cunzhang",
+          "expression": "worried",
+          "name": "村长 张老汉",
+          "text": "村里这两个月啊，老人们一个个倒下——四肢乏力，咳嗽不止。药铺早断货，镇上大夫又请不来……",
+          "avatar": "village_chief.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C08_003",
+          "type": "dialogue",
+          "character": "cunzhang",
+          "expression": "serious",
+          "name": "村长 张老汉",
+          "text": "村东头有间空铺子，你若愿意留下行医，那铺子免费借你！你治病，我们守铺子，怎么说？",
+          "avatar": "village_chief.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C08_choice1",
+          "type": "choice",
+          "options": [
+            {
+              "text": "「成交！翠竹村的大夫，从今天起是我了！」",
+              "flag": "accept_village",
+              "response": {
+                "type": "dialogue",
+                "character": "cunzhang",
+                "expression": "happy",
+                "name": "村长 张老汉",
+                "text": "哈哈！好！先四处走走，认认路，认认人。村子不大，一圈下来一盏茶工夫。去跟老李、张大娘他们说说话，了解情况。",
+                "avatar": "village_chief.png",
+                "nextDelay": 500,
+                "nextStep": "C08_004"
+              }
+            },
+            {
+              "text": "「先看看情况再说。」",
+              "flag": "cautious_arrival",
+              "response": {
+                "type": "dialogue",
+                "character": "cunzhang",
+                "expression": "happy",
+                "name": "村长 张老汉",
+                "text": "行，稳当。先四处走走，认认路认认人，铺子的事之后再谈。村里几处你都去看看。",
+                "avatar": "village_chief.png",
+                "nextDelay": 500,
+                "nextStep": "C08_004"
+              }
+            }
+          ]
+        },
+        {
+          "id": "C08_004",
+          "type": "tutorial",
+          "tutorialAction": "village_explore",
+          "hint": "探索翠竹村！\n地图上「！」标记处有可交互对象\n完成全部 5 处地点后推进主线",
+          "hintPosition": "top-center",
+          "nextDelay": 0
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C09",
+      "name": "草药圃辨药",
+      "type": "dialogue",
+      "background": "bg_herb_garden.png",
+      "bgm": "bgm_village.mp3",
+      "_trigger": {
+        "type": "npc",
+        "npcId": "laoli_npc",
+        "once": false,
+        "locComplete": "loc_herb_garden",
+        "eventId": "EVT_LAOLI_HERB_GARDEN"
+      },
+      "steps": [
+        {
+          "id": "C09_001",
+          "type": "dialogue",
+          "character": "laoli",
+          "expression": "normal",
+          "name": "药农 老李",
+          "text": "（蹲在药圃边，抬起头）哟，学堂来的。这一圃本来种的是甘草、山药、紫苏……现在都蔫儿了，也不知是土的问题还是那怪草闹的。",
+          "avatar": "laoli.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C09_002",
+          "type": "dialogue",
+          "character": "laoli",
+          "expression": "normal",
+          "name": "药农 老李",
+          "text": "你既然是大夫，来帮我认认——这三株里头，哪株是金银花？",
+          "avatar": "laoli.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C09_minigame",
+          "type": "minigame_flower_id",
+          "flowerData": {
+            "correctAnswer": "jinyinhua",
+            "instructions": "三花选一，找出金银花"
+          },
+          "rewardOnCorrect": { "attr": "herb_knowledge", "delta": 3 },
+          "nextDelay": 500
+        },
+        {
+          "id": "C09_003",
+          "type": "dialogue",
+          "character": "laoli",
+          "expression": "normal",
+          "name": "药农 老李",
+          "text": "（压低声音）说句心里话……村南那片蛊根草，老汉我见过一次，在深山里。那东西的根，会向土里分泌什么，周围草药全扎不住根。我爷爷说，大草纪二百年那场大疫之前，也出现过。",
+          "avatar": "laoli.png",
+          "nextDelay": 500,
+          "setFlag": "clue_gugen_history"
+        },
+        {
+          "id": "C09_reward",
+          "type": "reward",
+          "items": [
+            { "id": "jinyinhua", "name": "金银花", "count": 3, "icon": "🌸" }
+          ],
+          "nextDelay": 800
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C10",
+      "name": "水井边病情线索",
+      "type": "dialogue",
+      "background": "bg_village_well.png",
+      "bgm": "bgm_village.mp3",
+      "_trigger": {
+        "type": "npc",
+        "npcId": "well_villager_npc",
+        "once": false,
+        "locComplete": "loc_well",
+        "eventId": "EVT_WELL_VILLAGER"
+      },
+      "steps": [
+        {
+          "id": "C10_001",
+          "type": "dialogue",
+          "character": "villager_b",
+          "expression": "normal",
+          "name": "村民 陈大嫂",
+          "text": "（打完水，叹气）大夫来了就好……我家老娘三天没下床，腰酸腿软，气都喘不上来。",
+          "avatar": "villager_b.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C10_002",
+          "type": "dialogue",
+          "character": "villager_b",
+          "expression": "normal",
+          "name": "村民 陈大嫂",
+          "text": "不只我家，隔壁王老伯、李奶奶都一样——乏力、夜咳、腰酸，症状差不多。入秋后就开始的，和那蛊根草出现的时间对得上……",
+          "avatar": "villager_b.png",
+          "nextDelay": 500,
+          "setFlag": "clue_mass_symptom"
+        },
+        {
+          "id": "C10_003",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "surprised",
+          "name": "青苗",
+          "text": "（认真地听着，小声对主人）乏力、夜咳、腰酸……主人，这像是肺和肾的问题。",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C11",
+      "name": "晒药台炮制教程",
+      "type": "dialogue",
+      "background": "bg_drying_platform.png",
+      "bgm": "bgm_village.mp3",
+      "_trigger": {
+        "type": "object",
+        "objectId": "drying_platform_obj",
+        "once": true,
+        "locComplete": "loc_drying_platform",
+        "eventId": "EVT_DRYING_PLATFORM"
+      },
+      "steps": [
+        {
+          "id": "C11_001",
+          "type": "dialogue",
+          "character": "narrator",
+          "name": "旁白",
+          "text": "（检查）一张空置的竹编晒药匾，积了一层薄灰——看来已经很久没人用了。",
+          "nextDelay": 1500
+        },
+        {
+          "id": "C11_002",
+          "type": "dialogue",
+          "character": "laoli",
+          "expression": "normal",
+          "name": "药农 老李",
+          "text": "（路过，停下来）那是晒药匾。你背包里有菊花吗？这时候正好晒——来，我教你两手。",
+          "avatar": "laoli.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C11_minigame",
+          "type": "minigame_dry_flower",
+          "dryData": {
+            "herbName": "菊花",
+            "totalFlowers": 5
+          },
+          "rewardOnCorrect": { "attr": "herb_knowledge", "delta": 2 },
+          "nextDelay": 500
+        },
+        {
+          "id": "C11_003",
+          "type": "dialogue",
+          "character": "laoli",
+          "expression": "normal",
+          "name": "药农 老李",
+          "text": "炮制讲究「依法修治」——晾晒是最基础的一道。以后蜜炙、醋制慢慢学，急不来。",
+          "avatar": "laoli.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C11_reward",
+          "type": "reward",
+          "items": [
+            { "id": "juhua_dried", "name": "晒菊花", "count": 1, "icon": "🌼" }
+          ],
+          "nextDelay": 800
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C12",
+      "name": "空置铺面药铺委托",
+      "type": "dialogue",
+      "background": "bg_empty_shop.png",
+      "bgm": "bgm_village.mp3",
+      "_trigger": {
+        "type": "object",
+        "objectId": "empty_shop_obj",
+        "once": true,
+        "locComplete": "loc_empty_shop",
+        "eventId": "EVT_EMPTY_SHOP"
+      },
+      "steps": [
+        {
+          "id": "C12_001",
+          "type": "dialogue",
+          "character": "narrator",
+          "name": "旁白",
+          "text": "（进入铺内）积了一层薄灰，但货架、柜台、炮制台一应俱全，只是空无一物。",
+          "nextDelay": 2000
+        },
+        {
+          "id": "C12_002",
+          "type": "dialogue",
+          "character": "cunzhang",
+          "expression": "serious",
+          "name": "村长 张老汉",
+          "text": "（跟进来）原来的老掌柜三年前走了，铺子就空着。你若愿意在此行医，这铺子免费借你用，一文不收。",
+          "avatar": "village_chief.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C12_choice1",
+          "type": "choice",
+          "options": [
+            {
+              "text": "「这里就当我的落脚点了！」",
+              "flag": "shop_accepted",
+              "response": {
+                "type": "dialogue",
+                "character": "cunzhang",
+                "expression": "happy",
+                "name": "村长 张老汉",
+                "text": "（拍手）好！今儿就把这招牌重新挂上！「百草堂」——你觉得这名字怎样？",
+                "avatar": "village_chief.png",
+                "nextDelay": 500,
+                "nextStep": "C12_003"
+              }
+            },
+            {
+              "text": "「先把病人看好，再谈铺子的事。」",
+              "flag": "shop_later",
+              "response": {
+                "type": "dialogue",
+                "character": "cunzhang",
+                "expression": "happy",
+                "name": "村长 张老汉",
+                "text": "行，你先忙，铺子随时都在。把张大娘他们看好了，这铺子就是你的。",
+                "avatar": "village_chief.png",
+                "nextDelay": 500,
+                "nextStep": "C12_003"
+              }
+            }
+          ]
+        },
+        {
+          "id": "C12_003",
+          "type": "tutorial",
+          "tutorialAction": "unlock_shop",
+          "hint": "药铺已解锁！点击右上角「🏮 药铺」，或靠近铺面按 E 进入经营界面",
+          "hintPosition": "top-right",
+          "nextDelay": 500
+        },
+        {
+          "id": "C12_reward",
+          "type": "reward",
+          "items": [
+            { "id": "shop_permit", "name": "药铺经营资格", "count": 1, "icon": "🏮" },
+            { "id": "copper",      "name": "开业铜钱",      "count": 50, "icon": "💰" }
+          ],
+          "nextDelay": 1000
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C13",
+      "name": "张大娘家四诊问诊",
+      "type": "dialogue",
+      "background": "bg_patient_room.png",
+      "bgm": "bgm_village.mp3",
+      "_trigger": {
+        "type": "npc",
+        "npcId": "zhang_daniang_npc",
+        "once": false,
+        "locComplete": "loc_zhang_home",
+        "eventId": "EVT_ZHANG_DIAGNOSIS"
+      },
+      "steps": [
+        {
+          "id": "C13_001",
+          "type": "dialogue",
+          "character": "zhangdaniang",
+          "expression": "pain",
+          "name": "张大娘",
+          "text": "（虚弱地看你）大夫来了……腰酸腿软，夜里咳嗽，这两个月越来越重……",
+          "avatar": "zhangdaniang.png",
+          "hidePortrait": true,
+          "nextDelay": 500
+        },
+        {
+          "id": "C13_002",
+          "type": "dialogue",
+          "character": "narrator",
+          "name": "旁白",
+          "text": "你整理思绪，准备四诊……",
+          "nextDelay": 1000
+        },
+        {
+          "id": "C13_minigame_diagnosis",
+          "type": "minigame_diagnosis",
+          "patientId": "zhangdaniang",
+          "patientName": "张大娘",
+          "intro": "四诊合参，方能对症下药——",
+          "phases": [
+            {
+              "phase": "wang",
+              "label": "🔭 望",
+              "question": "观察张大娘的面色与神态——",
+              "options": [
+                { "text": "面色苍白，嘴唇无华，神情倦怠", "correct": true,  "clue": "血虚·气虚迹象" },
+                { "text": "面色潮红，双目充血，烦躁不安", "correct": false, "clue": "实热（不符）" },
+                { "text": "面色暗黄，眼袋浮肿，肢体沉重", "correct": false, "clue": "湿证（不符）" }
+              ]
+            },
+            {
+              "phase": "wen",
+              "label": "👂 闻",
+              "question": "侧耳倾听——",
+              "options": [
+                { "text": "声音低微，气短懒言，咳声无力", "correct": true,  "clue": "肺气虚确认" },
+                { "text": "咳声有力，多痰黄稠",           "correct": false, "clue": "痰热（不符）" }
+              ]
+            },
+            {
+              "phase": "wen2",
+              "label": "❓ 问",
+              "question": "选最有诊断价值的问题（可多选）——",
+              "allowMulti": true,
+              "minSelect": 1,
+              "options": [
+                { "text": "「腰膝酸软从何时开始？」",     "correct": true,  "clue": "肾虚佐证" },
+                { "text": "「夜间是否盗汗、多梦？」",     "correct": true,  "clue": "阴虚内热" },
+                { "text": "「近来是否发热恶寒头痛？」",   "correct": false, "clue": "外感（不对症）" }
+              ]
+            },
+            {
+              "phase": "qie",
+              "label": "✋ 切",
+              "question": "把脉——脉象为？",
+              "options": [
+                { "text": "脉沉细而无力",     "correct": true,  "clue": "肾虚气虚定论" },
+                { "text": "脉浮紧，按之有力", "correct": false, "clue": "风寒表证（不符）" },
+                { "text": "脉滑数，流利",     "correct": false, "clue": "痰热（不符）" }
+              ]
+            }
+          ],
+          "syndrome": "肺肾两虚证",
+          "diagnosisResult": "四诊合参：张大娘证属「肺肾两虚」——宜补肺益肾，固本培元。",
+          "scoreThreshold": 3,
+          "perfectFeedback": "四诊精准！青苗竖起叶芽为你喝彩。",
+          "passFeedback":    "诊断基本正确，继续积累经验。",
+          "failFeedback":    "青苗悄悄补全了遗漏的线索……",
+          "rewardOnPerfect": { "diagnosis": 8, "reputation": 5 },
+          "rewardOnPass":    { "diagnosis": 4, "reputation": 2 },
+          "rewardOnFail":    { "diagnosis": 1 },
+          "nextDelay": 800
+        },
+        {
+          "id": "C13_minigame_prescription",
+          "type": "minigame_prescription",
+          "syndrome": "肺肾两虚证",
+          "instruction": "从背包选取合适药材开具处方（3-5味）",
+          "requiredHerbs": ["shanyao"],
+          "optionalHerbs": ["fuling", "gancao", "baihe", "gouqi", "bohe"],
+          "forbiddenHerbs": ["dahuang", "mangxiao"],
+          "minCount": 3,
+          "maxCount": 5,
+          "scoringRules": [
+            { "herbId": "shanyao", "score": 3, "reason": "山药—补肾益肺，君药" },
+            { "herbId": "fuling",  "score": 3, "reason": "茯苓—健脾渗湿，臣药" },
+            { "herbId": "gancao",  "score": 2, "reason": "甘草—调和诸药，使药" },
+            { "herbId": "baihe",   "score": 2, "reason": "百合—润肺止咳，佐药" },
+            { "herbId": "gouqi",   "score": 2, "reason": "枸杞—滋补肝肾，佐药" }
+          ],
+          "perfectScore": 8,
+          "passScore": 5,
+          "feedbackPerfect": "处方精当！老李探头进来：「这副方子，老汉也服气！」",
+          "feedbackPass":    "处方可行，经验积累后会更精准。",
+          "feedbackFail":    "（青苗托起叶子，上面印着正确用药……）",
+          "nextDelay": 800
+        },
+        {
+          "id": "C13_003",
+          "type": "dialogue",
+          "character": "zhangdaniang",
+          "expression": "grateful",
+          "name": "张大娘",
+          "text": "（泪眼）多谢大夫……这三年，没见过这么认真给老身看病的……",
+          "avatar": "zhangdaniang.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C13_reward",
+          "type": "reward",
+          "items": [
+            { "id": "copper",     "name": "诊费",   "count": 30,  "icon": "💰" },
+            { "id": "reputation", "name": "医者声望", "count": 10, "icon": "⭐" }
+          ],
+          "nextDelay": 800
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C14",
+      "name": "全部地点完成·推进溪谷",
+      "type": "dialogue",
+      "background": "bg_village_center.png",
+      "bgm": "bgm_village.mp3",
+      "_trigger": {
+        "type": "condition",
+        "condition": "all_locations_complete",
+        "once": true,
+        "eventId": "EVT_VILLAGE_COMPLETE"
+      },
+      "steps": [
+        {
+          "id": "C14_001",
+          "type": "dialogue",
+          "character": "cunzhang",
+          "expression": "serious",
+          "name": "村长 张老汉",
+          "text": "大夫，张大娘的方子里需要「茵陈」和「芦根」……村里的药圃全枯了，只有东边溪谷才有。",
+          "avatar": "village_chief.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C14_002",
+          "type": "dialogue",
+          "character": "cunzhang",
+          "expression": "worried",
+          "name": "村长 张老汉",
+          "text": "茵陈要在清明节气才药效最好，现在时节正合适。但溪谷路不好走，你一个人……",
+          "avatar": "village_chief.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C14_003",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "（抢答）青苗可以引路！青苗感知到溪谷那边有大量茵陈的气息！还有芦根！很多！",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C14_004",
+          "type": "tutorial",
+          "tutorialAction": "unlock_valley_portal",
+          "hint": "溪流山谷传送门已解锁！\n前往地图东侧，穿越传送门进入第二张地图",
+          "hintPosition": "right-center",
+          "nextDelay": 0
+        },
+        {
+          "id": "C14_reward",
+          "type": "reward",
+          "items": [
+            { "id": "valley_key", "name": "溪谷通行许可", "count": 1, "icon": "🗺" }
+          ],
+          "nextDelay": 800
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C15",
+      "name": "溪流山谷连续剧情",
+      "type": "scene",
+      "background": "bg_valley_entry.png",
+      "bgm": "bgm_valley.mp3",
+      "_trigger": {
+        "type": "zone",
+        "zoneId": "zone_valley_entry",
+        "once": true,
+        "eventId": "EVT_VALLEY_ENTRY"
+      },
+      "steps": [
+        {
+          "id": "C15_001",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "（兴奋地绕着主人飞转）到了！茵陈就在溪边！芦根也有！还有……（停顿）……还有一股很奇怪的气味。主人，小心一点。",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C15_002",
+          "type": "tutorial",
+          "tutorialAction": "valley_explore",
+          "hint": "溪流山谷·探索提示\n🌿 沿溪岸向南行进，采集茵陈和芦根\n⚠️ 水面不可直接通行，需踩石桥\n🔍 注意青苗的感知提示",
+          "hintPosition": "top-center",
+          "nextDelay": 0
+        },
+        {
+          "id": "C15_003",
+          "type": "narration",
+          "text": "沿溪岸向南，茵陈的清香越来越浓……",
+          "nextDelay": 2000
+        },
+        {
+          "id": "C15_004",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "那里！那里！茵陈！清明时节的茵陈最好！快采快采！",
+          "avatar": "qingmiao.png",
+          "nextDelay": 300
+        },
+        {
+          "id": "C15_005",
+          "type": "tutorial",
+          "tutorialAction": "collect_yinchen",
+          "herbId": "yinchen",
+          "requiredCount": 5,
+          "hint": "采集茵陈 ×5（清明节气·品质+2）",
+          "hintPosition": "bottom-center",
+          "nextDelay": 0
+        },
+        {
+          "id": "C15_006",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "茵陈够了！继续往里走——芦根在溪边深处！",
+          "avatar": "qingmiao.png",
+          "nextDelay": 300
+        },
+        {
+          "id": "C15_007",
+          "type": "narration",
+          "text": "芦苇越来越密，水雾漫上来，遮住了前路……",
+          "nextDelay": 2000
+        },
+        {
+          "id": "C15_008",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "（跳到主人头顶）别怕！青苗感知到的！往左走三步，再向前——跟着青苗走！",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C15_009",
+          "type": "tutorial",
+          "tutorialAction": "follow_qingmiao",
+          "hint": "跟随青苗的金色光点引路\n光点会在前方闪烁，指示方向",
+          "hintPosition": "top-center",
+          "nextDelay": 0
+        },
+        {
+          "id": "C15_010",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "surprised",
+          "name": "青苗",
+          "text": "（停下，激动地发光）主人！这里！石菖蒲！好稀有的！",
+          "avatar": "qingmiao.png",
+          "nextDelay": 300
+        },
+        {
+          "id": "C15_011",
+          "type": "tutorial",
+          "tutorialAction": "collect_shichangpu",
+          "herbId": "shichangpu",
+          "requiredCount": 1,
+          "hint": "【隐藏草药】石菖蒲 ×1（稀有·高价值）",
+          "nextDelay": 0
+        },
+        {
+          "id": "C15_012",
+          "type": "narration",
+          "text": "芦苇尽头，豁然开朗——",
+          "nextDelay": 1500
+        },
+        {
+          "id": "C15_cg",
+          "type": "cg",
+          "cgId": "CG_06",
+          "cgConfig": {
+            "image": "cg_06_gugen_discovery.png",
+            "fadeInDuration": 1200,
+            "animation": "slow_zoom"
+          },
+          "text": "触目惊心。大片灰绿色草丛从谷底蔓延而上，周围所有植物尽数枯萎，连溪水都染上了一丝混浊。",
+          "nextDelay": 4000
+        },
+        {
+          "id": "C15_013",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "surprised",
+          "name": "青苗",
+          "text": "（瑟缩，紧抱主人）主人……这气息……不对。不像是植物，更像是……在吸收什么东西。",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C15_014",
+          "type": "dialogue",
+          "character": "narrator",
+          "name": "旁白",
+          "text": "（近看）灰绿色，叶片细碎如鱼鳞，茎部微微发光，根系裸露于地表——所经之处寸草不生。",
+          "nextDelay": 2500
+        },
+        {
+          "id": "C15_choice1",
+          "type": "choice",
+          "options": [
+            {
+              "text": "「这根系……在向外分泌某种物质。」",
+              "flag": "analysis_root",
+              "response": {
+                "type": "dialogue",
+                "character": "qingmiao",
+                "expression": "surprised",
+                "name": "青苗",
+                "text": "对！青苗闻到了——像矿物质，又像腐败有机质。主人，记下来！",
+                "avatar": "qingmiao.png",
+                "nextDelay": 500,
+                "nextStep": "C15_015"
+              }
+            },
+            {
+              "text": "「村民的病和这有关系吗？」",
+              "flag": "analysis_disease",
+              "response": {
+                "type": "dialogue",
+                "character": "qingmiao",
+                "expression": "surprised",
+                "name": "青苗",
+                "text": "（若有所思）蛊根草出现时间……和村民第一个发病时间……主人你刚才问的这个，很重要！",
+                "avatar": "qingmiao.png",
+                "nextDelay": 500,
+                "nextStep": "C15_015"
+              }
+            }
+          ]
+        },
+        {
+          "id": "C15_015",
+          "type": "narration",
+          "text": "正这时，芦苇丛中传来脚步声——一个风尘仆仆的旅人，从雾气中走出。",
+          "nextDelay": 1500
+        },
+        {
+          "id": "C15_016",
+          "type": "dialogue",
+          "character": "lvren",
+          "expression": "tired",
+          "name": "旅人",
+          "text": "（停步，看着蛊根草，声音沉静）这东西……你们这里也出现了。",
+          "avatar": "traveler.png",
+          "nextDelay": 800
+        },
+        {
+          "id": "C15_017",
+          "type": "dialogue",
+          "character": "lvren",
+          "expression": "tired",
+          "name": "旅人",
+          "text": "我从北边来，一路过了三个村——全是这个。药材枯萎，老人病倒，大夫束手无策。范围越来越大。",
+          "avatar": "traveler.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C15_018",
+          "type": "dialogue",
+          "character": "lvren",
+          "expression": "tired",
+          "name": "旅人",
+          "text": "深山里有个炮制大师，叫崔老，住在松涛谷。他见过更早的蛊根草记录……若有人知道怎么应对，只有他了。",
+          "avatar": "traveler.png",
+          "nextDelay": 500,
+          "setFlag": "clue_cuizhao_master"
+        },
+        {
+          "id": "C15_019",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "surprised",
+          "name": "青苗",
+          "text": "（认真地看着主人）主人……翠竹村的病，只是开始。",
+          "avatar": "qingmiao.png",
+          "nextDelay": 1000
+        }
+      ]
+    },
+
+    
+    {
+      "id": "C16",
+      "name": "第一章结局",
+      "type": "scene",
+      "background": "bg_valley_exit.png",
+      "bgm": "bgm_victory.mp3",
+      "_trigger": {
+        "type": "zone",
+        "zoneId": "zone_valley_exit",
+        "once": true,
+        "condition": "has_herbs",
+        "eventId": "EVT_RETURN_VILLAGE"
+      },
+      "steps": [
+        {
+          "id": "C16_001",
+          "type": "narration",
+          "text": "背囊里，茵陈和芦根的清香混合着溪水的气息——张大娘的药，备齐了。",
+          "nextDelay": 2000
+        },
+        {
+          "id": "C16_002",
+          "type": "dialogue",
+          "character": "qingmiao",
+          "expression": "happy",
+          "name": "青苗",
+          "text": "回去吧，主人。张大娘他们等着呢。",
+          "avatar": "qingmiao.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "C16_title",
+          "type": "title_card",
+          "text": "第一章  终",
+          "subText": "翠竹村的春天",
+          "duration": 2500,
+          "nextDelay": 800
+        },
+        {
+          "id": "C16_reward",
+          "type": "reward",
+          "items": [
+            { "id": "reputation",    "name": "医者声望",         "count": 30, "icon": "⭐" },
+            { "id": "copper",        "name": "铜钱",             "count": 300, "icon": "💰" },
+            { "id": "achievement",   "name": "成就·翠竹村的大夫", "count": 1,  "icon": "🏆" },
+            { "id": "shop_level2",   "name": "药铺升级资格",      "count": 1,  "icon": "🏮" }
+          ],
+          "nextDelay": 1500
+        },
+        {
+          "id": "C16_end",
+          "type": "end",
+          "nextScene": "GameScene"
+        }
+      ]
+    }
+  ]
+}

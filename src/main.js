@@ -9,7 +9,7 @@
  */
 function initGame() {
     // 场景列表（BootScene 会负责检查并跳转）
-    const scenes = [window.BootScene, window.IntroScene, window.GameScene];
+    const scenes = [window.BootScene, window.IntroScene, window.GameScene, window.FlowerIdGame, window.DryFlowerGame, window.DiagnosisMinigame];
 
     const config = {
         type: Phaser.AUTO,
@@ -28,6 +28,20 @@ function initGame() {
 
     window.game = new Phaser.Game(config);
     console.log('Main: 游戏初始化完成，等待 BootScene 跳转');
+
+    // ★ 全局 F3 调试面板切换（独立于场景生命周期，始终可用）
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F3') {
+            e.preventDefault();
+            const panel = document.getElementById('debug-chapter1-panel');
+            const overlay = document.getElementById('debug-chapter1-overlay');
+            if (panel && overlay) {
+                const isVisible = panel.style.display !== 'none';
+                panel.style.display = isVisible ? 'none' : 'block';
+                overlay.style.display = isVisible ? 'none' : 'block';
+            }
+        }
+    });
 }
 
 /**

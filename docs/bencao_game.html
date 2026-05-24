@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>本草问诊录 — 古风中医药小游戏</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --paper: #F4EDD5;
+  --card:  #FFFBEF;
+  --ink:   #2B1810;
+  --ink2:  #5C3A1E;
+  --red:   #8B1A1A;
+  --gold:  #A07820;
+  --green: #2D5A27;
+  --border:#C4A35A;
+  --blt:   #E8D4A0;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:#1C1205; --card:#261A08; --ink:#E8D4A0; --ink2:#C4A878;
+    --red:#CC4444; --gold:#D4A840; --green:#5DAA55; --border:#5C3A1E; --blt:#3A2810;
+  }
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Songti SC','STSong','SimSun','宋体',Georgia,serif;
+  min-height: 100vh;
+}
+
+#game {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 14px 16px 40px;
+}
+
+/* ── Header ── */
+.hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+}
+.hdr-title { font-size: 20px; font-weight: bold; color: var(--red); letter-spacing: 3px; }
+.step-dots  { display: flex; gap: 7px; align-items: center; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.dot.done { background: var(--green); }
+.dot.active { background: var(--red); width: 11px; height: 11px; }
+.hdr-score { font-size: 13px; color: var(--gold); min-width: 80px; text-align: right; }
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 13px;
+}
+.card-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--red);
+  margin-bottom: 10px;
+}
+
+/* ── Step label ── */
+.step-lbl {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--red);
+  letter-spacing: 5px;
+  margin-bottom: 4px;
+}
+.step-sub {
+  text-align: center;
+  font-size: 13px;
+  color: var(--gold);
+  margin-bottom: 18px;
+}
+
+/* ── Ornament ── */
+.orn {
+  text-align: center;
+  color: var(--border);
+  font-size: 13px;
+  letter-spacing: 6px;
+  margin: 16px 0;
+}
+
+/* ── Intro ── */
+.intro-wrap { text-align: center; padding: 28px 12px; }
+.intro-big  { font-size: 38px; font-weight: bold; color: var(--red); letter-spacing: 7px; margin-bottom: 8px; }
+.intro-sub2 { font-size: 13px; color: var(--gold); letter-spacing: 2px; margin-bottom: 28px; }
+.intro-body { font-size: 15px; line-height: 2.1; color: var(--ink2); margin-bottom: 28px; }
+.warn-txt   { font-size: 11px; color: var(--gold); margin-bottom: 20px; line-height: 1.7; }
+
+/* ── Patient ── */
+.pt-card  { text-align: center; padding: 20px 12px; }
+.pt-name  { font-size: 28px; font-weight: bold; color: var(--red); margin-bottom: 6px; }
+.pt-age   { font-size: 13px; color: var(--gold); margin-bottom: 18px; }
+.pt-quote {
+  font-size: 14px; line-height: 2; color: var(--ink2); font-style: italic;
+  border-left: 3px solid var(--border); padding-left: 16px;
+  text-align: left; max-width: 420px; margin: 0 auto 18px;
+}
+
+/* ── Body grid (Wang) ── */
+.body-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 10px 0 14px;
+}
+.bitem {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+  user-select: none;
+}
+.bitem:hover:not(.rev) { border-color: var(--red); transform: translateY(-2px); }
+.bitem.rev { border-color: var(--green); }
+.bitem-icon  { font-size: 24px; font-weight: bold; color: var(--gold); margin-bottom: 6px; }
+.bitem-lbl   { font-size: 12px; color: var(--gold); margin-bottom: 4px; }
+.bitem-find  { font-size: 13px; color: var(--green); font-weight: bold; display: none; }
+.bitem.rev .bitem-find { display: block; }
+.bitem-hint  { font-size: 11px; color: var(--ink2); margin-top: 3px; }
+.bitem.rev .bitem-hint { display: none; }
+
+/* ── Option grid (Wen, pulse) ── */
+.opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 14px; }
+.opt-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  transition: border-color .15s;
+}
+.opt-btn:hover { border-color: var(--red); }
+.opt-btn.sel   { border-color: var(--gold); font-weight: bold; background: #FFF4CC; }
+.opt-btn.ok    { border-color: var(--green); color: var(--green); }
+.opt-btn.bad   { border-color: var(--red); text-decoration: line-through; opacity: .65; }
+
+@media (prefers-color-scheme: dark) {
+  .opt-btn.sel { background: #3A2C08; }
+}
+
+/* ── Pulse grid ── */
+.pulse-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 14px; }
+.pulse-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--ink);
+  transition: border-color .15s;
+}
+.pulse-btn:hover { border-color: var(--red); }
+.pulse-btn.sel   { border-color: var(--red); font-weight: bold; }
+.pulse-btn.ok    { border-color: var(--green); color: var(--green); }
+.pulse-btn.bad   { border-color: var(--red); text-decoration: line-through; opacity: .65; }
+.pulse-info { font-size: 12px; color: var(--gold); margin: 4px 0 8px; min-height: 18px; }
+
+/* ── Dialog (WenZhen) ── */
+.dlg-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 13px 14px;
+  margin-bottom: 10px;
+}
+.dlg-q { font-size: 14px; color: var(--gold); display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.dlg-a { font-size: 14px; color: var(--ink); line-height: 1.75; margin-top: 8px; display: none; }
+.dlg-key { font-size: 12px; color: var(--green); font-weight: bold; margin-top: 6px; display: none; }
+.dlg-item.asked .dlg-a  { display: block; }
+.dlg-item.asked .dlg-key { display: block; }
+.ask-btn {
+  background: transparent;
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--gold);
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ask-btn:hover { background: var(--blt); }
+.asked-lbl { font-size: 12px; color: var(--green); white-space: nowrap; flex-shrink: 0; }
+
+/* ── Syndrome (Bianzheng) ── */
+.syn-list { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 14px; }
+.syn-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 13px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform .15s, border-color .15s;
+}
+.syn-btn:hover { border-color: var(--red); transform: translateX(4px); }
+.syn-btn.sel   { border-color: var(--red); font-weight: bold; }
+.syn-btn.ok    { border-color: var(--green); color: var(--green); }
+.syn-btn.bad   { border-color: var(--red); opacity: .6; text-decoration: line-through; }
+.syn-circ {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.syn-btn.sel .syn-circ { border-color: var(--red); background: var(--red); color: #FFF; }
+.syn-btn.ok  .syn-circ { border-color: var(--green); background: var(--green); color: #FFF; }
+
+/* ── Herb (Kaifang) ── */
+.herb-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 10px 0 14px; }
+.herb-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 6px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  color: var(--ink);
+  transition: border-color .15s;
+}
+.herb-btn:hover:not(:disabled) { border-color: var(--red); }
+.herb-btn.sel   { border-color: var(--gold); font-weight: bold; }
+.herb-btn:disabled { opacity: .6; cursor: default; }
+
+@media (prefers-color-scheme: dark) {
+  .herb-btn.sel { background: #3A2808; }
+}
+
+.presc-tbl { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
+.presc-tbl th { background: var(--border); color: var(--card); padding: 8px 10px; font-weight: normal; text-align: center; }
+.presc-tbl td { border: 1px solid var(--blt); padding: 8px 10px; text-align: center; }
+.role-sel {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--ink);
+  width: 100%;
+}
+.rm-btn { background: transparent; border: none; cursor: pointer; color: var(--red); font-size: 17px; padding: 0 4px; }
+
+/* ── Knowledge card ── */
+.know-card {
+  background: var(--card);
+  border-left: 4px solid var(--green);
+  border-radius: 0 8px 8px 0;
+  padding: 13px 15px;
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--ink);
+}
+.know-title { font-size: 14px; font-weight: bold; color: var(--green); margin-bottom: 8px; }
+
+/* ── Herb review table ── */
+.rev-tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+.rev-tbl th { background: var(--green); color: #FFF8E7; padding: 7px 8px; font-weight: normal; text-align: center; }
+.rev-tbl td { border: 1px solid var(--blt); padding: 7px 8px; }
+.r-jun { color: var(--red); font-weight: bold; }
+.r-chen { color: var(--gold); }
+.r-zuo  { color: var(--green); }
+.r-shi  { color: var(--ink2); }
+
+/* ── Findings tags ── */
+.ftags { display: flex; flex-wrap: wrap; gap: 7px; margin: 6px 0; }
+.ftag {
+  background: var(--blt);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+/* ── Score row ── */
+.sc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--blt);
+  font-size: 14px;
+}
+.sc-pts { font-weight: bold; color: var(--gold); }
+
+/* ── Action button ── */
+.act-btn {
+  display: block;
+  width: 100%;
+  background: var(--red);
+  color: #FFF8E7;
+  border: none;
+  border-radius: 6px;
+  padding: 14px;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 14px;
+  letter-spacing: 3px;
+  transition: opacity .15s;
+}
+.act-btn:hover:not(:disabled) { opacity: .85; }
+.act-btn:disabled { background: var(--border); cursor: not-allowed; opacity: .7; letter-spacing: 1px; }
+
+/* ── Gameover ── */
+.go-wrap { text-align: center; padding: 16px 12px 24px; }
+.go-title { font-size: 24px; font-weight: bold; color: var(--red); letter-spacing: 4px; margin-bottom: 8px; }
+.cs-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; text-align: left; }
+.cs-item  { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.cs-name  { font-size: 13px; color: var(--gold); margin-bottom: 4px; }
+.cs-num   { font-size: 30px; font-weight: bold; color: var(--red); }
+.cs-max   { font-size: 12px; color: var(--gold); }
+
+/* ── Animations ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeUp .32s ease both; }
+
+.hint { font-size: 12px; color: var(--gold); font-style: italic; }
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div class="hdr">
+    <div class="hdr-title">本草问诊录</div>
+    <div id="hdr-dots" class="step-dots"></div>
+    <div id="hdr-score" class="hdr-score">声望：0</div>
+  </div>
+  <div id="gc"></div>
+</div>
+
+<script>
+/* ════════════════════════════════
+   GAME DATA
+   ════════════════════════════════ */
+const DATA = { cases: [
+  {
+    id: 0, name: '李老汉', age: 55, syndrome: '外感风寒',
+    intro: '老汉恶寒发热已三日，咳嗽声重浊，裹着厚衣而来，面色苍白，神情倦怠，苦不堪言...',
+    wang: [
+      { id:'face',   icon:'面', lbl:'察面色', find:'面色苍白少华' },
+      { id:'tongue', icon:'舌', lbl:'观舌苔', find:'舌苔薄白' },
+      { id:'body',   icon:'形', lbl:'看形态', find:'恶寒倦怠，形体拘急' },
+    ],
+    wen_opts: [
+      { txt:'咳嗽声重浊', ok:true  },
+      { txt:'干咳少痰',   ok:false },
+      { txt:'咽喉肿痛声嘶', ok:false },
+      { txt:'鼻塞流清涕', ok:true  },
+    ],
+    wenzhen: [
+      { q:'请问可有发热恶寒？', a:'恶寒甚重，发热不著，盖被亦难取暖。', key:'恶寒重发热轻' },
+      { q:'请问可曾出汗？',     a:'周身无汗，皮肤干紧。',               key:'无汗' },
+      { q:'头身有何不适？',     a:'头痛剧烈，肢体酸楚，浑身难受。',     key:'头痛肢体酸楚' },
+      { q:'饮食口渴如何？',     a:'口淡无味，不甚口渴，喜饮热汤。',     key:'口淡不渴' },
+    ],
+    mai_opts: ['浮脉','沉脉','迟脉','数脉','滑脉','弦脉','紧脉','细脉'],
+    mai_ok:   ['浮脉','紧脉'],
+    mai_info: { '浮脉':'主表证，邪在肌表','紧脉':'主寒证，寒邪凝滞','沉脉':'主里证','数脉':'主热证',
+                '滑脉':'主痰湿食积','弦脉':'主肝胆、痛证','迟脉':'主寒，阳气不足','细脉':'主血虚阴虚' },
+    bzh_opts: ['外感风寒','外感风热','脾胃虚寒','痰湿咳嗽','肝郁气滞'],
+    bzh_ok:    0,
+    bzh_exp:  '恶寒重发热轻、无汗、浮紧脉、薄白苔，乃风寒束表之典型证候。治当发汗解表、宣肺散寒。',
+    rx_name:  '麻黄汤',
+    rx_herbs: [
+      { name:'麻黄', role:'君', dose:'9g',  eff:'发汗解表，宣肺平喘' },
+      { name:'桂枝', role:'臣', dose:'6g',  eff:'温通经络，助麻黄发汗' },
+      { name:'杏仁', role:'佐', dose:'9g',  eff:'降肺气，止咳喘' },
+      { name:'甘草', role:'使', dose:'3g',  eff:'调和诸药，益气和中' },
+    ],
+    avail: ['麻黄','桂枝','杏仁','甘草','薄荷','菊花','黄芩','半夏'],
+  },
+  {
+    id: 1, name: '王大娘', age: 48, syndrome: '脾胃虚寒',
+    intro: '大娘面色萎黄，手捂腹部缓步而来，腹痛时发时止，遇寒尤甚，已历月余...',
+    wang: [
+      { id:'face',   icon:'面', lbl:'察面色', find:'面色萎黄无华' },
+      { id:'tongue', icon:'舌', lbl:'观舌苔', find:'舌淡苔白滑' },
+      { id:'body',   icon:'形', lbl:'看形态', find:'气短懒言，形体消瘦' },
+    ],
+    wen_opts: [
+      { txt:'语声低微气短',   ok:true  },
+      { txt:'咳嗽痰多',       ok:false },
+      { txt:'腹中肠鸣漉漉',   ok:true  },
+      { txt:'口苦咽干',       ok:false },
+    ],
+    wenzhen: [
+      { q:'腹痛喜温喜按否？',   a:'腹痛绵绵，喜温喜按，遇寒加重，得热则舒。', key:'腹痛喜温喜按' },
+      { q:'饮食如何，喜热否？', a:'食少纳呆，稍食即胀，喜热食，厌生冷。',     key:'食少纳呆喜热食' },
+      { q:'大便情况如何？',     a:'大便溏薄，完谷不化，日行一二次。',         key:'大便溏薄' },
+      { q:'手足可有温度？',     a:'四肢不温，手足常感发凉，不耐寒冷。',       key:'四肢不温' },
+    ],
+    mai_opts: ['浮脉','沉脉','迟脉','数脉','滑脉','弦脉','紧脉','细脉'],
+    mai_ok:   ['沉脉','迟脉'],
+    mai_info: { '浮脉':'主表证，邪在肌表','紧脉':'主寒证，寒邪凝滞','沉脉':'主里证，病在脏腑',
+                '数脉':'主热证','滑脉':'主痰湿食积','弦脉':'主肝胆、痛证','迟脉':'主寒，阳气不足','细脉':'主血虚阴虚' },
+    bzh_opts: ['外感风寒','外感风热','脾胃虚寒','肝郁气滞','气血两虚'],
+    bzh_ok:    2,
+    bzh_exp:  '腹痛喜温喜按、食少便溏、四肢不温、舌淡苔白、沉迟脉，乃脾胃虚寒之典型证候。治当温中散寒、补气健脾。',
+    rx_name:  '理中汤',
+    rx_herbs: [
+      { name:'干姜', role:'君', dose:'9g',  eff:'温中散寒，回阳通脉' },
+      { name:'人参', role:'臣', dose:'9g',  eff:'大补元气，补脾益肺' },
+      { name:'白术', role:'佐', dose:'9g',  eff:'健脾燥湿，益气固表' },
+      { name:'甘草', role:'使', dose:'6g',  eff:'调和诸药，益气补中' },
+    ],
+    avail: ['干姜','人参','白术','甘草','麻黄','薄荷','黄连','陈皮'],
+  },
+]};
+
+/* ════════════════════════════════
+   STATE
+   ════════════════════════════════ */
+const STEPS = ['WANG','WEN','WENZHEN','QIE','BIANZHENG','KAIFANG'];
+
+let G = mkState();
+function mkState() {
+  return {
+    step: 'INTRO', caseIdx: 0, totalScore: 0,
+    caseScores: [0,0], bd: [{},{}],
+    wangRev: new Set(), wenSel: new Set(), wenLocked: false,
+    wzAsked: new Set(), maiSel: new Set(), maiLocked: false,
+    zhengSel: null, zhengLocked: false,
+    presc: [], prescLocked: false,
+    hoverMai: null,
+  };
+}
+
+function C() { return DATA.cases[G.caseIdx]; }
+
+/* ════════════════════════════════
+   RENDER DISPATCHER
+   ════════════════════════════════ */
+function render() {
+  updateHdr();
+  const el = document.getElementById('gc');
+  const fn = {
+    INTRO: rIntro, PATIENT: rPatient,
+    WANG: rWang, WEN: rWen, WENZHEN: rWenZhen,
+    QIE: rQie, BIANZHENG: rBzh, KAIFANG: rKf,
+    JIESUAN: rJs, GAMEOVER: rGo,
+  }[G.step];
+  el.innerHTML = `<div class="fade-in">${fn ? fn() : ''}</div>`;
+}
+
+function updateHdr() {
+  const d = document.getElementById('hdr-dots');
+  const s = document.getElementById('hdr-score');
+  if (!d) return;
+  if (['INTRO','PATIENT','JIESUAN','GAMEOVER'].includes(G.step)) { d.innerHTML=''; }
+  else {
+    const si = STEPS.indexOf(G.step);
+    d.innerHTML = STEPS.map((_,i) =>
+      `<span class="dot${i<si?' done':i===si?' active':''}"></span>`
+    ).join('');
+  }
+  if (s) s.textContent = `声望：${G.totalScore}`;
+}
+
+/* ════════════════════════════════
+   SCREENS
+   ════════════════════════════════ */
+function rIntro() {
+  return `
+    <div class="intro-wrap">
+      <div class="intro-big">本草问诊录</div>
+      <div class="intro-sub2">古风中医药互动游戏</div>
+      <div class="orn">— ✦ —</div>
+      <div class="intro-body">
+        化身古代坐馆郎中<br>
+        运用<strong>望、闻、问、切</strong>四大诊法<br>
+        辨证施治，为患者开出对症良方<br><br>
+        共有 <strong>2 位</strong> 患者，每局满分 <strong>100</strong> 分
+      </div>
+      <div class="warn-txt">
+        ⚠ 本内容为中医科普娱乐，不构成医疗建议<br>身体不适请线下就医
+      </div>
+      <button class="act-btn" onclick="goTo('PATIENT')">开馆接诊 →</button>
+    </div>`;
+}
+
+function rPatient() {
+  const c = C();
+  return `
+    <div class="pt-card">
+      <div style="font-size:13px;color:var(--gold);margin-bottom:6px">第 ${G.caseIdx+1} 位患者</div>
+      <div class="pt-name">${c.name}</div>
+      <div class="pt-age">年约 ${c.age} 岁</div>
+      <div class="pt-quote">「${c.intro}」</div>
+      <div style="font-size:13px;color:var(--ink2);margin-bottom:20px">
+        病患已入座，请依次望、闻、问、切，方可开方诊治。
+      </div>
+      <button class="act-btn" onclick="goTo('WANG')">开始望诊 →</button>
+    </div>`;
+}
+
+function rWang() {
+  const c = C();
+  const done = G.wangRev.size === c.wang.length;
+  let h = `
+    <div class="step-lbl">望 诊</div>
+    <div class="step-sub">观察病患面色、舌苔、形态——点击各部位察看</div>
+    <div class="body-grid">`;
+  c.wang.forEach(w => {
+    const rev = G.wangRev.has(w.id);
+    h += `<div class="bitem${rev?' rev':''}" onclick="onWang('${w.id}')">
+      <div class="bitem-icon">${w.icon}</div>
+      <div class="bitem-lbl">${w.lbl}</div>
+      <div class="bitem-find">${w.find}</div>
+      <div class="bitem-hint">${rev?'':'点击察看'}</div>
+    </div>`;
+  });
+  h += `</div>`;
+  if (G.wangRev.size) {
+    h += `<div class="card"><div class="card-title">📋 望诊所见</div><div class="ftags">`;
+    c.wang.filter(w=>G.wangRev.has(w.id)).forEach(w => h+=`<span class="ftag">${w.find}</span>`);
+    h += `</div></div>`;
+  }
+  h += `<button class="act-btn" ${done?'':'disabled'} onclick="scoreWang()">
+    ${done?'记录望诊，前往闻诊 →':`请察看全部部位（${G.wangRev.size}/${c.wang.length}）`}
+  </button>`;
+  return h;
+}
+
+function rWen() {
+  const c = C();
+  const lk = G.wenLocked;
+  let h = `
+    <div class="step-lbl">闻 诊</div>
+    <div class="step-sub">聆听病患声息，选出所察症状（可多选）</div>
+    <div class="card" style="text-align:center;margin-bottom:12px">
+      <div style="font-size:14px;color:var(--ink2);font-style:italic">
+        「${C().name}」声息低沉，咳嗽断续，呼吸稍促...
+      </div>
+    </div>
+    <div class="opt-grid">`;
+  c.wen_opts.forEach((o,i) => {
+    let cls = 'opt-btn';
+    if (lk) cls += o.ok ? ' ok' : (G.wenSel.has(i) ? ' bad' : '');
+    else cls += G.wenSel.has(i) ? ' sel' : '';
+    h += `<button class="${cls}" ${lk?'':` onclick="onWen(${i})"`}>${o.txt}</button>`;
+  });
+  h += `</div>`;
+  if (!lk) {
+    h += `<button class="act-btn" ${G.wenSel.size?'':'disabled'} onclick="scoreWen()">
+      ${G.wenSel.size?'确认闻诊，前往问诊 →':'请至少选择一项'}
+    </button>`;
+  } else {
+    h += `<div class="know-card"><div class="know-title">🔔 闻诊小结</div><div class="ftags">`;
+    c.wen_opts.filter(o=>o.ok).forEach(o=>{ h+=`<span class="ftag">${o.txt}</span>`; });
+    h += `</div></div><button class="act-btn" onclick="goTo('WENZHEN')">前往问诊 →</button>`;
+  }
+  return h;
+}
+
+function rWenZhen() {
+  const c = C();
+  const done = G.wzAsked.size === c.wenzhen.length;
+  let h = `
+    <div class="step-lbl">问 诊</div>
+    <div class="step-sub">向病患询问病情——点击各问题向患者发问</div>`;
+  c.wenzhen.forEach((w,i) => {
+    const asked = G.wzAsked.has(i);
+    h += `<div class="dlg-item${asked?' asked':''}">
+      <div class="dlg-q">
+        <span>问：${w.q}</span>
+        ${asked
+          ? `<span class="asked-lbl">✓ 已询问</span>`
+          : `<button class="ask-btn" onclick="onWz(${i})">发问</button>`}
+      </div>
+      <div class="dlg-a">答：${w.a}</div>
+      <div class="dlg-key">📝 关键症状：${w.key}</div>
+    </div>`;
+  });
+  h += `<button class="act-btn" ${done?'':'disabled'} onclick="scoreWz()">
+    ${done?'记录问诊，前往切诊 →':`请询问全部问题（${G.wzAsked.size}/${c.wenzhen.length}）`}
+  </button>`;
+  return h;
+}
+
+function rQie() {
+  const c = C();
+  const lk = G.maiLocked;
+  let h = `
+    <div class="step-lbl">切 诊</div>
+    <div class="step-sub">把脉辨脉象——选择您感受到的脉象（可多选）</div>
+    <div class="card" style="text-align:center;padding:18px">
+      <div style="font-size:12px;color:var(--gold);margin-bottom:8px">三指轻搭脉枕，细辨寸关尺...</div>
+      <div style="font-size:22px;letter-spacing:8px;color:var(--border);margin-bottom:6px">〜〜〜 ♡ 〜〜〜</div>
+      <div class="pulse-info" id="pulse-hint">悬停脉名可查看含义</div>
+    </div>
+    <div class="pulse-grid">`;
+  c.mai_opts.forEach(p => {
+    let cls = 'pulse-btn';
+    const isOk = c.mai_ok.includes(p);
+    if (lk) cls += isOk ? ' ok' : (G.maiSel.has(p) ? ' bad' : '');
+    else cls += G.maiSel.has(p) ? ' sel' : '';
+    h += `<button class="${cls}"
+      ${lk?'':` onclick="onMai('${p}')" onmouseenter="showMai('${p}')" onmouseleave="showMai(null)"`}>
+      ${p}</button>`;
+  });
+  h += `</div>`;
+  if (lk) {
+    h += `<div class="know-card"><div class="know-title">脉象释义</div>`;
+    c.mai_ok.forEach(p=>{ h+=`<div style="font-size:13px;margin-bottom:6px"><strong>${p}</strong>：${c.mai_info[p]}</div>`; });
+    h += `</div><button class="act-btn" onclick="goTo('BIANZHENG')">前往辨证 →</button>`;
+  } else {
+    h += `<button class="act-btn" ${G.maiSel.size?'':'disabled'} onclick="scoreMai()">
+      ${G.maiSel.size?'确认脉象，前往辨证 →':'请选择脉象'}
+    </button>`;
+  }
+  return h;
+}
+
+function rBzh() {
+  const c = C();
+  const lk = G.zhengLocked;
+  let h = `
+    <div class="step-lbl">辨 证</div>
+    <div class="step-sub">综合四诊信息，判断病因证型</div>
+    <div class="card"><div class="card-title">📋 已收集证候</div><div class="ftags">`;
+  const allF = [
+    ...c.wang.filter(w=>G.wangRev.has(w.id)).map(w=>w.find),
+    ...c.wen_opts.filter(o=>o.ok).map(o=>o.txt),
+    ...c.wenzhen.map(w=>w.key),
+    ...c.mai_ok,
+  ];
+  allF.forEach(f=>{ h+=`<span class="ftag">${f}</span>`; });
+  h += `</div></div><div class="syn-list">`;
+  c.bzh_opts.forEach((opt,i) => {
+    let cls = 'syn-btn';
+    if (lk) cls += i===c.bzh_ok ? ' ok' : (G.zhengSel===i ? ' bad' : '');
+    else cls += G.zhengSel===i ? ' sel' : '';
+    const mark = (lk && (i===c.bzh_ok || G.zhengSel===i)) ? (i===c.bzh_ok?'✓':'✗') : (G.zhengSel===i?'·':'');
+    h += `<button class="${cls}" ${lk?'':` onclick="onZheng(${i})"`}>
+      <div class="syn-circ">${mark}</div>${opt}
+    </button>`;
+  });
+  h += `</div>`;
+  if (lk) {
+    h += `<div class="know-card"><div class="know-title">🔔 辨证解析</div>${c.bzh_exp}</div>
+    <button class="act-btn" onclick="goTo('KAIFANG')">前往开方 →</button>`;
+  } else {
+    h += `<button class="act-btn" ${G.zhengSel!==null?'':'disabled'} onclick="scoreBzh()">
+      ${G.zhengSel!==null?'确认证型，前往开方 →':'请选择证型'}
+    </button>`;
+  }
+  return h;
+}
+
+function rKf() {
+  const c = C();
+  const lk = G.prescLocked;
+  let h = `
+    <div class="step-lbl">开 方</div>
+    <div class="step-sub">证型：<strong>${c.syndrome}</strong>　从百草药柜选取药材，标注君臣佐使</div>
+    <div class="card">
+      <div class="card-title">百草药柜</div>
+      <div class="herb-grid">`;
+  c.avail.forEach(nm => {
+    const sel = G.presc.some(p=>p.name===nm);
+    h += `<button class="herb-btn${sel?' sel':''}" ${lk?'disabled':` onclick="onHerb('${nm}')"`}>${nm}</button>`;
+  });
+  h += `</div></div>`;
+  if (G.presc.length) {
+    h += `<div class="card"><div class="card-title">📜 药方（${G.presc.length} 味）</div>
+    <table class="presc-tbl">
+      <thead><tr><th>药材</th><th>身份</th><th>操作</th></tr></thead><tbody>`;
+    G.presc.forEach((herb,i) => {
+      if (lk) {
+        const ref = c.rx_herbs.find(r=>r.name===herb.name);
+        const hOk = !!ref, rOk = ref && ref.role===herb.role;
+        const rcls = herb.role==='君'?'r-jun':herb.role==='臣'?'r-chen':herb.role==='佐'?'r-zuo':'r-shi';
+        h += `<tr>
+          <td style="color:${hOk?'var(--green)':'var(--red)'}">${herb.name} ${hOk?'✓':'✗'}</td>
+          <td class="${rcls}">${herb.role} ${rOk?'✓':'✗'}</td><td>—</td></tr>`;
+      } else {
+        h += `<tr><td>${herb.name}</td><td>
+          <select class="role-sel" onchange="onRole(${i},this.value)">
+            ${['君','臣','佐','使'].map(r=>`<option value="${r}" ${herb.role===r?'selected':''}>${r}</option>`).join('')}
+          </select></td>
+          <td><button class="rm-btn" onclick="onRm(${i})">✕</button></td></tr>`;
+      }
+    });
+    h += `</tbody></table>`;
+    if (!lk) h += `<div class="hint" style="margin-top:6px">提示：完整药方需含君、臣、佐、使各一味</div>`;
+    h += `</div>`;
+  }
+  if (lk) {
+    h += `<div class="know-card"><div class="know-title">📖 参考方剂：${c.rx_name}</div>
+    <table class="rev-tbl"><thead><tr><th>药材</th><th>身份</th><th>剂量</th><th>功效</th></tr></thead><tbody>`;
+    c.rx_herbs.forEach(r=>{
+      const rc=r.role==='君'?'r-jun':r.role==='臣'?'r-chen':r.role==='佐'?'r-zuo':'r-shi';
+      h+=`<tr><td><strong>${r.name}</strong></td><td class="${rc}">${r.role}</td><td>${r.dose}</td><td style="font-size:12px">${r.eff}</td></tr>`;
+    });
+    h += `</tbody></table></div>
+    <button class="act-btn" onclick="scoreKf()">查看本局结果 →</button>`;
+  } else {
+    const ok = G.presc.length >= 2;
+    h += `<button class="act-btn" ${ok?'':'disabled'} onclick="lockKf()">
+      ${ok?'完成开方，对照参考方剂 →':G.presc.length?'药方至少需 2 味药材':'请从药柜选取药材'}
+    </button>`;
+  }
+  return h;
+}
+
+function rJs() {
+  const c = C();
+  const sc = G.caseScores[G.caseIdx];
+  const bd = G.bd[G.caseIdx];
+  const [rLbl, rCol] = sc>=90?['🏆 悬壶济世','var(--gold)']:sc>=70?['🌿 妙手仁心','var(--green)']:sc>=50?['📖 初学乍练','var(--gold)']:['⚗ 尚需磨砺','var(--red)'];
+  const isLast = G.caseIdx === DATA.cases.length-1;
+  return `
+    <div class="step-lbl" style="margin-bottom:4px">诊疗结算</div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:56px;font-weight:bold;color:var(--red)">${sc}</div>
+      <div style="font-size:13px;color:var(--gold)">/100 分</div>
+      <div style="font-size:18px;font-weight:bold;color:${rCol};margin-top:6px">${rLbl}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 得分明细</div>
+      ${[['望诊',bd.w||0,10],['闻诊',bd.wen||0,15],['问诊',bd.wz||0,15],
+         ['切诊',bd.mai||0,20],['辨证',bd.bzh||0,20],['开方',bd.kf||0,20]].map(([n,s,m])=>`
+        <div class="sc-row"><span>${n}</span><span class="sc-pts">${s} / ${m}</span></div>`).join('')}
+    </div>
+    <div class="know-card">
+      <div class="know-title">📝 本案知识要点</div>
+      <strong>证型：</strong>${c.syndrome}<br><br>${c.bzh_exp}
+    </div>
+    <button class="act-btn" onclick="${isLast?`goTo('GAMEOVER')`:`nextCase()`}">
+      ${isLast?'查看总体结果 →':'接诊下一位患者 →'}
+    </button>`;
+}
+
+function rGo() {
+  const tot = G.totalScore, max = DATA.cases.length*100, pct = Math.round(tot/max*100);
+  const rank = tot>=180?'本草圣手':tot>=150?'杏林名医':tot>=110?'坐馆郎中':tot>=70?'学徒郎中':'药 童';
+  const rdesc = tot>=180?'医术精湛，辨证入微，可著书立说。':tot>=150?'辨证准确，配伍合理，名医之姿。':tot>=110?'基础扎实，尚有精进空间。':tot>=70?'初入杏林，仍需刻苦研习。':'路漫漫其修远兮，需多读医书。';
+  let h = `
+    <div class="go-wrap fade-in">
+      <div class="go-title">行医总结</div>
+      <div style="font-size:58px;font-weight:bold;color:var(--red);margin:10px 0 4px">${tot}</div>
+      <div style="font-size:13px;color:var(--gold);margin-bottom:6px">/ ${max} 分（${pct}%）</div>
+      <div style="font-size:22px;color:var(--gold);font-weight:bold;letter-spacing:4px;margin-bottom:4px">${rank}</div>
+      <div style="font-size:14px;color:var(--ink2);margin-bottom:22px">${rdesc}</div>
+      <div class="orn">— ✦ —</div>
+      <div class="cs-grid">`;
+  DATA.cases.forEach((c,i)=>{
+    h+=`<div class="cs-item">
+      <div class="cs-name">${c.name}·${c.syndrome}</div>
+      <div class="cs-num">${G.caseScores[i]}</div>
+      <div class="cs-max">/ 100 分</div>
+    </div>`;
+  });
+  h += `</div>
+      <div class="orn">— ✦ —</div>
+      <div style="font-size:13px;color:var(--ink2);margin:12px 0 20px;line-height:2.2">
+        中医之道，博大精深。<br>
+        望闻问切，四诊合参，方能辨证施治。<br>
+        继续修行，终成一代名医。
+      </div>
+      <button class="act-btn" onclick="restart()">重新开馆 →</button>
+    </div>`;
+  return h;
+}
+
+/* ════════════════════════════════
+   HANDLERS
+   ════════════════════════════════ */
+function onWang(id)   { G.wangRev.add(id); render(); }
+function onWen(i)     { G.wenSel.has(i)?G.wenSel.delete(i):G.wenSel.add(i); render(); }
+function onWz(i)      { G.wzAsked.add(i); render(); }
+function onMai(p)     { G.maiSel.has(p)?G.maiSel.delete(p):G.maiSel.add(p); render(); }
+function showMai(p) {
+  const el = document.getElementById('pulse-hint');
+  if (!el) return;
+  el.textContent = p ? (C().mai_info[p] || p) : '悬停脉名可查看含义';
+}
+function onZheng(i) { G.zhengSel = i; render(); }
+function onHerb(nm) {
+  const idx = G.presc.findIndex(p=>p.name===nm);
+  if (idx>=0) G.presc.splice(idx,1);
+  else G.presc.push({name:nm, role:'君'});
+  render();
+}
+function onRm(i)         { G.presc.splice(i,1); render(); }
+function onRole(i, role) { G.presc[i].role = role; }
+
+/* ════════════════════════════════
+   SCORING
+   ════════════════════════════════ */
+function addScore(key, pts) {
+  G.bd[G.caseIdx][key] = pts;
+  G.totalScore += pts;
+  G.caseScores[G.caseIdx] += pts;
+}
+
+function scoreWang() {
+  const c = C();
+  addScore('w', G.wangRev.size===c.wang.length ? 10 : Math.round(10*G.wangRev.size/c.wang.length));
+  goTo('WEN');
+}
+
+function scoreWen() {
+  const c = C();
+  let corr=0, wrong=0;
+  c.wen_opts.forEach((o,i) => { if(G.wenSel.has(i)) o.ok?corr++:wrong++; });
+  const total = c.wen_opts.filter(o=>o.ok).length;
+  const s = Math.max(0, Math.min(15, Math.round(15*corr/total) - 3*wrong));
+  addScore('wen', s);
+  G.wenLocked = true;
+  render();
+}
+
+function scoreWz() {
+  addScore('wz', 15);
+  goTo('QIE');
+}
+
+function scoreMai() {
+  const c = C();
+  const okSet = new Set(c.mai_ok);
+  let hit=0, miss=0, extra=0;
+  c.mai_ok.forEach(p=>{ G.maiSel.has(p)?hit++:miss++; });
+  G.maiSel.forEach(p=>{ if(!okSet.has(p)) extra++; });
+  let s = 0;
+  if (miss===0 && extra===0) s = 20;
+  else s = Math.max(0, Math.round(20*hit/c.mai_ok.length) - 5*extra);
+  addScore('mai', Math.min(20, s));
+  G.maiLocked = true;
+  render();
+}
+
+function scoreBzh() {
+  addScore('bzh', G.zhengSel===C().bzh_ok ? 20 : 0);
+  G.zhengLocked = true;
+  render();
+}
+
+function lockKf() { G.prescLocked = true; render(); }
+
+function scoreKf() {
+  const c = C();
+  const okNames = new Set(c.rx_herbs.map(h=>h.name));
+  let hs=0, rs=0;
+  G.presc.forEach(p => {
+    if (okNames.has(p.name)) {
+      hs += 4;
+      const ref = c.rx_herbs.find(r=>r.name===p.name);
+      if (ref && ref.role===p.role) rs += 1;
+    }
+  });
+  addScore('kf', Math.min(20, hs+rs));
+  goTo('JIESUAN');
+}
+
+/* ════════════════════════════════
+   NAVIGATION
+   ════════════════════════════════ */
+function goTo(step) {
+  G.step = step;
+  render();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function nextCase() {
+  G.caseIdx++;
+  G.wangRev=new Set(); G.wenSel=new Set(); G.wenLocked=false;
+  G.wzAsked=new Set(); G.maiSel=new Set(); G.maiLocked=false;
+  G.zhengSel=null; G.zhengLocked=false;
+  G.presc=[]; G.prescLocked=false;
+  goTo('PATIENT');
+}
+
+function restart() {
+  G = mkState();
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

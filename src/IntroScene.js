@@ -25,7 +25,8 @@ class IntroScene extends Phaser.Scene {
 
         // UI 元素
         this.dialogBox = null;
-        this.avatarSprite = null;
+        this.avatarImage = null;   // 头像图片精灵（优先）
+        this.avatarSprite = null;  // 头像 Emoji 文字（兜底）
         this.nameText = null;
         this.contentText = null;
         this.continueHint = null;
@@ -83,6 +84,12 @@ class IntroScene extends Phaser.Scene {
         // 加载序章剧情数据
         this.load.json('prologue_data', 'src/data/story_prologue.json');
 
+        // 加载第一章剧情数据
+        this.load.json('chapter1_data', 'src/data/story_chapter1.json');
+
+        // 加载地图事件配置（供调试管理器使用）
+        this.load.json('map_events_data', 'src/data/map_events.json');
+
         // 加载CG图片（如果有的话）
         this._loadCGImages();
 
@@ -119,22 +126,20 @@ class IntroScene extends Phaser.Scene {
      * 加载立绘图片
      */
     _loadCharacterImages() {
-        const characters = [
-            'bai_smile.png',
-            'bai_thoughtful.png',
-            'bai_serious.png',
-            'xiaolan_anxious.png',
-            'xiaolan_grateful.png',
-            'qingmiao_surprised.png',
-            'qingmiao_happy.png'
+        // === 序章角色 ===
+        const prologueCharacters = [
+            'bai.png',
+            'xiaolan.png',
+            'qingmiao.png'
         ];
 
-        characters.forEach(file => {
+        prologueCharacters.forEach(file => {
             const path = `src/assets/pictures/characters/${file}`;
             this.load.image(file.replace('.png', ''), path);
         });
 
         // 加载师傅立绘（全身体像）- PNG透明背景版本
+        // 注意：中文命名资源放在 picture/ 目录下（与 pictures/characters/ 区分）
         this.load.image('bai_standing', 'src/assets/picture/师傅立绘1.png');
 
         // 加载小兰立绘（全身体像）
@@ -145,6 +150,27 @@ class IntroScene extends Phaser.Scene {
 
         // 加载青苗精灵图（用于粒子效果）
         this.load.image('pet_qingmiao', 'src/assets/pictures/characters/pet_qingmiao.png');
+
+        // === 第一章 NPC 头像 ===
+        const chapter1Characters = [
+            'woodcutter.png',       // 砍柴老汉
+            'washerwoman.png',      // 洗衣村妇
+            'merchant.png',         // 行商王掌柜
+            'village_chief.png',    // 村长张老汉
+            'laoli.png',            // 药农老李
+            'villager_b.png',       // 村民乙
+            'zhangdaniang.png',     // 张大娘
+            'traveler.png'          // 旅人
+        ];
+
+        chapter1Characters.forEach(file => {
+            const key = file.replace('.png', '');
+            const path = `src/assets/pictures/characters/${file}`;
+            // 如果已加载则跳过
+            if (!this.textures.exists(key)) {
+                this.load.image(key, path);
+            }
+        });
     }
 
     /**
@@ -183,6 +209,37 @@ class IntroScene extends Phaser.Scene {
 
         // 加载内室背景
         this.load.image('neishi_bg', 'src/assets/picture/内室.png');
+
+        // === 第一章背景图片 ===
+        const ch1Backgrounds = [
+            'bg_plains_entry.png',     // 平原入口
+            'bg_plains_road.png',      // 平原山路
+            'bg_plains_woods.png',     // 平原树林
+            'bg_plains_river.png',     // 平原溪岸
+            'bg_plains_south.png',     // 平原村前
+            'bg_village_gate.png',    // 翠竹村牌坊
+            'bg_village_entrance.png',// 翠竹村口
+            'bg_village_center.png',  // 翠竹村中心
+            // bg_herb_garden.png 已在上方 backgrounds 列表中加载（第187行），此处复用 key
+            'bg_village_well.png',    // 水井边
+            'bg_drying_platform.png', // 晒药台
+            'bg_empty_shop.png',     // 空置铺面
+            'bg_patient_room.png',    // 张大娘家
+            'bg_valley_entry.png',   // 山谷入口
+            'bg_valley_exit.png'     // 山谷出口
+        ];
+
+        ch1Backgrounds.forEach(file => {
+            const name = file.replace('.png', '');
+            const path = `src/assets/pictures/backgrounds/${file}`;
+            // 已加载的跳过
+            if (!this.textures.exists(name)) {
+                this.load.image(name, path);
+            }
+        });
+
+        // 加载CG图片（第一章）
+        this.load.image('cg_06_gugen_discovery', 'src/assets/pictures/cg/cg_06_gugen.png');
     }
 
     /**
@@ -191,29 +248,134 @@ class IntroScene extends Phaser.Scene {
     create() {
         console.log('IntroScene: 创建场景');
 
-        // 获取剧情数据
-        this.prologueData = this.cache.json.get('prologue_data');
+        // ★ 注册 Phaser 场景生命周期事件：确保场景销毁时执行清理
+        this.events.on('shutdown', this._onSceneShutdown, this);
+        this.events.on('destroy', this._onSceneShutdown, this);
 
-        if (!this.prologueData || !this.prologueData.scenes) {
-            console.error('IntroScene: 剧情数据加载失败，使用内嵌数据');
-            this.prologueData = this._getFallbackData();
+        try {
+            // === 检查是否从调试器启动（携带调试参数） ===
+            const initData = this.scene.settings.data;
+            const isDebugLaunch = initData && initData.debugMode === true;
+            console.log('[诊断] create() 启动参数:', JSON.stringify(initData), '| isDebugLaunch:', isDebugLaunch);
+
+            if (isDebugLaunch) {
+                console.log('[调试] ★★ IntroScene 以调试模式启动 ★★', initData);
+                this._debugMode = true;
+                this._debugTargetSceneIdx = initData.debugTargetIdx || 0;
+
+                // 隐藏 GameScene 的 HTML UI（地图、背包等）
+                this._hideHTMLUI();
+
+                // 如果有强制传入的章节数据，直接使用
+                if (initData.forceChapter1) {
+                    this.prologueData = initData.forceChapter1;
+                    this._isChapter1 = true;
+                    console.log('[调试] 使用强制传入的第一章数据:', this.prologueData.title);
+                }
+            }
+
+            // 根据 window._loadChapter 决定加载哪章剧情（非调试启动时）
+            if (!this.prologueData) {
+                const loadChapter = window._loadChapter || 0;
+
+                if (loadChapter >= 1 && window._chapter1Data) {
+                    this.prologueData = window._chapter1Data;
+                    this._isChapter1 = true;
+                    console.log('IntroScene: 加载第一章剧情', this.prologueData.title);
+                } else {
+                    this.prologueData = this.cache.json.get('prologue_data');
+                    if (!this.prologueData || !this.prologueData.scenes) {
+                        console.error('IntroScene: 剧情数据加载失败，使用内嵌数据');
+                        this.prologueData = this._getFallbackData();
+                    }
+                    this._isChapter1 = false;
+                    console.log('IntroScene: 加载序章剧情', this.prologueData.title);
+                }
+            }
+
+            // 初始化子系统
+            console.log('[诊断] 正在初始化子系统...');
+            this._initSubsystems();
+            console.log('[诊断] 子系统初始化完成');
+
+            // 创建UI
+            console.log('[诊断] 正在创建UI...');
+            this._createUI();
+            console.log('[诊断] UI创建完成');
+
+            // 设置输入
+            console.log('[诊断] 正在设置输入...');
+            this._setupInput();
+            console.log('[诊断] 输入设置完成');
+
+            // 启动调试管理器（F3）
+            if (window.DebugManager) {
+                // ★ 清理上一次 IntroScene 遗留的 DebugManager DOM 元素（防止重复面板）
+                const oldOverlay = document.getElementById('debug-chapter1-overlay');
+                const oldPanel = document.getElementById('debug-chapter1-panel');
+                if (oldOverlay && oldOverlay.parentNode) oldOverlay.parentNode.removeChild(oldOverlay);
+                if (oldPanel && oldPanel.parentNode) oldPanel.parentNode.removeChild(oldPanel);
+
+                this.debugManager = new window.DebugManager(this);
+                this.debugManager.createUI();
+                console.log('IntroScene: 调试管理器已启动（F3 打开）, panel=', !!this.debugManager.panel);
+            } else {
+                console.warn('IntroScene: DebugManager 类未找到！');
+            }
+
+            // 开始场景：调试模式跳到目标场景，否则从第一个开始
+            console.log('[诊断] 正在启动场景 _startScene(0)...');
+            if (isDebugLaunch && this._debugTargetSceneIdx !== undefined) {
+                console.log(`[调试] 直接跳转到目标场景索引 ${this._debugTargetSceneIdx}`);
+                this._startScene(this._debugTargetSceneIdx);
+            } else {
+                this._startScene(0);
+            }
+
+            console.log('IntroScene: 场景创建成功');
+
+            // === 最终诊断：确认关键UI元素存在 ===
+            console.log('[诊断] UI元素检查:', {
+                dialogBox: !!this.dialogBox,
+                contentText: !!this.contentText,
+                narrationText: !!this.narrationText,
+                bgImage: !!this.bgImage,
+                typewriter: !!this.typewriter,
+                canvasWidth: this.cameras.main.width,
+                canvasHeight: this.cameras.main.height
+            });
+
+        } catch (error) {
+            console.error('!!! IntroScene.create() 发生致命错误 !!!', error);
+            console.error('错误堆栈:', error.stack);
+
+            // 显示错误信息到屏幕上（便于用户看到）
+            const width = this.cameras.main.width;
+            const height = this.cameras.main.height;
+
+            this.add.text(width / 2, height / 2 - 40, '❌ 游戏启动失败', {
+                fontSize: '32px',
+                color: '#ff4444',
+                fontFamily: '"FangSong", serif',
+                backgroundColor: '#000000dd',
+                padding: { x: 20, y: 10 }
+            }).setOrigin(0.5).setDepth(9999);
+
+            this.add.text(width / 2, height / 2 + 20, error.message, {
+                fontSize: '18px',
+                color: '#ffaa00',
+                fontFamily: 'monospace',
+                backgroundColor: '#000000dd',
+                padding: { x: 16, y: 8 },
+                wordWrap: { width: width * 0.8, useAdvancedWrap: true }
+            }).setOrigin(0.5).setDepth(9999);
+
+            this.add.text(width / 2, height /2 + 80, '请按 F12 打开控制台查看详细错误', {
+                fontSize: '16px',
+                color: '#ffffff',
+                fontFamily: 'monospace'
+            }).setOrigin(0.5).setDepth(9999);
         }
-
-        console.log('IntroScene: 剧情数据加载成功', this.prologueData.title);
-
-        // 初始化子系统
-        this._initSubsystems();
-
-        // 创建UI
-        this._createUI();
-
-        // 设置输入
-        this._setupInput();
-
-        // 开始第一个场景（S01）
-        this._startScene(0);
-
-        console.log('IntroScene: 场景创建完成');
     }
 
     /**
@@ -264,7 +426,7 @@ class IntroScene extends Phaser.Scene {
         // 隐藏HTML UI元素（地图、背包等）
         this._hideHTMLUI();
 
-        // 居中旁白文本（用于S01等独白场景）
+        // 居中旁白文本（用于S01等独白场景）— 提高到100确保覆盖GameScene
         this.narrationText = this.add.text(width / 2, height / 2, '', {
             fontSize: '32px',
             color: '#e8d8b8',
@@ -274,64 +436,89 @@ class IntroScene extends Phaser.Scene {
             wordWrap: { width: width * 0.8, useAdvancedWrap: true }
         })
             .setOrigin(0.5)
-            .setDepth(15)
+            .setDepth(100)   // ★ 从15提升到100，确保在GameScene之上
             .setVisible(false);
 
         // 角色立绘（全身体像，居中显示）
-        // 位置：画面正中央
-        this.characterPortrait = this.add.image(width / 2, height * 0.5, null)
-            .setDisplaySize(20, 32)     // 缩小到1/4
-            .setOrigin(0.5, 0.5)        // 锚点设为正中心
-            .setDepth(8)                // 在背景之上，对话框之下
+        // 使用 Graphics.generateTexture() 创建透明占位纹理（兼容所有 Phaser 3 版本）
+        const placeholderKey = '__intro_portrait_placeholder__';
+        
+        // 检查是否已有该纹理（避免重复生成）
+        if (!this.textures.exists(placeholderKey)) {
+            const gfx = this.make.graphics({ x: 0, y: 0, add: false });
+            gfx.fillStyle(0x000000, 0);  // 完全透明
+            gfx.fillRect(0, 0, 2, 2);
+            gfx.generateTexture(placeholderKey, 2, 2);  // 使用 graphics 对象的方法
+            gfx.destroy();  // 销毁临时 graphics 对象
+        }
+        
+        this.characterPortrait = this.add.image(width / 2, height * 0.5, placeholderKey)
+            .setDisplaySize(20, 32)
+            .setOrigin(0.5, 0.5)
+            .setDepth(30)    // ★ 从8提升到30
             .setVisible(false);
 
-        // 对话框容器
-        this.dialogBox = this.add.container(0, 0).setDepth(10).setVisible(false);
+        // ===== 对话框系统：不使用 Container（避免 Phaser 3 Container 渲染兼容性问题） =====
+        // 每个组件独立管理 depth，直接添加到场景
+        
+        // 计算对话框尺寸位置
+        this._dialogW = Math.max(200, Math.floor((width - 100) * 3 / 4));
+        this._dialogX = Math.floor((width - this._dialogW) / 2);
+        this._dialogY = height - 250;
+        this._dialogH = 200;
 
-        // 对话框背景（宽度缩至3/4）
-        const dialogW = Math.floor((width - 100) * 3 / 4);
-        const dialogX = Math.floor((width - dialogW) / 2);
-        const dialogBg = this.add.graphics();
-        dialogBg.fillStyle(0x000000, 0.85);
-        dialogBg.fillRoundedRect(dialogX, height - 250, dialogW, 200, 16);
-        dialogBg.lineStyle(3, 0x8b7355, 1);
-        dialogBg.strokeRoundedRect(dialogX, height - 250, dialogW, 200, 16);
-        this.dialogBox.add(dialogBg);
+        // 对话框背景图形（独立 Graphics 对象）
+        if (this.dialogBg) { this.dialogBg.destroy(); }
+        this.dialogBg = this.add.graphics().setDepth(110).setVisible(false);  // ★ 从50→110
+        
+        // 头像背景框
+        if (this.avatarBg) { this.avatarBg.destroy(); }
+        this.avatarBg = this.add.graphics().setDepth(111).setVisible(false);  // ★ 从51→111
 
-        // 头像框（紧贴对话框内左侧）
-        const avatarBg = this.add.graphics();
-        avatarBg.fillStyle(0x8b7355, 1);
-        avatarBg.fillRoundedRect(dialogX + 16, height - 234, 76, 76, 8);
-        avatarBg.lineStyle(2, 0xffffff, 0.5);
-        avatarBg.strokeRoundedRect(dialogX + 16, height - 234, 76, 76, 8);
-        this.dialogBox.add(avatarBg);
+        // 头像图片精灵（真实肖像，优先显示）
+        if (this.avatarImage) { this.avatarImage.destroy(); }
+        this.avatarImage = this.add.image(this._dialogX + 54, this._dialogY + 52, '__BLANK')
+            .setDisplaySize(72, 72)
+            .setDepth(112)
+            .setVisible(false);
 
-        // 头像精灵（居中于头像框内）
-        this.avatarSprite = this.add.text(dialogX + 54, height - 196, '', {
-            fontSize: '36px',
-            color: '#ffffff',
-            fontStyle: 'bold'
-        }).setOrigin(0.5).setDepth(11);
-        this.dialogBox.add(this.avatarSprite);
+        // 创建空白纹理（用于初始占位）
+        if (!this.textures.exists('__BLANK')) {
+            const canvas = this.textures.createCanvas('__BLANK', 1, 1);
+            canvas.context.fillStyle = 'rgba(0,0,0,0)';
+            canvas.context.fillRect(0, 0, 1, 1);
+            canvas.refresh();
+        }
 
-        // 名称文本（在头像框右侧，与顶部对齐）
-        this.nameText = this.add.text(dialogX + 108, height - 230, '', {
-            fontSize: '26px',
-            color: '#ffcc00',
-            fontStyle: 'bold',
+        // 头像 Emoji 文字（兜底），当没有真实图片时使用
+        if (this.avatarSprite) { this.avatarSprite.destroy(); }
+        this.avatarSprite = this.add.text(this._dialogX + 54, this._dialogY + 52, '👤', {
+            fontSize: '36px', color: '#ffffff', fontStyle: 'bold'
+        }).setOrigin(0.5).setDepth(113).setVisible(false);
+
+        // 名称文本
+        if (this.nameText) { this.nameText.destroy(); }
+        this.nameText = this.add.text(this._dialogX + 108, this._dialogY + 20, '', {
+            fontSize: '28px', color: '#ffcc00', fontStyle: 'bold',
             fontFamily: '"FangSong", "KaiTi", "STFangsong", "STKaiti", serif'
-        }).setDepth(11);
-        this.dialogBox.add(this.nameText);
+        }).setDepth(112).setVisible(false);  // ★ 从52→112
 
-        // 内容文本（在名称下方，wordWrap宽度适配缩小的对话框）
-        this.contentText = this.add.text(dialogX + 108, height - 198, '', {
-            fontSize: '24px',
-            color: '#ffffff',
-            wordWrap: { width: dialogW - 168, useAdvancedWrap: true },
+        // 内容文本（对话正文）
+        if (this.contentText) { this.contentText.destroy(); }
+        this.contentText = this.add.text(this._dialogX + 108, this._dialogY + 52, '', {
+            fontSize: '24px', color: '#ffffff',
+            wordWrap: { width: Math.max(100, this._dialogW - 168), useAdvancedWrap: true },
             lineSpacing: 8,
             fontFamily: '"FangSong", "KaiTi", "STFangsong", "STKaiti", serif'
-        }).setDepth(11);
-        this.dialogBox.add(this.contentText);
+        }).setDepth(112).setVisible(false);  // ★ 从52→112
+
+        // 保留旧 dialogBox 引用用于兼容检查（标记为废弃）
+        this.dialogBox = { 
+            setVisible: (v) => { this._setDialogVisible(v); }, 
+            visible: false,
+            // 兼容 list 属性访问
+            list: []
+        };
 
         // 跳过按钮
         this.skipButton = this.add.text(width - 80, 30, '跳过 ▸', {
@@ -341,7 +528,7 @@ class IntroScene extends Phaser.Scene {
             padding: { x: 10, y: 5 }
         })
             .setOrigin(0.5)
-            .setDepth(20)
+            .setDepth(120)   // ★ 从20→120
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => this._skipPrologue())
             .on('pointerover', () => this.skipButton.setColor('#ffcc00'))
@@ -353,7 +540,7 @@ class IntroScene extends Phaser.Scene {
             color: '#8b7355'
         })
             .setOrigin(0.5)
-            .setDepth(15)
+            .setDepth(120)   // ★ 从15→120
             .setVisible(false);
 
         // 闪烁动画
@@ -386,6 +573,13 @@ class IntroScene extends Phaser.Scene {
         this.input.keyboard.on('keydown-ENTER', () => this._handleClick());
         this.input.keyboard.on('keydown-ESC', () => this._skipPrologue());
 
+        // F3 调试面板（Phaser 键盘绑定 — 当 Phaser 有焦点时生效）
+        // 注意：全局 F3 DOM 监听器在 main.js 中注册，此处为 Phaser 层面的补充绑定
+        this.input.keyboard.on('keydown-F3', () => {
+            console.log('IntroScene: F3 按下（Phaser）');
+            if (this.debugManager) { this.debugManager.toggle(); }
+        });
+
         // 数字键选择
         for (let i = 1; i <= 9; i++) {
             this.input.keyboard.on(`keydown-${i}`, () => {
@@ -401,7 +595,54 @@ class IntroScene extends Phaser.Scene {
      * @param {number} sceneIndex - 场景索引
      */
     _startScene(sceneIndex) {
-        if (sceneIndex >= this.prologueData.scenes.length) {
+        try {
+            console.log(`[诊断] _startScene(${sceneIndex}) 开始 | scenes总数: ${this.prologueData?.scenes?.length} | isActive: ${this.scene.isActive()} | isPaused: ${this.scene.isPaused()}`);
+
+            // 验证 prologueData 是否有效
+            if (!this.prologueData || !this.prologueData.scenes || !Array.isArray(this.prologueData.scenes)) {
+                throw new Error(`prologueData 无效: ${JSON.stringify(this.prologueData)}`);
+            }
+
+            // === 关键修复：确保 IntroScene 渲染在最顶层（覆盖 GameScene 地图） ===
+            this.scene.bringToTop();
+            console.log('[诊断] IntroScene 已 bringToTop，当前场景栈:', this.scene.manager.getScenes(true).map(s => s.sceneKey));
+
+            // === 可视化诊断：强制确保 canvas 可见 ===
+            const canvas = this.game.canvas;
+            if (canvas) {
+                console.log('[诊断] canvas 状态:', {
+                    display: getComputedStyle(canvas).display,
+                    visibility: getComputedStyle(canvas).visibility,
+                    zIndex: getComputedStyle(canvas).zIndex,
+                    width: canvas.width,
+                    height: canvas.height,
+                    offsetWidth: canvas.offsetWidth,
+                    offsetHeight: canvas.offsetHeight
+                });
+                // 强制确保 canvas 可见
+                canvas.style.display = 'block';
+                canvas.style.visibility = 'visible';
+                canvas.style.zIndex = '1000';
+            }
+
+            // 隐藏所有可能的遮罩层
+            document.querySelectorAll('.modal, [id*="overlay"], [id*="mask"]').forEach(el => {
+                if (el.id !== 'debug-chapter1-overlay' && el.id !== 'debug-jump-overlay') {
+                    el.style.display = 'none';
+                    console.log('[诊断] 隐藏了遮罩层:', el.id || el.className);
+                }
+            });
+
+            if (sceneIndex >= this.prologueData.scenes.length) {
+            // === 调试模式检查：不自动跳转到 GameScene ===
+            if (this._debugMode) {
+                console.log('[调试] 场景已全部播完（调试模式），停在最后一幕');
+                this._debugMode = false;
+                this._debugTargetSceneIdx = null;  // 清理调试目标索引
+                // 保持在当前画面，显示调试结束提示
+                this._showDebugEndHint();
+                return;
+            }
             this._endPrologue();
             return;
         }
@@ -444,13 +685,37 @@ class IntroScene extends Phaser.Scene {
         console.log(`IntroScene: 开始场景 ${scene.id} - ${scene.name}`);
 
         // 设置背景
-        this._setBackground(scene);
+            this._setBackground(scene);
 
-        // 设置BGM
-        this._setBGM(scene);
+            // 设置BGM
+            this._setBGM(scene);
 
-        // 执行步骤
-        this._executeStep();
+            // 执行步骤
+            this._executeStep();
+
+        } catch (error) {
+            console.error(`!!! _startScene(${sceneIndex}) 发生错误 !!!`, error);
+            console.error('错误堆栈:', error.stack);
+
+            // 显示错误信息
+            const width = this.cameras.main.width;
+            const height = this.cameras.main.height;
+
+            const errorText = this.add.text(width / 2, height / 2, `❌ 场景启动失败 (索引 ${sceneIndex})\n\n${error.message}`, {
+                fontSize: '24px',
+                color: '#ff4444',
+                fontFamily: '"FangSong", serif',
+                backgroundColor: '#000000ee',
+                padding: { x: 20, y: 16 },
+                align: 'center',
+                wordWrap: { width: width * 0.8, useAdvancedWrap: true }
+            }).setOrigin(0.5).setDepth(9999);
+
+            // 5秒后自动隐藏错误信息
+            this.time.delayedCall(5000, () => {
+                if (errorText) errorText.destroy();
+            });
+        }
     }
 
     /**
@@ -475,12 +740,18 @@ class IntroScene extends Phaser.Scene {
             .setOrigin(0, 0)
             .setDepth(0);
 
+        console.log(`[诊断] 背景已创建 | type: ${scene.type} | 颜色: ${bgColor.toString(16)} | 尺寸: ${width}x${height}`);
+
         // 如果有背景图片
         if (scene.background && this.textures.exists(scene.background.replace('.png', ''))) {
             this.bgImage.destroy();
             this.bgImage = this.add.image(width / 2, height / 2, scene.background.replace('.png', ''))
                 .setDisplaySize(width, height)
                 .setDepth(0);
+            console.log(`[诊断] ✓ 背景图加载成功: ${scene.background}`);
+        } else if (scene.background) {
+            console.warn(`[诊断] ✗ 背景图不存在: ${scene.background} | 已有纹理列表:`, 
+                this.textures.getTextureKeys().filter(k => k.includes('bg_')).join(', ') || '(无)');
         }
     }
 
@@ -530,8 +801,9 @@ class IntroScene extends Phaser.Scene {
      */
     _setBGM(scene) {
         if (scene.bgm) {
-            // TODO: 实现BGM切换
-            console.log('IntroScene: 切换BGM', scene.bgm);
+            // BGM 功能暂未实现，静默跳过（避免误导）
+            // TODO: 当有音频资源后启用此功能
+            // console.log('IntroScene: 切换BGM', scene.bgm);
         }
     }
 
@@ -540,7 +812,7 @@ class IntroScene extends Phaser.Scene {
      */
     _executeStep() {
         if (this.currentStepIndex >= this.currentSteps.length) {
-            // 当前场景结束，进入下一个场景
+            // 当前场景结束，进入下一个场景（调试模式允许连续播放）
             this._startScene(this.currentSceneIndex + 1);
             return;
         }
@@ -588,7 +860,36 @@ class IntroScene extends Phaser.Scene {
                 this._showTitleCard(step);
                 break;
             case 'end':
+                // === 调试模式下不跳转到 GameScene，显示调试结束提示 ===
+                if (this._debugMode) {
+                    console.log('[调试] 遇到 end 步骤，显示调试结束提示（不跳转 GameScene）');
+                    this._debugMode = false;
+                    this._debugTargetSceneIdx = null;
+                    this._showDebugEndHint();
+                    break;
+                }
                 this._endPrologue(step);
+                break;
+            // === 第一章小游戏模拟（dialogue + choice 模拟）===
+            case 'minigame_herb_id':
+                this._showHerbIdMinigame(step);
+                break;
+            case 'minigame_process':
+                this._showProcessMinigame(step);
+                break;
+            case 'minigame_diagnosis':
+                this._showDiagnosisMinigame(step);
+                break;
+            case 'minigame_prescription':
+                this._showPrescriptionMinigame(step);
+                break;
+            // === 药圃辨花小游戏（真实卡片交互） ===
+            case 'minigame_flower_id':
+                this._showFlowerIdMinigame(step);
+                break;
+            // === 山野晒菊小游戏（拖拽交互） ===
+            case 'minigame_dry_flower':
+                this._showDryFlowerMinigame(step);
                 break;
             default:
                 console.warn('IntroScene: 未知步骤类型', step.type);
@@ -601,11 +902,19 @@ class IntroScene extends Phaser.Scene {
      * @param {Object} step - 步骤数据
      */
     _showNarration(step) {
+        console.log(`[诊断] _showNarration | step: ${step.id} | text: "${(step.text || '').substring(0, 40)}"`);
+        
         // 隐藏对话框，显示居中旁白
         this.dialogBox.setVisible(false);
         this.narrationText.setVisible(true);
+        
+        // 诊断：确认 narrationText 状态
+        console.log(`[诊断] narrationText: visible=${this.narrationText.visible} depth=${this.narrationText.depth} x=${Math.round(this.narrationText.x)} y=${Math.round(this.narrationText.y)}`);
+        
+        // 强制确保 narrationText 在最顶层（防御性措施）
+        this.narrationText.setDepth(100);
 
-        this._updateAvatar(null, null);
+        // 旁白时不显示任何头像（_setDialogVisible(false) 已隐藏全部对话UI，无需 _updateAvatar）
         this._updateName('');
 
         // 隐藏特写图片和角色立绘
@@ -668,6 +977,22 @@ class IntroScene extends Phaser.Scene {
             colorGradient: colorGradient,
             speed: 60
         });
+        
+        console.log(`[诊断] narration typewriter已启动 | isTyping=${this.typewriter.isTyping} | target=${!!this.typewriter.targetTextField}`);
+        
+        // 500ms 后用 setTimeout 检查旁白文字是否显示
+        setTimeout(() => {
+            if (!this.narrationText) return;
+            const txt = this.narrationText.text || '(空)';
+            console.log(`[诊断] narration 500ms后 | text="${txt.substring(0,40)}" | visible=${this.narrationText.visible} depth=${this.narrationText.depth}`);
+            
+            // 终极备用方案：打字机未输出则强制写入
+            if (!this.typewriter?.isTyping && txt.length === 0 && step.text) {
+                console.warn('[诊断] !!! Narration打字机未输出，强制写入文本 !!!');
+                this.narrationText.setText(step.text);
+                this.narrationText.setDepth(100);  // 再次确保深度
+            }
+        }, 500);
 
         // 隐藏角色立绘（旁白时不需要显示）
         this._hideCharacterPortrait();
@@ -677,13 +1002,61 @@ class IntroScene extends Phaser.Scene {
     }
 
     /**
+     * 对话框统一显隐控制（替代 Container.setVisible）
+     * @param {boolean} visible - 是否可见
+     */
+    _setDialogVisible(visible) {
+        this.dialogBox.visible = visible;
+        
+        // 绘制或清除对话框背景
+        if (visible && this.dialogBg) {
+            this.dialogBg.clear();
+            this.dialogBg.fillStyle(0x1a1a2e, 0.95);
+            this.dialogBg.fillRoundedRect(this._dialogX, this._dialogY, this._dialogW, this._dialogH, 16);
+            this.dialogBg.lineStyle(3, 0xffcc00, 1);
+            this.dialogBg.strokeRoundedRect(this._dialogX, this._dialogY, this._dialogW, this._dialogH, 16);
+            this.dialogBg.setVisible(true);
+        } else if (this.dialogBg) {
+            this.dialogBg.setVisible(false);
+        }
+
+        // 头像框
+        if (visible && this.avatarBg) {
+            this.avatarBg.clear();
+            this.avatarBg.fillStyle(0x8b7355, 1);
+            this.avatarBg.fillRoundedRect(this._dialogX + 16, this._dialogY + 14, 76, 76, 8);
+            this.avatarBg.lineStyle(2, 0xffffff, 0.5);
+            this.avatarBg.strokeRoundedRect(this._dialogX + 14, this._dialogY + 14, 76, 76, 8);
+            this.avatarBg.setVisible(true);
+        } else if (this.avatarBg) {
+            this.avatarBg.setVisible(false);
+        }
+
+        // 各文本组件
+        if (this.avatarSprite) this.avatarSprite.setVisible(visible);
+        if (this.avatarImage) this.avatarImage.setVisible(visible);
+        if (this.nameText) this.nameText.setVisible(visible);
+        if (this.contentText) this.contentText.setVisible(visible);
+    }
+
+    /**
+     * 绘制对话框背景（位置/尺寸变化时调用，如窗口resize）
+     */
+    _refreshDialogBackground() {
+        if (!this.dialogBg || !this.dialogBox.visible) return;
+        this._setDialogVisible(true);  // 重绘
+    }
+
+    /**
      * 显示对话
      * @param {Object} step - 步骤数据
      */
     _showDialogue(step) {
         // 隐藏旁白，显示对话框
         this.narrationText.setVisible(false);
-        this.dialogBox.setVisible(true);
+        this._setDialogVisible(true);
+
+        console.log(`[诊断] _showDialogue | step: ${step.id} | text: "${(step.text || '').substring(0, 40)}"`);
 
         // 更新头像和名称
         this._updateAvatar(step.character, step.avatar);
@@ -709,13 +1082,26 @@ class IntroScene extends Phaser.Scene {
             speed: 50
         });
 
+        console.log(`[诊断] typewriter已启动 | isTyping=${this.typewriter.isTyping} | targetTextField=${!!this.typewriter?.targetTextField}`);
+
+        // 500ms 后用 setTimeout 检查文字是否开始显示（避免场景时钟问题）
+        setTimeout(() => {
+            if (!this.contentText) return;
+            const txt = this.contentText.text || '(空)';
+            console.log(`[诊断] 打字机500ms后 | contentText="${txt.substring(0, 40)}" | isTyping=${this.typewriter?.isTyping} | visible=${this.contentText.visible}`);
+            
+            // 如果打字机没在打字且内容为空 → 强制写入完整文本（终极备用方案）
+            if (!this.typewriter?.isTyping && txt.length === 0 && step.text) {
+                console.warn('[诊断] !!! 打字机未输出文字，强制写入完整文本 !!!');
+                this.contentText.setText(step.text);
+            }
+        }, 500);
+
         this.waitingForInput = false;
         this._showContinueHint(false);
 
         // 解锁图鉴
-        if (step.unlockHerb) {
-            this._unlockHerb(step.unlockHerb);
-        }
+        if (step.unlockHerb) { this._unlockHerb(step.unlockHerb); }
 
         // 设置灵宠
         if (step.setPet) {
@@ -723,9 +1109,7 @@ class IntroScene extends Phaser.Scene {
         }
 
         // 设置标记
-        if (step.setFlag) {
-            this._setFlag(step.setFlag, true);
-        }
+        if (step.setFlag) { this._setFlag(step.setFlag, true); }
     }
 
     /**
@@ -824,17 +1208,22 @@ class IntroScene extends Phaser.Scene {
         // 隐藏特写图片（教程时通常不需要显示）
         this._hideOverlayImage();
 
-        const tutorialAction = step.tutorialAction;
+        const tutorialAction = step.tutorialAction || '';
         const hint = step.hint || '';
 
         console.log('IntroScene: 教程步骤', tutorialAction, step.skippable ? '(可跳过)' : '');
+
+        // === 第一章模式：所有教程默认可点击跳过 ===
+        // 在剧情模式下，交互类教程（采集、探索等）应变为"提示+点击继续"
+        const isChapter1 = this._isChapter1;
+        const isSkippable = !!step.skippable || isChapter1;
 
         // 显示教程遮罩
         this.tutorialOverlay.show({
             hint: hint,
             hintPosition: step.hintPosition || 'bottom',
             highlightTargets: step.highlightTargets || [],
-            clickToContinue: !!step.skippable,  // 如果可跳过则允许点击继续
+            clickToContinue: isSkippable,  // 第一章模式下全部允许点击继续
             onComplete: () => this._onTutorialComplete(step)
         });
 
@@ -865,6 +1254,21 @@ class IntroScene extends Phaser.Scene {
             case 'collect_juhua':
                 this._tutorialCollectJuhua(step);
                 break;
+            // === 第一章新增教程动作 ===
+            case 'movement_hint':           // 移动操作提示（C01）
+            case 'collect_gancao':           // 采集甘草（C02）
+            case 'shop_price_hint':         // 药店价格提示（C06）
+            case 'village_explore':         // 村庄探索（C08）
+            case 'unlock_shop':             // 解锁药铺（C12）
+            case 'unlock_valley_portal':     // 解锁溪谷传送门（C14）
+            case 'valley_explore':          // 溪谷探索（C15）
+            case 'collect_yinchen':         // 采集茵陈（C15）
+            case 'follow_qingmiao':         // 跟随青苗（C15）
+            case 'collect_shichangpu':      // 采集石菖蒲（C15）
+                // 这些都是"提示类"教程，显示提示后点击即完成
+                console.log(`[第一章] 提示类教程: ${tutorialAction}，显示后等待玩家点击`);
+                break;  // 已通过 clickToContinue: true 处理点击完成
+            // === 序章原有占位符 ===
             case 'sun_drying':
             case 'drag_herb_to_tray':
             case 'wait_drying':
@@ -873,10 +1277,15 @@ class IntroScene extends Phaser.Scene {
                 this._tutorialPlaceholder(step);
                 break;
             default:
-                // 没有特殊动作的教程，点击继续
-                this.time.delayedCall(step.nextDelay || 2000, () => {
-                    this._onTutorialComplete(step);
-                });
+                // 没有特殊动作的教程，短暂延迟后自动完成（同时支持点击跳过）
+                console.log(`[教程] 未实现的教程动作: ${tutorialAction}，${isSkippable ? '可点击' : '自动'}完成`);
+                if (!isSkippable) {
+                    // 仅在非跳过模式下自动完成
+                    this.time.delayedCall(Math.max(step.nextDelay || 500, 500), () => {
+                        this._onTutorialComplete(step);
+                    });
+                }
+                // 如果可跳过（第一章模式），则依赖点击继续，不自动完成
         }
     }
 
@@ -1122,9 +1531,11 @@ class IntroScene extends Phaser.Scene {
      * 教程点击回调
      */
     _onTutorialClick() {
+        console.log('[诊断] _onTutorialClick 被调用 | tutorialActive:', this.tutorialActive, '| currentTutorialStep:', this._currentTutorialStep?.id, '| _isChapter1:', this._isChapter1);
+
         // 优先检查：弹窗已关闭，等待玩家点击确认完成教程
         if (this._modalClosedPendingConfirm) {
-            console.log('IntroScene: 玩家确认完成（弹窗已关闭后点击）');
+            console.log('[诊断] 弹窗已关闭，确认完成教程');
             this._modalClosedPendingConfirm = false;
             this._onTutorialComplete(this._currentTutorialStep);
             return;
@@ -1142,7 +1553,7 @@ class IntroScene extends Phaser.Scene {
                     overlay.offsetParent === null;
 
                 if (isOverlayHidden) {
-                    console.log('IntroScene: 检测到弹窗已关闭（主动检测），完成教程', action);
+                    console.log('[诊断] 检测到弹窗已关闭，完成教程', action);
                     this._modalClosedPendingConfirm = false;
                     // 清理监听器
                     this._modalCloseCallback = null;
@@ -1159,12 +1570,18 @@ class IntroScene extends Phaser.Scene {
             }
         }
 
-        // 检查当前教程是否可跳过
-        if (this._currentTutorialStep && this._currentTutorialStep.skippable) {
-            console.log('IntroScene: 跳过教程', this._currentTutorialStep.id);
-            this._onTutorialComplete(this._currentTutorialStep);
-            return;
+        // 检查当前教程是否可跳过（支持第一章模式）
+        if (this._currentTutorialStep) {
+            const isSkippable = this._currentTutorialStep.skippable || this._isChapter1;
+            console.log(`[诊断] 检查跳过条件 | skippable=${!!this._currentTutorialStep.skippable} | _isChapter1=${this._isChapter1} | isSkippable=${isSkippable}`);
+            if (isSkippable) {
+                console.log('[诊断] ✅ 执行教程完成！stepId=', this._currentTutorialStep.id, this._isChapter1 ? '(第一章模式)' : '');
+                this._onTutorialComplete(this._currentTutorialStep);
+                return;
+            }
         }
+
+        console.warn('[诊断] ⚠️ 教程不可跳过，忽略点击');
     }
 
     /**
@@ -1172,6 +1589,8 @@ class IntroScene extends Phaser.Scene {
      * @param {Object} step - 完成的步骤
      */
     _onTutorialComplete(step) {
+        console.log('[诊断] _onTutorialComplete 被调用 | step:', step?.id, '| tutorialOverlay存在:', !!this.tutorialOverlay);
+
         void step; // 消除未使用参数警告
 
         // 清理弹窗关闭回调（如果存在）
@@ -1184,9 +1603,20 @@ class IntroScene extends Phaser.Scene {
         }
 
         this.tutorialActive = false;
-        this.tutorialOverlay.hide(() => {
-            this._nextStep();
-        });
+        console.log('[诊断] 调用 tutorialOverlay.hide()...');
+        try {
+            this.tutorialOverlay.hide(() => {
+                console.log('[诊断] tutorialOverlay.hide 回调执行 → _nextStep()');
+                this._nextStep();
+            });
+        } catch (error) {
+            console.error('[诊断] !!! tutorialOverlay.hide 失败 !!!', error);
+            // 强制继续下一步
+            this.time.delayedCall(100, () => {
+                console.log('[诊断] 强制执行 _nextStep()');
+                this._nextStep();
+            });
+        }
     }
 
     /**
@@ -1497,8 +1927,18 @@ class IntroScene extends Phaser.Scene {
      * 处理点击事件
      */
     _handleClick() {
+        // ★ 小游戏场景激活时，忽略所有 IntroScene 输入
+        if (this._flowerGameActive) return;
+        if (this._diagnosisGameActive) return;
         if (this.choiceSystem && this.choiceSystem.isActive) return;
         if (this.tutorialActive) return;
+
+        // 小游戏：处方/辨药小游戏的选择确认（打字完成后点击推进）
+        if (this._pendingMinigameAdvance && this.waitingForInput) {
+            this._pendingMinigameAdvance = false;
+            this._nextStep();
+            return;
+        }
 
         if (this.typewriter && this.typewriter.isTyping) {
             // 立即完成打字
@@ -1508,7 +1948,7 @@ class IntroScene extends Phaser.Scene {
             if (this._pendingNextStep) {
                 const nextStepId = this._pendingNextStep;
                 this._pendingNextStep = null;
-                
+
                 // 查找并执行下一步
                 const nextStep = this._findStepById(nextStepId);
                 if (nextStep) {
@@ -1517,10 +1957,116 @@ class IntroScene extends Phaser.Scene {
                     return;
                 }
             }
-            
+
             // 进入下一步
             this._nextStep();
         }
+    }
+
+    /**
+     * 推进诊断小游戏到下一轮
+     */
+    _advanceDiagnosisPhase() {
+        const phase = this._diagnosisPhases && this._diagnosisPhases[this._diagnosisPhaseIndex];
+        if (!phase) return;
+
+        const questionText = `【${phase.label}】${phase.question}\n\n${phase.options.map((o, i) => `${i + 1}. ${o.text}`).join('\n')}\n\n（输入数字键 1-${phase.options.length} 选择）`;
+
+        this.typewriter.start(questionText, {
+            targetField: this.contentText,
+            speed: 40,
+            onComplete: () => {
+                this.waitingForInput = true;
+                this._showContinueHint(true);
+                this._setupDiagnosisPhaseInput(phase);
+            }
+        });
+    }
+
+    /**
+     * 设置诊断阶段输入
+     */
+    _setupDiagnosisPhaseInput(phase) {
+        if (this._minigameKeyHandler) {
+            this.input.keyboard.off('keydown', this._minigameKeyHandler);
+        }
+
+        this._minigameKeyHandler = (event) => {
+            const num = parseInt(event.key);
+            if (isNaN(num) || num < 1 || num > phase.options.length) return;
+
+            const selected = phase.options[num - 1];
+            console.log('IntroScene: 诊断选择', phase.phase, num, selected.text, selected.correct ? '✓' : '✗');
+
+            if (selected.correct) this._diagnosisScore = (this._diagnosisScore || 0) + 2;
+
+            // 显示本轮结果
+            this._updateName(phase.label);
+            this._updateAvatar(null, null);
+            this.typewriter.start(`选择：${selected.text}\n线索：${selected.clue}`, {
+                targetField: this.contentText,
+                speed: 40,
+                onComplete: () => {
+                    this._diagnosisPhaseIndex++;
+                    if (this._diagnosisPhaseIndex >= this._diagnosisPhases.length) {
+                        // 所有阶段完成
+                        this._finishDiagnosis();
+                    } else {
+                        this.waitingForInput = true;
+                        this._showContinueHint(true);
+                        this._pendingDiagnosisNext = true;
+                    }
+                }
+            });
+        };
+
+        this.input.keyboard.on('keydown', this._minigameKeyHandler);
+    }
+
+    /**
+     * 完成诊断小游戏
+     */
+    _finishDiagnosis() {
+        const step = this._diagnosisStep;
+        const score = this._diagnosisScore || 0;
+        const threshold = (step && step.scoreThreshold) || 3;
+        let feedback = '';
+        let reward = null;
+
+        if (score >= (step ? step.perfectScore || 8 : 8)) {
+            feedback = step ? step.perfectFeedback : '诊断精准！';
+            reward = step ? step.rewardOnPerfect : null;
+        } else if (score >= threshold) {
+            feedback = step ? step.passFeedback : '诊断基本正确。';
+            reward = step ? step.rewardOnPass : null;
+        } else {
+            feedback = step ? step.failFeedback : '诊断有待提高。';
+            reward = step ? step.rewardOnFail : null;
+        }
+
+        const resultText = `${step ? step.diagnosisResult : '诊断完成'}\n\n得分：${score}\n${feedback}`;
+
+        this.typewriter.start(resultText, {
+            targetField: this.contentText,
+            speed: 40,
+            onComplete: () => {
+                // 应用奖励
+                if (reward) {
+                    if (reward.diagnosis) this._applyAttributeDelta('diagnosis', reward.diagnosis);
+                    if (reward.reputation) this._applyAttributeDelta('reputation', reward.reputation);
+                }
+
+                // 清理
+                if (this._minigameKeyHandler) {
+                    this.input.keyboard.off('keydown', this._minigameKeyHandler);
+                    this._minigameKeyHandler = null;
+                }
+
+                this.waitingForInput = true;
+                this._showContinueHint(true);
+                this.time.delayedCall(500, () => this._nextStep());
+            }
+        });
     }
 
     /**
@@ -1544,11 +2090,17 @@ class IntroScene extends Phaser.Scene {
         // 检查是否有 nextScene 跳转
         const currentStep = this.currentSteps[this.currentStepIndex - 1];
         if (currentStep && currentStep.nextScene) {
-            // 跳转到指定场景
-            const nextSceneIndex = this.prologueData.scenes.findIndex(s => s.id === currentStep.nextScene);
-            if (nextSceneIndex >= 0) {
-                this._startScene(nextSceneIndex);
-                return;
+            // === 调试模式检查：阻止跨场景跳转 ===
+            if (this._debugMode) {
+                console.log('[调试] 步骤有 nextScene 跳转，但调试模式已阻止（停在当前场景）');
+                // 不跳转，当作普通下一步处理
+            } else {
+                // 跳转到指定场景
+                const nextSceneIndex = this.prologueData.scenes.findIndex(s => s.id === currentStep.nextScene);
+                if (nextSceneIndex >= 0) {
+                    this._startScene(nextSceneIndex);
+                    return;
+                }
             }
         }
 
@@ -1564,27 +2116,36 @@ class IntroScene extends Phaser.Scene {
      * @param {string} avatarKey - 头像texture key
      */
     _updateAvatar(character, avatarKey) {
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
-        const dialogW = Math.floor((width - 100) * 3 / 4);
-        const dialogX = Math.floor((width - dialogW) / 2);
+        if (!this.avatarSprite || !this.avatarImage) return;
+
+        const avatarX = this._dialogX + 54;
+        const avatarY = this._dialogY + 52;
 
         if (!character) {
-            this.avatarSprite.setText('📖');
-            this.avatarSprite.setPosition(dialogX + 54, height - 196);
+            // 无角色 → 显示旁白图标
+            this.avatarImage.setVisible(false);
+            this.avatarSprite.setText('📖').setPosition(avatarX, avatarY).setVisible(true);
             return;
         }
 
-        // 尝试使用图片
-        if (avatarKey && this.textures.exists(avatarKey.replace('.png', ''))) {
-            // TODO: 使用图片精灵
-            this.avatarSprite.setText(this._getCharacterEmoji(character));
-        } else {
-            // 使用Emoji占位
-            this.avatarSprite.setText(this._getCharacterEmoji(character));
-        }
+        // 尝试使用真实头像图片
+        const textureKey = avatarKey ? avatarKey.replace('.png', '') : null;
+        const hasImage = textureKey && this.textures.exists(textureKey);
 
-        this.avatarSprite.setPosition(dialogX + 54, height - 196);
+        if (hasImage) {
+            // 显示真实头像图片
+            this.avatarSprite.setVisible(false);
+            this.avatarImage.setTexture(textureKey)
+                .setDisplaySize(72, 72)
+                .setPosition(avatarX, avatarY)
+                .setVisible(true);
+        } else {
+            // 兜底：Emoji 文字
+            this.avatarImage.setVisible(false);
+            this.avatarSprite.setText(this._getCharacterEmoji(character))
+                .setPosition(avatarX, avatarY)
+                .setVisible(true);
+        }
     }
 
     /**
@@ -1594,11 +2155,21 @@ class IntroScene extends Phaser.Scene {
      */
     _getCharacterEmoji(character) {
         const emojiMap = {
+            // 序章
             'bai': '👴',
             'xiaolan': '👧',
             'qingmiao': '🌱',
             'narrator': '📖',
-            'player': '😊'
+            'player': '😊',
+            // 第一章 NPC
+            'woodcutter': '🪓',
+            'washerwoman': '👩',
+            'merchant': '🧳',
+            'cunzhang': '🏘',
+            'laoli': '🌿',
+            'villager_b': '👩',
+            'zhangdaniang': '👵',
+            'lvren': '🚶'
         };
         return emojiMap[character] || '❓';
     }
@@ -1608,12 +2179,10 @@ class IntroScene extends Phaser.Scene {
      * @param {string} name - 名称
      */
     _updateName(name) {
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
-        const dialogW = Math.floor((width - 100) * 3 / 4);
-        const dialogX = Math.floor((width - dialogW) / 2);
-        this.nameText.setText(name);
-        this.nameText.setPosition(dialogX + 108, height - 230);
+        if (this.nameText) {
+            this.nameText.setText(name || '');
+            this.nameText.setPosition(this._dialogX + 108, this._dialogY + 20);
+        }
     }
 
     /**
@@ -1922,12 +2491,15 @@ class IntroScene extends Phaser.Scene {
      * 显示HTML UI元素（序章结束后恢复）
      */
     _showHTMLUI() {
-        // 恢复主要HUD面板
+        // ★ 恢复所有被 _hideHTMLUI() 隐藏的永久UI面板
+        // 注意：ephemeral 元素（collect-prompt, collect-success, .modal）由各自的逻辑控制，此处不恢复
         const uiElements = [
             'top-left-panel',     // 左上角：小地图 + 时间日期
             'task-panel',         // 任务栏
             'top-right-buttons',  // 顶部右侧功能按钮
-            'controls-hint'       // 底部操作提示
+            'controls-hint',      // 底部操作提示
+            'debug-panel',        // 调试面板
+            'modal-overlay'       // 模态框遮罩
         ];
 
         uiElements.forEach(id => {
@@ -1937,7 +2509,18 @@ class IntroScene extends Phaser.Scene {
             }
         });
 
-        console.log('IntroScene: 已恢复HTML UI元素');
+        // 确保 game-container 也可见（CSS 默认 display:none，必须显式设 block）
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            gameContainer.style.display = 'block';
+        }
+
+        // ★ 重置 canvas z-index（剧情中设成了 1000，会盖住 z-index: 100 的 HTML UI）
+        if (this.game && this.game.canvas) {
+            this.game.canvas.style.zIndex = '';
+        }
+
+        console.log('IntroScene: 已恢复所有HTML UI元素');
     }
 
     /**
@@ -1978,9 +2561,495 @@ class IntroScene extends Phaser.Scene {
     /**
      * 结束序章
      * @param {Object} step - 结束步骤数据
+     * 显示辨药小游戏（模拟：dialogue + choice）
+     * @param {Object} step - 步骤数据
+     */
+    _showHerbIdMinigame(step) {
+        console.log('IntroScene: 辨药小游戏（模拟）', step.question);
+
+        this.dialogBox.setVisible(false);
+        this._hideOverlayImage();
+        this.waitingForInput = false;
+        this._showContinueHint(false);
+
+        // 显示问题旁白
+        this.narrationText.setVisible(true);
+        this.narrationText.setColor('#e8d8b8');
+        this.narrationText.setStroke('#000000', 0);
+
+        const questionText = `${step.question}\n\n${step.options.map((o, i) => `${i + 1}. ${o.label}`).join('\n')}\n\n（输入数字键 1-${step.options.length} 选择，或点击选择）`;
+
+        this.typewriter.start(questionText, {
+            targetField: this.narrationText,
+            speed: 40,
+            onComplete: () => {
+                this.waitingForInput = true;
+                this._showContinueHint(true);
+                this._setupMinigameInput(step, step.options);
+            }
+        });
+    }
+
+    /**
+     * 显示炮制小游戏（模拟：dialogue + reward）
+     * @param {Object} step - 步骤数据
+     */
+    _showProcessMinigame(step) {
+        console.log('IntroScene: 炮制小游戏（模拟）', step.processType);
+
+        this.dialogBox.setVisible(true);
+        this._hideOverlayImage();
+
+        const processTexts = {
+            'dry': '（把菊花轻轻铺在竹匾上，摊开，让每朵花都能接触到空气……）\n\n（等待晾晒……三日后的清晨，菊花已完全干燥，轻轻一捏便碎）\n\n获得：【晒菊花 ×1】',
+            'honey': '（将蜂蜜倒入锅中，小火加热至微沸，放入甘草翻炒……）\n\n（蜜炙完成！甘草表面金黄油润，药香四溢）\n\n获得：【蜜炙甘草 ×1】',
+            'vinegar': '（将醋喷入药锅，与药材一同翻炒，醋香与药香交织……）\n\n（醋制完成！药性更趋收敛，增强止痛效果）\n\n获得：【醋制药材 ×1】'
+        };
+
+        const processText = processTexts[step.processType] || '（按照炮制规范操作……）\n\n（炮制完成！）';
+
+        this._updateAvatar(step.character || 'laoli', step.avatar || 'laoli.png');
+        this._updateName(step.name || '药农 老李');
+
+        this.typewriter.start(processText, {
+            targetField: this.contentText,
+            speed: 45
+        });
+
+        this.waitingForInput = false;
+        this._showContinueHint(false);
+
+        // 保存step引用用于完成回调
+        this._currentMinigameStep = step;
+        this.time.delayedCall(500, () => {
+            this.waitingForInput = true;
+            this._showContinueHint(true);
+        });
+    }
+
+    /**
+     * 显示四诊小游戏 —— 启动 DiagnosisMinigame 覆盖层场景
+     * 场景内部完成「望→闻→问→切→开药」全流程
+     * @param {Object} step - 步骤数据（包含 phases、syndrome、scoringRules 等）
+     */
+    _showDiagnosisMinigame(step) {
+        console.log('IntroScene: 启动四诊小游戏 DiagnosisMinigame', step.patientName);
+
+        // ★ 合并后续开方步骤的数据（minigame_prescription）
+        const mergedStep = Object.assign({}, step);
+        const nextStep = this.currentSteps[this.currentStepIndex + 1];
+        if (nextStep && nextStep.type === 'minigame_prescription') {
+            if (nextStep.minCount !== undefined)    mergedStep.minCount = nextStep.minCount;
+            if (nextStep.maxCount !== undefined)    mergedStep.maxCount = nextStep.maxCount;
+            if (nextStep.scoringRules)              mergedStep.scoringRules = nextStep.scoringRules;
+            if (nextStep.forbiddenHerbs)            mergedStep.forbiddenHerbs = nextStep.forbiddenHerbs;
+            if (nextStep.perfectScore !== undefined) mergedStep.perfectScore = nextStep.perfectScore;
+            if (nextStep.passScore !== undefined)   mergedStep.passScore = nextStep.passScore;
+            if (nextStep.feedbackPerfect)           mergedStep.feedbackPerfect = nextStep.feedbackPerfect;
+            if (nextStep.feedbackPass)              mergedStep.feedbackPass = nextStep.feedbackPass;
+            if (nextStep.feedbackFail)              mergedStep.feedbackFail = nextStep.feedbackFail;
+            console.log('IntroScene: 已合并开方步骤数据到诊断场景');
+        }
+
+        // 标记小游戏激活，阻止所有输入
+        this._diagnosisGameActive = true;
+        this.waitingForInput = false;
+        this._showContinueHint(false);
+        this.dialogBox.setVisible(false);
+        this.narrationText.setVisible(false);
+        if (this.skipButton) this.skipButton.setVisible(false);
+        if (this.bgImage) this.bgImage.setVisible(false);
+        if (this.overlayImage) { this.overlayImage.destroy(); this.overlayImage = null; }
+        if (this.overlayBorder) { this.overlayBorder.destroy(); this.overlayBorder = null; }
+        if (this.choiceSystem) this.choiceSystem.hide();
+        if (this.typewriter && this.typewriter.isTyping) this.typewriter.complete();
+
+        // 保存步骤引用，用于 shutdown 回调读取结果
+        this._diagnosisMinigameStep = mergedStep;
+
+        // 启动 DiagnosisMinigame 场景作为覆盖层
+        this.scene.launch('DiagnosisMinigame', mergedStep);
+        console.log('IntroScene: DiagnosisMinigame scene.launch 已调用');
+
+        // 绑定 shutdown 监听，读取结果并推进剧情
+        const diagnosisScene = this.scene.get('DiagnosisMinigame');
+        if (!diagnosisScene) {
+            console.error('IntroScene: DiagnosisMinigame 场景未注册！');
+            this._diagnosisGameActive = false;
+            this._nextStep();
+            return;
+        }
+
+        diagnosisScene.events.once('shutdown', () => {
+            console.log('IntroScene: DiagnosisMinigame shutdown，读取结果...');
+            this._diagnosisGameActive = false;
+
+            let result = null;
+            try {
+                if (window.gameStateManager && window.gameStateManager.state) {
+                    result = window.gameStateManager.state.__diagnosisResult;
+                    window.gameStateManager.state.__diagnosisResult = null;
+                }
+            } catch (e) {
+                console.warn('IntroScene: 读取诊断结果失败', e.message);
+            }
+
+            // 恢复UI
+            if (this.bgImage) this.bgImage.setVisible(true);
+            this.dialogBox.setVisible(true);
+            if (this.skipButton) this.skipButton.setVisible(true);
+
+            // 应用奖励
+            if (result && step) {
+                this._applyDiagnosisReward(result, step);
+            }
+
+            // 推进到下一步
+            this.time.delayedCall(200, () => this._nextStep());
+        });
+    }
+
+    /**
+     * 根据诊断结果应用对应奖励
+     */
+    _applyDiagnosisReward(result, step) {
+        const score = result.score || 0;
+        const threshold = step.scoreThreshold || 3;
+        const perfectScore = step.perfectScore || 8;  // for phases, 4 phases × 2 = 8 max
+        let reward = null;
+
+        if (score >= perfectScore) {
+            reward = step.rewardOnPerfect;
+        } else if (score >= threshold) {
+            reward = step.rewardOnPass;
+        } else {
+            reward = step.rewardOnFail;
+        }
+
+        if (reward) {
+            if (reward.diagnosis) this._applyAttributeDelta('diagnosis', reward.diagnosis);
+            if (reward.reputation) this._applyAttributeDelta('reputation', reward.reputation);
+            console.log(`IntroScene: 诊断奖励 applied, score=${score}`, reward);
+        }
+    }
+
+    /**
+     * 开方小游戏 —— 已由 DiagnosisMinigame 场景一并处理
+     * 这里直接跳过，推进到下一步骤
+     * @param {Object} step - 步骤数据
+     */
+    _showPrescriptionMinigame(step) {
+        console.log('IntroScene: 开方小游戏（已在四诊场景中完成），跳过');
+        this._nextStep();
+    }
+
+    /**
+     * ★ 药圃辨花小游戏（真实卡片交互）
+     * 启动 FlowerIdGame 场景作为覆盖层，玩家点击卡片判定对错
+     * - 答对（金银花）→ 场景自动关闭，继续剧情
+     * - 答错（菊花/绣球花）→ 场景内弹出药宠科普，可重试
+     * @param {Object} step - 剧情步骤数据
+     */
+    _showFlowerIdMinigame(step) {
+        console.log('IntroScene: 启动药圃辨花小游戏（FlowerIdGame）, step:', step);
+        console.log('IntroScene: 当前活跃场景:', this.scene.manager.getScenes(true).map(s => s.sceneKey));
+
+        // ★ 标记小游戏激活，阻止 IntroScene 的所有输入处理
+        this._flowerGameActive = true;
+
+        // 暂停等待输入，隐藏所有剧情UI元素
+        this.waitingForInput = false;
+        this._showContinueHint(false);
+        this.dialogBox.setVisible(false);
+        this.narrationText.setVisible(false);
+
+        // 隐藏跳过按钮
+        if (this.skipButton) this.skipButton.setVisible(false);
+
+        // 隐藏背景CG图层（如果有）
+        if (this.bgImage) this.bgImage.setVisible(false);
+        if (this.overlayImage) { this.overlayImage.destroy(); this.overlayImage = null; }
+        if (this.overlayBorder) { this.overlayBorder.destroy(); this.overlayBorder = null; }
+
+        // 停用选择系统
+        if (this.choiceSystem) this.choiceSystem.hide();
+
+        // 停用打字机
+        if (this.typewriter && this.typewriter.isTyping) {
+            this.typewriter.complete();
+        }
+
+        // 启动 FlowerIdGame 覆盖层
+        this.scene.launch('FlowerIdGame', step.flowerData || {});
+        console.log('IntroScene: FlowerIdGame scene.launch 已调用');
+
+        // ★ 获取场景引用并安全绑定 shutdown 监听
+        // 处理竞态条件：如果图片已缓存，ready 可能在 launch 内就触发了
+        const flowerScene = this.scene.get('FlowerIdGame');
+        if (!flowerScene) {
+            console.error('IntroScene: FlowerIdGame 场景未注册！');
+            this._flowerGameActive = false;
+            if (this.skipButton) this.skipButton.setVisible(true);
+            if (this.bgImage) this.bgImage.setVisible(true);
+            this.dialogBox.setVisible(true);
+            this._nextStep();
+            return;
+        }
+
+        const bindShutdown = () => {
+            console.log('IntroScene: 绑定 FlowerIdGame shutdown 监听');
+            flowerScene.events.once('shutdown', () => {
+                console.log('IntroScene: FlowerIdGame shutdown，检查结果...');
+                this._flowerGameActive = false;
+
+                this.time.delayedCall(50, () => {
+                    if (window.gameStateManager && window.gameStateManager.state) {
+                        const result = window.gameStateManager.state.__flowerIdResult;
+                        if (result) {
+                            console.log('IntroScene: 收到辨花小游戏结果', result);
+                            window.gameStateManager.state.__flowerIdResult = null;
+                            if (step.rewardOnCorrect) {
+                                this._applyReward(step.rewardOnCorrect);
+                            }
+                        }
+                    }
+                    // 恢复剧情对话UI
+                    if (this.skipButton) this.skipButton.setVisible(true);
+                    if (this.bgImage) this.bgImage.setVisible(true);
+                    this.dialogBox.setVisible(true);
+                    this.narrationText.setVisible(false);
+                    this.waitingForInput = false;
+                    this._nextStep();
+                });
+            });
+        };
+
+        // 检查场景是否已 ready（图片缓存时 create 在 launch 内部同步完成）
+        if (flowerScene.sys && flowerScene.sys.isActive && flowerScene.sys.isActive()) {
+            console.log('IntroScene: FlowerIdGame 已就绪（同步完成），直接绑定');
+            bindShutdown();
+        } else {
+            console.log('IntroScene: FlowerIdGame 还在加载，等待 ready 事件...');
+            flowerScene.events.once('ready', bindShutdown);
+        }
+    }
+
+    /**
+     * 山野晒菊小游戏 — 启动 DryFlowerGame 场景
+     */
+    _showDryFlowerMinigame(step) {
+        console.log('IntroScene: 启动山野晒菊小游戏（DryFlowerGame）, step:', step);
+
+        this._flowerGameActive = true;
+
+        // 暂停所有 IntroScene UI
+        this.waitingForInput = false;
+        this._showContinueHint(false);
+        this.dialogBox.setVisible(false);
+        this.narrationText.setVisible(false);
+        if (this.skipButton) this.skipButton.setVisible(false);
+        if (this.bgImage) this.bgImage.setVisible(false);
+        if (this.overlayImage) { this.overlayImage.destroy(); this.overlayImage = null; }
+        if (this.overlayBorder) { this.overlayBorder.destroy(); this.overlayBorder = null; }
+        if (this.choiceSystem) this.choiceSystem.hide();
+        if (this.typewriter && this.typewriter.isTyping) this.typewriter.complete();
+
+        // 启动晒菊小游戏
+        this.scene.launch('DryFlowerGame', step.dryData || {});
+        console.log('IntroScene: DryFlowerGame scene.launch 已调用');
+
+        const dryScene = this.scene.get('DryFlowerGame');
+        if (!dryScene) {
+            console.error('IntroScene: DryFlowerGame 场景未注册！');
+            this._flowerGameActive = false;
+            if (this.skipButton) this.skipButton.setVisible(true);
+            if (this.bgImage) this.bgImage.setVisible(true);
+            this.dialogBox.setVisible(true);
+            this._nextStep();
+            return;
+        }
+
+        const bindShutdown = () => {
+            console.log('IntroScene: 绑定 DryFlowerGame shutdown 监听');
+            dryScene.events.once('shutdown', () => {
+                console.log('IntroScene: DryFlowerGame shutdown，检查结果...');
+                this._flowerGameActive = false;
+
+                this.time.delayedCall(50, () => {
+                    if (window.gameStateManager && window.gameStateManager.state) {
+                        const result = window.gameStateManager.state.__dryFlowerResult;
+                        if (result) {
+                            console.log('IntroScene: 收到晒菊小游戏结果', result);
+                            window.gameStateManager.state.__dryFlowerResult = null;
+                            if (step.rewardOnCorrect) {
+                                this._applyReward(step.rewardOnCorrect);
+                            }
+                        }
+                    }
+                    if (this.skipButton) this.skipButton.setVisible(true);
+                    if (this.bgImage) this.bgImage.setVisible(true);
+                    this.dialogBox.setVisible(true);
+                    this.narrationText.setVisible(false);
+                    this.waitingForInput = false;
+                    this._nextStep();
+                });
+            });
+        };
+
+        if (dryScene.sys && dryScene.sys.isActive && dryScene.sys.isActive()) {
+            console.log('IntroScene: DryFlowerGame 已就绪，直接绑定');
+            bindShutdown();
+        } else {
+            console.log('IntroScene: DryFlowerGame 还在加载，等待 ready 事件...');
+            dryScene.events.once('ready', bindShutdown);
+        }
+    }
+
+    /**
+     * 应用属性奖励
+     * @param {Object} reward - { attr: string, delta: number }
+     */
+    _applyReward(reward) {
+        if (!reward) return;
+        // 使用 batchAddAttributes 统一接口（{ id, delta } 格式）
+        if (window.gameStateManager && typeof window.gameStateManager.batchAddAttributes === 'function') {
+            const change = { id: reward.attr || reward.id, delta: reward.delta || 0 };
+            window.gameStateManager.batchAddAttributes([change]);
+            console.log(`IntroScene: 属性 ${change.id} ${change.delta >= 0 ? '+' : ''}${change.delta}`);
+        } else {
+            console.log(`IntroScene: [奖励记录] ${reward.attr || reward.id} ${reward.delta >= 0 ? '+' : ''}${reward.delta}`);
+        }
+    }
+
+    /**
+     * 设置小游戏数字键输入
+     */
+    _setupMinigameInput(step, options) {
+        // 清理旧监听
+        if (this._minigameKeyHandler) {
+            this.input.keyboard.off('keydown', this._minigameKeyHandler);
+        }
+
+        this._minigameKeyHandler = (event) => {
+            const num = parseInt(event.key);
+            if (isNaN(num) || num < 1 || num > options.length) return;
+
+            const selected = options[num - 1];
+            console.log('IntroScene: 小游戏选择', num, selected.label, selected.correct ? '✓' : '✗');
+
+            // 显示反馈
+            this.narrationText.setVisible(false);
+            this.dialogBox.setVisible(true);
+
+            const feedback = selected.correct ? (step.correctFeedback || '回答正确！') : (step.wrongFeedback || '回答错误。');
+            this._updateAvatar(step.character || 'laoli', step.avatar || 'laoli.png');
+            this._updateName(step.name || '药农 老李');
+
+            this.typewriter.start(feedback, {
+                targetField: this.contentText,
+                speed: 45,
+                onComplete: () => {
+                    // 属性奖励/惩罚
+                    if (selected.correct && step.rewardOnCorrect) {
+                        this._applyAttributeDelta(step.rewardOnCorrect.attr, step.rewardOnCorrect.delta);
+                    } else if (!selected.correct && step.penaltyOnWrong) {
+                        this._applyAttributeDelta(step.penaltyOnWrong.attr, step.penaltyOnWrong.delta);
+                    }
+
+                    this.waitingForInput = true;
+                    this._showContinueHint(true);
+
+                    // 清理按键监听
+                    if (this._minigameKeyHandler) {
+                        this.input.keyboard.off('keydown', this._minigameKeyHandler);
+                        this._minigameKeyHandler = null;
+                    }
+
+                    this.time.delayedCall(500, () => {
+                        this._nextStep();
+                    });
+                }
+            });
+        };
+
+        this.input.keyboard.on('keydown', this._minigameKeyHandler);
+    }
+
+    /**
+     * 设置开方小游戏输入
+     */
+    _setupPrescriptionInput(step) {
+        if (this._minigameKeyHandler) {
+            this.input.keyboard.off('keydown', this._minigameKeyHandler);
+        }
+
+        this._minigameKeyHandler = (event) => {
+            const num = parseInt(event.key);
+            if (isNaN(num) || num < 1 || num > 4) return;
+
+            console.log('IntroScene: 开方选择', num);
+
+            const feedbackMap = {
+                1: step.feedbackPerfect || '处方精当！',
+                2: step.feedbackPass || '处方可行，经验积累后会更精准。',
+                3: step.feedbackPass || '处方可行。',
+                4: step.feedbackFail || '（青苗托起叶子，上面印着正确用药……）'
+            };
+
+            const scoreMap = { 1: step.perfectScore || 8, 2: step.passScore || 5, 3: step.passScore || 5, 4: 1 };
+            const rewardMap = { 1: step.rewardOnPerfect, 2: step.rewardOnPass, 3: step.rewardOnPass, 4: step.rewardOnFail };
+
+            this.dialogBox.setVisible(true);
+            this._updateAvatar('laoli', 'laoli.png');
+            this._updateName('药农 老李');
+
+            this.typewriter.start(feedbackMap[num], {
+                targetField: this.contentText,
+                speed: 45,
+                onComplete: () => {
+                    // 应用奖励
+                    const reward = rewardMap[num];
+                    if (reward) {
+                        if (reward.diagnosis) this._applyAttributeDelta('diagnosis', reward.diagnosis);
+                        if (reward.reputation) this._applyAttributeDelta('reputation', reward.reputation);
+                    }
+
+                    this.waitingForInput = true;
+                    this._showContinueHint(true);
+
+                    if (this._minigameKeyHandler) {
+                        this.input.keyboard.off('keydown', this._minigameKeyHandler);
+                        this._minigameKeyHandler = null;
+                    }
+
+                    this.time.delayedCall(500, () => {
+                        this._nextStep();
+                    });
+                }
+            });
+        };
+
+        this.input.keyboard.on('keydown', this._minigameKeyHandler);
+    }
+
+    /**
+     * 应用属性变化
+     */
+    _applyAttributeDelta(attrId, delta) {
+        const gsmState = window.gameStateManager ? window.gameStateManager.state : this.gameState;
+        if (!gsmState.attributes) gsmState.attributes = {};
+        if (typeof gsmState.attributes[attrId] !== 'number') gsmState.attributes[attrId] = 0;
+        gsmState.attributes[attrId] += delta;
+        console.log(`IntroScene: 属性变化 ${attrId} ${delta > 0 ? '+' : ''}${delta} →`, gsmState.attributes[attrId]);
+    }
+
+    /**
+     * 结束序章/第一章
+     * @param {Object} step - 步骤数据
      */
     _endPrologue(step) {
-        console.log('IntroScene: 序章结束');
+        const isChapter1 = this._isChapter1 === true;
+        console.log(`IntroScene: ${isChapter1 ? '第一章结束' : '序章结束'}`);
 
         // 立即隐藏所有文字和UI（防止与淡出效果重叠）
         if (this.dialogBox) this.dialogBox.setVisible(false);
@@ -1993,6 +3062,27 @@ class IntroScene extends Phaser.Scene {
         // 清理特写图片
         this._hideOverlayImage();
 
+        if (isChapter1) {
+            // === 第一章结束：设置章节状态，保存，进入GameScene ===
+            console.log('IntroScene: 第一章「翠竹村的春天」完成！');
+
+            // 设置章节进度
+            if (window.gameStateManager) {
+                window.gameStateManager.state.currentChapter = 1;
+                window.gameStateManager.save();
+            }
+
+            // 恢复HTML UI元素
+            this._showHTMLUI();
+
+            // 直接跳转GameScene
+            this.time.delayedCall(1500, () => {
+                this.scene.start('GameScene');
+            });
+            return;
+        }
+
+        // === 序章结束逻辑（原有）===
         // 初始化《本草情籍》属性（序章结束时赋予初始值 + 剧情加成）
         this._initPrologueAttributes();
 
@@ -2034,9 +3124,37 @@ class IntroScene extends Phaser.Scene {
         } catch (e) {
             console.warn('IntroScene: 保存游戏状态失败', e);
         }
+        
+        // 注意：window.gameState 已在 constructor 中绑定（第74行），
+        // 同一引用无需重复赋值，避免误导
+    }
 
-        // 同时保存到全局
-        window.gameState = this.gameState;
+    /**
+     * 调试模式结束提示（停在当前画面，不跳转 GameScene）
+     */
+    _showDebugEndHint() {
+        console.log('[调试] ========== 场景播放完毕（调试停止）=========');
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // 显示"调试结束"提示
+        const hint = this.add.text(width / 2, height - 60, '✓ [调试] 场景播完 — 按 F3 继续测试其他场景', {
+            fontSize: '18px',
+            color: '#ffcc00',
+            fontFamily: '"FangSong", "KaiTi", serif',
+            backgroundColor: '#000000cc',
+            padding: { x: 16, y: 8 },
+            borderRadius: 8
+        }).setOrigin(0.5).setDepth(100);
+        
+        // 5秒后淡出
+        this.tweens.add({
+            targets: hint,
+            alpha: 0,
+            delay: 5000,
+            duration: 1500,
+            onComplete: () => hint.destroy()
+        });
     }
 
     /**
@@ -2132,11 +3250,43 @@ class IntroScene extends Phaser.Scene {
     }
 
     /**
-     * 场景销毁时清理
+     * 场景关闭时的生命周期回调（由 Phaser shutdown 事件自动触发）
+     * 负责：恢复主页面UI + 清理所有子系统（不销毁 DebugManager，F3 需全局可用）
+     */
+    _onSceneShutdown() {
+        console.log('IntroScene: shutdown 事件触发，正在清理...');
+
+        try {
+            // ★ 安全恢复所有主页面UI（即使 _endPrologue 已调用，重复调用也无害）
+            this._showHTMLUI();
+        } catch (e) {
+            console.warn('IntroScene: _showHTMLUI 在 shutdown 中失败:', e.message);
+        }
+
+        // ★ DebugManager 保留不销毁 — 其 F3 全局监听需要在 GameScene 中也可用
+        // scene 引用保留（即使已销毁，scene.game 仍然是有效的 Phaser.Game 实例）
+        // 下一次 IntroScene.create() 会清理旧 DOM 并创建新 DebugManager
+        this.debugManager = null;
+
+        // 清理子系统（打字机、选择系统、CG、overlay 等 Phaser 对象）
+        try {
+            this._cleanupSubsystems();
+        } catch (e) {
+            console.warn('IntroScene: _cleanupSubsystems 在 shutdown 中失败:', e.message);
+        }
+
+        // 移除事件监听，防止重复注册
+        this.events.off('shutdown', this._onSceneShutdown, this);
+        this.events.off('destroy', this._onSceneShutdown, this);
+
+        console.log('IntroScene: 清理完成（DebugManager 已保留）');
+    }
+
+    /**
+     * 场景销毁时清理（保留显式调用的入口，内部委托给 _onSceneShutdown）
      */
     shutdown() {
-        console.log('IntroScene: 销毁');
-        this._cleanupSubsystems();
+        this._onSceneShutdown();
     }
 }
 

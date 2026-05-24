@@ -8,7 +8,7 @@ const GameData = {
      * 草药数据定义
      */
     HERBS_DATA: [
-        { id: 'gancao', name: '甘草', property: '性平，味甘淡', meridian: '心脾肺胃', effect: '补脾益气，清热解毒，调和诸药', icon: '🌿', rarity: 'common', rarityLabel: '普通', category: '根茎类', season: '春秋二季', origin: '西北干旱草原', petTip: '💡 灵宠茯苓团子对此药材有特殊好感', symptom: '气虚证', image: '', descDetail: '甘草被誉为"国老"，是中医药方中应用最广的调和之药。其根茎肥大，味甘甜，能解百毒，调和诸药之性。' },
+        { id: 'gancao', name: '甘草', property: '性平，味甘淡', meridian: '心脾肺胃', effect: '补脾益气，清热解毒，调和诸药', icon: '🌿', rarity: 'common', rarityLabel: '普通', category: '根茎类', season: '春秋二季', origin: '西北干旱草原', petTip: '💡 灵宠青苗对此药材有特殊好感', symptom: '气虚证', image: '', descDetail: '甘草被誉为"国老"，是中医药方中应用最广的调和之药。其根茎肥大，味甘甜，能解百毒，调和诸药之性。' },
         { id: 'huangqi', name: '黄芪', property: '甘/微温', meridian: '脾肺', effect: '补气固表，利尿托毒，排脓生肌', icon: '🌱', rarity: 'common', rarityLabel: '普通', category: '根茎类', season: '春秋采挖', origin: '山西、内蒙高原', petTip: '💡 采集时灵宠可增加双倍经验', symptom: '气虚证', image: '', descDetail: '黄芪为补气圣药，以山西浑源所产者为上品。其根绵软而韧，断面有菊花心纹路，气香而味甘。' },
         { id: 'danggui', name: '当归', property: '甘辛/温', meridian: '心肝脾', effect: '补血活血，调经止痛，润肠通便', icon: '🌾', rarity: 'rare', rarityLabel: '稀有', category: '根茎类', season: '秋末初冬', origin: '甘肃岷山深谷', petTip: '💡 女性角色使用效果更佳', symptom: '血虚证', image: '', descDetail: '当归补血圣药，因"应当归"而得名。甘肃岷县产者最佳，称"岷当归"，香气浓郁，质地油润。' },
         { id: 'gouqi', name: '枸杞', property: '甘/平', meridian: '肝肾', effect: '滋补肝肾，益精明目，养血安神', icon: '🫐', rarity: 'uncommon', rarityLabel: '优良', category: '果实类', season: '夏秋果实成熟时', origin: '宁夏中宁沙地', petTip: '💡 灵宠小狐狸的最爱零食', symptom: '虚劳证', image: '', descDetail: '枸杞子红如玛瑙，宁夏中宁所产最为地道。可泡茶、煮粥、入药，久服轻身不老。' },
