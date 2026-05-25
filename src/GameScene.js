@@ -224,6 +224,13 @@ class GameScene extends Phaser.Scene {
                     el.style.display = '';
                 }
             });
+
+            // ★ 清除 modal-overlay 的 active 状态，防止遮罩层残留导致画面变暗
+            // （场景切换时如果 overlay 残留 active class，会显示半透明黑色遮罩遮挡画面）
+            const overlay = document.getElementById('modal-overlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
         } catch (e) {
             console.warn('GameScene: _ensureMainUI 失败:', e.message);
         }
@@ -1013,11 +1020,11 @@ class GameScene extends Phaser.Scene {
         const cam = this.config.camera;
         this.cameras.main.startFollow(this.player, true, cam.followLerpX, cam.followLerpY);
 
-        // 溪流地图缩小显示（2400×1792 在 1280×720 画布上太拥挤）
+        // 溪流地图缩小显示（2400×1792，zoom 0.55 使视口 2327px 不超出地图宽度 2400px，避免漏出背景）
         const mapId = this.config.currentMapId;
         if (mapId === 'stream') {
-            this.cameras.main.setZoom(0.5);
-            console.log('溪流地图：摄像机缩放 0.5');
+            this.cameras.main.setZoom(0.55);
+            console.log('溪流地图：摄像机缩放 0.55');
         }
     }
 
