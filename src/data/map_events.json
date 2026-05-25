@@ -755,7 +755,7 @@
           "expression": "serious",
           "name": "村长 张老汉",
           "avatar": "village_chief.png",
-          "text": "大夫，张大娘的方子里需要「茵陈」和「芦根」……村里的药圃全枯了，只有东边溪谷才有。",
+          "text": "大夫，张大娘的方子里需要「山药」和「茯苓」……村里的药铺早没了存货，只有东边溪谷的山坡上才有野生的。",
           "nextDelay": 500
         },
         {
@@ -764,7 +764,7 @@
           "expression": "worried",
           "name": "村长 张老汉",
           "avatar": "village_chief.png",
-          "text": "茵陈要在清明节气才药效最好，现在时节正合适。但溪谷路不好走，你一个人……",
+          "text": "山药要在霜降后采挖药性最足，现在时节正合适。但溪谷路不好走，你一个人……",
           "nextDelay": 500
         },
         {
@@ -772,7 +772,7 @@
           "character": "qingmiao",
           "name": "青苗",
           "avatar": "qingmiao.png",
-          "text": "（抢答）青苗可以引路！青苗感知到溪谷那边有大量茵陈的气息！还有芦根！很多！",
+          "text": "（抢答）青苗可以引路！青苗感知到溪谷那边有大量野生山药的气息！还有茯苓！很多！",
           "nextDelay": 500
         },
         {
@@ -808,49 +808,49 @@
           "character": "qingmiao",
           "name": "青苗",
           "avatar": "qingmiao.png",
-          "text": "（兴奋地绕着主人飞转）到了！茵陈就在溪边！芦根也有！还有……（停顿）……还有一股很奇怪的气味。主人，小心一点。",
+          "text": "（兴奋地绕着主人飞转）到了！山药就在溪谷山坡上！茯苓也有！还有……（停顿）……还有一股很奇怪的气味。主人，小心一点。",
           "nextDelay": 500
         },
         {
           "type": "tutorial",
           "tutorialAction": "valley_explore",
-          "hint": "溪流山谷·探索提示\n🌿 沿溪岸向南行进，采集茵陈和芦根\n⚠️ 水面不可直接通行，需踩石桥\n🔍 注意青苗的感知提示",
+          "hint": "溪流山谷·探索提示\n🌿 沿溪岸向南行进，采集山药和茯苓\n⚠️ 水面不可直接通行，需踩石桥\n🔍 注意青苗的感知提示",
           "hintPosition": "top-center",
           "nextDelay": 0
         }
       ]
     },
     {
-      "eventId": "EVT_YINCHEN_ZONE",
+      "eventId": "EVT_SHANYAO_ZONE",
       "trigger": "zone",
-      "zoneId": "zone_yinchen_area",
+      "zoneId": "zone_shanyao_area",
       "once": true,
       "dialogType": "bubble",
       "locComplete": null,
       "condition": null,
-      "_note": "溪岸茵陈区，采集教学",
+      "_note": "溪岸山药区，采集教学",
       "steps": [
         {
           "type": "dialogue",
           "character": "qingmiao",
           "name": "青苗",
           "avatar": "qingmiao.png",
-          "text": "（指着溪边）那里！那里！茵陈！清明时节的茵陈最好！快采快采！",
+          "text": "（指着山坡）那里！那里！山药！霜降后的山药最肥！快挖快挖！",
           "nextDelay": 300
         },
         {
           "type": "tutorial",
-          "tutorialAction": "collect_yinchen",
-          "herbId": "yinchen",
+          "tutorialAction": "collect_shanyao",
+          "herbId": "shanyao",
           "requiredCount": 5,
-          "hint": "采集茵陈 ×5（清明节气·品质+2）",
+          "hint": "采集山药 ×5（霜降后采挖·品质+2）",
           "hintPosition": "bottom-center",
           "nextDelay": 0
         }
       ]
     },
     {
-      "eventId": "EVT_YINCHEN_DONE",
+      "eventId": "EVT_SHANYAO_DONE",
       "trigger": "condition",
       "zoneId": null,
       "npcId": null,
@@ -859,16 +859,16 @@
       "dialogType": "bubble",
       "locComplete": null,
       "condition": "herb_count",
-      "conditionHerbId": "yinchen",
+      "conditionHerbId": "shanyao",
       "conditionCount": 5,
-      "_note": "茵陈采集完成，自动触发",
+      "_note": "山药采集完成，自动触发",
       "steps": [
         {
           "type": "dialogue",
           "character": "qingmiao",
           "name": "青苗",
           "avatar": "qingmiao.png",
-          "text": "茵陈够了！继续往里走——芦根在溪边深处！",
+          "text": "山药够了！继续往里走——茯苓在松林深处！",
           "nextDelay": 300
         }
       ]
@@ -907,11 +907,11 @@
       "dialogType": "overlay",
       "locComplete": null,
       "condition": null,
-      "_note": "芦苇深处青苗引路",
+      "_note": "松林深处青苗引路",
       "steps": [
         {
           "type": "narration",
-          "text": "芦苇越来越密，水雾漫上来，遮住了前路……",
+          "text": "松林越来越密，雾气漫上来，遮住了前路……",
           "nextDelay": 2000
         },
         {
@@ -1104,14 +1104,14 @@
       "locComplete": null,
       "condition": "has_herbs",
       "conditionHerbs": [
-        { "id": "yinchen", "count": 5 },
-        { "id": "lugen",   "count": 3 }
+        { "id": "shanyao", "count": 5 },
+        { "id": "fuling",   "count": 3 }
       ],
       "_note": "返回触发第一章结局",
       "steps": [
         {
           "type": "narration",
-          "text": "背囊里，茵陈和芦根的清香混合着溪水的气息——张大娘的药，备齐了。",
+          "text": "背囊里，山药和茯苓的清香混合着溪水的气息——张大娘的药，备齐了。",
           "nextDelay": 2000
         },
         {

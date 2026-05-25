@@ -19,7 +19,8 @@ const GameData = {
         { id: 'lingzhi', name: '灵芝', property: '甘/平', meridian: '心肺肝肾', effect: '补气安神，止咳平喘，延年益寿', icon: '🍄', rarity: 'legendary', rarityLabel: '传说', category: '矿石类', season: '四季可见，雨后最盛', origin: '深山古木枯根之上', petTip: '⚡ 仙草！可解锁隐藏配方', symptom: '虚劳证', image: '', descDetail: '灵芝乃传说中的仙草，生长于深山古木之上。赤芝入心，青芝入肝，白芝入肺，黄芝入脾，黑芝入肾。' },
         { id: 'tianma', name: '天麻', property: '甘/平', meridian: '肝', effect: '息风止痉，平抑肝阳，祛风通络', icon: '⚡', rarity: 'epic', rarityLabel: '史诗', category: '根茎类', season: '冬季至翌春', origin: '云贵高原密林', petTip: '⭐ 史诗级药材！治疗头痛眩晕之圣药', symptom: '肝阳证', image: '', descDetail: '天麻又名定风草，专治一切风症。云南昭通产者质优，形如鹦哥嘴，质地坚实。' },
         { id: 'dahuang', name: '大黄', property: '苦/寒', meridian: '脾胃大肠', effect: '泻下攻积，清热泻火，凉血解毒', icon: '🔥', rarity: 'uncommon', rarityLabel: '优良', category: '根茎类', season: '秋季采收', origin: '四川高山峡谷', petTip: '💡 用量需谨慎，过量伤脾胃', symptom: '实热证', image: '', descDetail: '大黄为将军之官，荡涤肠胃之力甚强。四川产者称"川大黄"，泻下攻积效佳，用量宜慎。' },
-        { id: 'moyao', name: '没药', property: '苦辛/平', meridian: '心肝脾', effect: '散瘀定痛，消肿生肌，活血化瘀', icon: '💧', rarity: 'rare', rarityLabel: '稀有', category: '矿石类', season: '夏季树脂渗出时', origin: '西域沙漠索马里', petTip: '💡 与当归配伍效果倍增', symptom: '瘀血证', image: '', descDetail: '没药为橄榄科树干树脂，产于西域诸国。与乳香常配伍使用，专治跌打损伤、痈肿疮疡。' }
+        { id: 'moyao', name: '没药', property: '苦辛/平', meridian: '心肝脾', effect: '散瘀定痛，消肿生肌，活血化瘀', icon: '💧', rarity: 'rare', rarityLabel: '稀有', category: '矿石类', season: '夏季树脂渗出时', origin: '西域沙漠索马里', petTip: '💡 与当归配伍效果倍增', symptom: '瘀血证', image: '', descDetail: '没药为橄榄科树干树脂，产于西域诸国。与乳香常配伍使用，专治跌打损伤、痈肿疮疡。' },
+        { id: 'shanyao', name: '山药', property: '甘/平', meridian: '脾肺肾', effect: '补脾养胃，生津益肺，补肾涩精', icon: '🥔', rarity: 'uncommon', rarityLabel: '优良', category: '根茎类', season: '霜降后采挖', origin: '溪谷山坡', petTip: '💡 霜降采挖药性最足，灵宠可帮忙刨土', symptom: '气虚证', image: '', descDetail: '山药为薯蓣科植物薯蓣的干燥根茎，味甘性平。霜降后采挖药性最足，是补益肺肾的要药。' }
     ],
 
     /**

@@ -262,6 +262,19 @@
       "image": "herb_danshen.png",
       "price": 35,
       "difficulty": 2
+    },
+    {
+      "id": "herb_021",
+      "name": "山药",
+      "category": "根",
+      "rarity": "uncommon",
+      "effect": "补脾养胃，生津益肺，补肾涩精",
+      "description": "山药为薯蓣科植物薯蓣的干燥根茎，味甘性平。霜降后采挖药性最足，是补益肺肾的要药。",
+      "locations": ["溪谷", "云雾山"],
+      "seasonBonus": ["霜降", "立冬"],
+      "image": "herb_shanyao.png",
+      "price": 25,
+      "difficulty": 2
     }
   ]
 }

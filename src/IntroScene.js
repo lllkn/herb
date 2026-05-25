@@ -1855,8 +1855,8 @@ class IntroScene extends Phaser.Scene {
         const HERB_IDS = (window.GameData && window.GameData.HERBS_DATA)
             ? window.GameData.HERBS_DATA.map(h => h.id) : [];
 
-        // 数值类物品（不加入背包，仅展示）
-        const SKIP_IDS = ['reputation', 'achievement'];
+        // 数值类物品（不入背包，写入属性系统 + 展示）
+        const ATTR_IDS = ['reputation', 'achievement'];
 
         // 状态管理器引用（统一写入目标）
         const gsmState = window.gameStateManager ? window.gameStateManager.state : this.gameState;
@@ -1865,8 +1865,13 @@ class IntroScene extends Phaser.Scene {
             const count = item.count ? `×${item.count}` : '';
             rewardText += `${item.icon || '📦'} ${item.name}${count}\n`;
 
-            // 跳过数值类（声望、成就等）
-            if (SKIP_IDS.includes(item.id)) {
+            // 属性类（声望等）：写入 state.attributes 并跳过背包入库
+            if (ATTR_IDS.includes(item.id)) {
+                if (window.gameStateManager) {
+                    const oldVal = window.gameStateManager.getAttribute(item.id) || 0;
+                    window.gameStateManager.addAttribute(item.id, item.count || 0);
+                    console.log(`IntroScene: 属性 ${item.id} 已更新: ${oldVal} → ${window.gameStateManager.getAttribute(item.id)}`);
+                }
                 return;
             }
 
@@ -1890,10 +1895,11 @@ class IntroScene extends Phaser.Scene {
             console.log('IntroScene: 物品已添加', item.id, '→', isHerb ? 'backpack' : 'inventory');
         });
 
-        // 刷新UI（如果存在）
+        // 刷新UI（背包、图鉴、情籍属性面板）
         if (window.uiManager) {
             window.uiManager.updateBackpackUI();
             window.uiManager.updateHerbGuideUI();
+            window.uiManager.updateAttributesUI();
         }
 
         // 显示奖励文本

@@ -448,6 +448,15 @@ class UIManager {
                 this.goToQingheShop();
             }
         });
+
+        // 药斋弹窗内"开始问诊"按钮
+        document.addEventListener('click', (e) => {
+            const startBtn = e.target.closest('#btn-start-diagnosis');
+            if (startBtn) {
+                this.closeAllModals();
+                this.goToQingheShop();
+            }
+        });
     }
 
     // ==================== 加载界面 ====================
@@ -523,6 +532,54 @@ class UIManager {
         if (this.modalOverlay) {
             this.modalOverlay.classList.remove('active');
         }
+    }
+
+    /**
+     * 隐藏主游戏所有 HTML UI 元素（进入小游戏时调用）
+     * 与 IntroScene._hideHTMLUI() 功能一致
+     */
+    hideMainUI() {
+        const uiElements = [
+            'top-left-panel',     // 左上角：小地图 + 时间日期
+            'task-panel',         // 任务栏
+            'top-right-buttons',  // 顶部右侧功能按钮
+            'controls-hint',      // 底部操作提示
+            'debug-panel',        // 调试面板
+            'collect-prompt',     // 采集提示
+            'collect-success',    // 采集成功提示
+            'modal-overlay'       // 模态框遮罩
+        ];
+        uiElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        // 隐藏所有弹窗
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
+        console.log('UIManager: 已隐藏主游戏HTML UI');
+    }
+
+    /**
+     * 恢复主游戏所有 HTML UI 元素（从小游戏返回时调用）
+     */
+    showMainUI() {
+        const uiElements = [
+            'top-left-panel',
+            'task-panel',
+            'top-right-buttons',
+            'controls-hint',
+            'debug-panel',
+            'modal-overlay'
+        ];
+        uiElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = '';
+        });
+        // 确保 game-container 可见
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) gameContainer.style.display = 'block';
+        console.log('UIManager: 已恢复主游戏HTML UI');
     }
 
     // ==================== 小地图 ====================
@@ -981,19 +1038,42 @@ class UIManager {
     // ==================== 清禾药斋 ====================
 
     /**
-     * 前往清禾药斋（商城/当铺入口）
-     * 关闭背包弹窗，打开药斋界面（预留扩展）
+     * 前往清禾药斋 —— 启动四诊小游戏（店铺模式）
+     * 关闭所有弹窗，以覆盖层方式启动 DiagnosisMinigame 场景
      */
     goToQingheShop() {
         this.closeAllModals();
 
-        // TODO: 以后可拓展为独立的商城/当铺界面
-        // 当前先打开药铺弹窗作为过渡
-        setTimeout(() => {
-            this.openModal('medicine-shop-modal');
-            // 可以在这里添加药斋特有的初始化逻辑
-            console.log('🏪 已进入清禾药斋 - 商城/当铺功能开发中...');
-        }, 300);
+        // 如果已有诊断场景在运行，先停掉
+        const existingDiagnosis = window.game.scene.getScene('DiagnosisMinigame');
+        if (existingDiagnosis && existingDiagnosis.scene.isActive()) {
+            existingDiagnosis.scene.stop();
+        }
+
+        // ★ 隐藏主游戏 HTML UI，避免与小游戏界面重叠
+        this.hideMainUI();
+
+        // 在活跃的游戏场景上以 overlay 方式启动诊断小游戏
+        const activeScenes = window.game.scene.getScenes(true);
+        const gameScene = activeScenes.find(s => s.scene.key === 'GameScene')
+                        || activeScenes[0];
+
+        if (gameScene) {
+            gameScene.scene.launch('DiagnosisMinigame', { mode: 'shop' });
+            console.log('🏪 已进入清禾药斋 - 诊断小游戏（店铺模式，轮流挑战病例）');
+
+            // ★ 监听小游戏关闭，恢复主游戏 UI
+            const diagnosisScene = window.game.scene.getScene('DiagnosisMinigame');
+            if (diagnosisScene) {
+                diagnosisScene.events.once('shutdown', () => {
+                    this.showMainUI();
+                });
+            }
+        } else {
+            // 启动失败也要恢复 UI
+            this.showMainUI();
+            console.warn('清禾药斋：未找到活跃游戏场景');
+        }
     }
 
     // ==================== 图鉴 UI（国风图谱） ====================
