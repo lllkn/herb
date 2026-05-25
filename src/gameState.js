@@ -46,6 +46,12 @@ class GameStateManager {
             // 游戏是否已开始
             isGameStarted: false,
 
+            // 剧情系统：已触发的事件ID集合
+            storyEventsFired: new Set(),
+
+            // 剧情系统：已完成的地点集合
+            completedLocations: new Set(),
+
             // 《本草情籍》属性数值：{ attrId: value }
             attributes: {}
         };

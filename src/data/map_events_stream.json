@@ -1,0 +1,21 @@
+{
+  "mapId": "stream",
+  "events": [
+    {
+      "eventId": "EVT_STREAM_WOODCUTTER",
+      "type": "npc",
+      "npcId": "woodcutter_npc",
+      "once": false,
+      "dialogues": [
+        {
+          "speaker": "砍柴老汉",
+          "text": "溪边的水菖蒲长得好，可以入药，不过要认准，别采错了水草。",
+          "mode": "bubble"
+        }
+      ],
+      "rewards": [
+        { "type": "attribute", "id": "herb_knowledge", "delta": 5 }
+      ]
+    }
+  ]
+}
