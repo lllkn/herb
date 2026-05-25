@@ -1,0 +1,143 @@
+{
+  "mapId": "plains",
+  "events": [
+    {
+      "eventId": "EVT_WOODCUTTER",
+      "type": "npc",
+      "npcId": "woodcutter_npc",
+      "once": false,
+      "dialogues": [
+        {
+          "speaker": "砍柴老汉",
+          "text": "哎哟，小娃娃，这山里的草药可不好找，你得往深处去才有好东西。",
+          "mode": "bubble"
+        },
+        {
+          "speaker": "砍柴老汉",
+          "text": "记住，采药要认准叶脉，莫要采错了伤了人。",
+          "mode": "bubble"
+        }
+      ],
+      "rewards": [
+        { "type": "attribute", "id": "herb_knowledge", "delta": 5 }
+      ]
+    },
+    {
+      "eventId": "EVT_WASHERWOMAN",
+      "type": "npc",
+      "npcId": "washerwoman_npc",
+      "once": false,
+      "dialogues": [
+        {
+          "speaker": "洗衣村妇",
+          "text": "姑娘，你是新来的郎中徒弟？我家孩子最近咳嗽，不知道有没有什么好药？",
+          "mode": "overlay"
+        },
+        {
+          "speaker": "村民甲",
+          "text": "甘草配陈皮煮水喝最管用了！",
+          "mode": "overlay"
+        }
+      ],
+      "rewards": [
+        { "type": "attribute", "id": "reputation", "delta": 3 }
+      ]
+    },
+    {
+      "eventId": "EVT_MERCHANT",
+      "type": "npc",
+      "npcId": "merchant_npc",
+      "once": true,
+      "dialogues": [
+        {
+          "speaker": "行商",
+          "text": "姑娘，我这里有上好的药材包装纸，要不要来一份？",
+          "mode": "overlay"
+        }
+      ],
+      "rewards": []
+    },
+    {
+      "eventId": "EVT_CUNZHANG",
+      "type": "npc",
+      "npcId": "cunzhang_npc",
+      "once": false,
+      "dialogues": [
+        {
+          "speaker": "村长",
+          "text": "丫头，你来得正好。村东头的老李病了好些天，你去看看吧。",
+          "mode": "overlay"
+        }
+      ],
+      "rewards": [
+        { "type": "attribute", "id": "reputation", "delta": 8 },
+        { "type": "attribute", "id": "diagnosis", "delta": 5 }
+      ]
+    },
+    {
+      "eventId": "EVT_LAOLI",
+      "type": "npc",
+      "npcId": "laoli_npc",
+      "once": false,
+      "dialogues": [
+        {
+          "speaker": "老李",
+          "text": "唉，老毛病了，腰酸背痛的……",
+          "mode": "bubble"
+        }
+      ],
+      "rewards": []
+    },
+    {
+      "eventId": "EVT_WELL_VILLAGER",
+      "type": "npc",
+      "npcId": "well_villager_npc",
+      "once": false,
+      "dialogues": [
+        {
+          "speaker": "村民",
+          "text": "打水咯～姑娘你也来打水？",
+          "mode": "bubble"
+        }
+      ],
+      "rewards": []
+    },
+    {
+      "eventId": "EVT_ZHANG_DANIANG",
+      "type": "npc",
+      "npcId": "zhang_daniang_npc",
+      "once": false,
+      "dialogues": [
+        {
+          "speaker": "张大娘",
+          "text": "哎，姑娘，我家院子里种了些薄荷，你要不要来摘一点？",
+          "mode": "overlay"
+        }
+      ],
+      "rewards": [
+        { "type": "attribute", "id": "herb_knowledge", "delta": 3 }
+      ]
+    },
+    {
+      "eventId": "EVT_LVREN",
+      "type": "npc",
+      "npcId": "lvren_npc",
+      "once": true,
+      "dialogues": [
+        {
+          "speaker": "神秘绿人",
+          "text": "……",
+          "mode": "bubble"
+        },
+        {
+          "speaker": "神秘绿人",
+          "text": "草木皆有灵，采之需敬之。",
+          "mode": "overlay"
+        }
+      ],
+      "rewards": [
+        { "type": "attribute", "id": "herb_knowledge", "delta": 15 }
+      ]
+    }
+  ]
+}

@@ -20,6 +20,7 @@ class GameScene extends Phaser.Scene {
         this.walkCollisionData = null;
         this.walkCollisionTileWidth = null;
         this.walkCollisionTileHeight = null;
+        this._walkColliderBound = false;   // 场景重启时重置
     }
 
     /**
@@ -136,6 +137,12 @@ class GameScene extends Phaser.Scene {
             frameWidth: 480,
             frameHeight: 480
         });
+
+        // ── 加载草药纹理（按 herbId 查找 assets/pictures/herbs/<id>.png）──
+        const herbTextures = ['gancao', 'jinyinhua', 'hongjingtian'];
+        herbTextures.forEach(id => {
+            this.load.image(`herb_${id}`, `src/assets/pictures/herbs/${id}.png`);
+        });
     }
 
     /**
@@ -143,7 +150,10 @@ class GameScene extends Phaser.Scene {
      */
     create() {
         console.log('GameScene: 开始创建...');
-        
+
+        // 生成对象纹理（草药/NPC/传送门图标，替代圆圈）
+        this.generateObjectTextures();
+
         // 加载地图（需要先加载，以便确定世界边界）
         this.tryLoadMap();
         
@@ -806,6 +816,84 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
+     * 生成对象的纹理（草药 / NPC / 传送门）
+     * 替代之前的纯色圆圈，用像素风小图标
+     */
+    generateObjectTextures() {
+        // ── 草药图标 (28×28 像素风植物) ──
+        if (!this.textures.exists('_herb_icon')) {
+            const g = this.make.graphics({ add: false });
+            // 茎
+            g.fillStyle(0x2d5a1e);
+            g.fillRect(13, 14, 3, 14);
+            // 左叶
+            g.fillStyle(0x4a8c2a);
+            g.fillCircle(8, 10, 7);
+            g.fillStyle(0x3d7020);
+            g.fillCircle(9, 9, 4);
+            // 右叶
+            g.fillStyle(0x5a9c35);
+            g.fillCircle(20, 6, 7);
+            g.fillStyle(0x4a8c2a);
+            g.fillCircle(19, 5, 4);
+            // 花苞
+            g.fillStyle(0x88cc44);
+            g.fillCircle(14, 3, 4);
+            g.fillStyle(0xaaee55);
+            g.fillCircle(14, 2, 2);
+            // 根部
+            g.fillStyle(0x6b4423);
+            g.fillRect(12, 26, 6, 3);
+            g.generateTexture('_herb_icon', 28, 28);
+            g.destroy();
+        }
+
+        // ── NPC 图标 (32×32 像素风行人) ──
+        if (!this.textures.exists('_npc_icon')) {
+            const g = this.make.graphics({ add: false });
+            // 头
+            g.fillStyle(0xffddaa);
+            g.fillCircle(16, 7, 5);
+            // 身体
+            g.fillStyle(0x8866aa);
+            g.fillRect(12, 13, 8, 10);
+            // 手臂
+            g.fillStyle(0xffddaa);
+            g.fillRect(6, 14, 5, 3);
+            g.fillRect(21, 14, 5, 3);
+            // 腿
+            g.fillStyle(0x554488);
+            g.fillRect(12, 23, 4, 8);
+            g.fillRect(17, 23, 4, 8);
+            g.generateTexture('_npc_icon', 32, 32);
+            g.destroy();
+        }
+
+        // ── 传送门图标 (50×50 像素风漩涡) ──
+        if (!this.textures.exists('_portal_icon')) {
+            const g = this.make.graphics({ add: false });
+            // 外圈
+            g.lineStyle(3, 0x4466cc, 1);
+            g.strokeCircle(25, 25, 22);
+            // 内圈
+            g.lineStyle(2, 0x6688ee, 0.8);
+            g.strokeCircle(25, 25, 14);
+            // 中心
+            g.fillStyle(0x88aaff, 0.7);
+            g.fillCircle(25, 25, 8);
+            // 螺旋光点
+            g.fillStyle(0xccddff, 0.9);
+            g.fillCircle(25, 15, 3);
+            g.fillCircle(31, 20, 2);
+            g.fillCircle(30, 30, 2);
+            g.fillCircle(19, 28, 3);
+            g.fillCircle(18, 18, 2);
+            g.generateTexture('_portal_icon', 50, 50);
+            g.destroy();
+        }
+    }
+
+    /**
      * 创建草药
      */
     createHerb(obj) {
@@ -815,17 +903,31 @@ class GameScene extends Phaser.Scene {
         if (!herbData) return;
 
         const x = obj.x;
-        const y = (obj.y || 0) - (obj.height || 30) / 2;
-        
-        const herb = this.add.circle(x, y, 15, 0x4a7c28);
-        herb.setStrokeStyle(2, 0xffffff);
-        
-        const label = this.add.text(x, y + 25, herbData.name, {
-            fontSize: '12px', color: '#ffffff',
-            backgroundColor: '#00000088', padding: { x: 4, y: 2 }
-        }).setOrigin(0.5);
+        const y = obj.y;
 
-        this.herbs.push({ sprite: herb, label, data: herbData, collected: false });
+        let herbSprite;
+
+        // 优先使用 Tiled tileset 里加载的真实图片纹理
+        const texKey = `herb_${herbId}`;
+        if (this.textures.exists(texKey)) {
+            herbSprite = this.add.image(x, y, texKey);
+            // 使用 Tiled 里设置的对象宽高，保持原始比例
+            const tw = obj.width;
+            const th = obj.height;
+            if (tw && th) {
+                const imgSrc = this.textures.get(texKey).getSourceImage();
+                const scaleX = tw / imgSrc.width;
+                const scaleY = th / imgSrc.height;
+                herbSprite.setScale(scaleX, scaleY).setOrigin(0.5, 1);
+            } else {
+                herbSprite.setOrigin(0.5, 1);
+            }
+        } else {
+            herbSprite = this.add.image(x, y, '_herb_icon');
+            herbSprite.setDisplaySize(28, 28);
+        }
+
+        this.herbs.push({ sprite: herbSprite, data: herbData, collected: false });
     }
 
     /**
@@ -834,16 +936,36 @@ class GameScene extends Phaser.Scene {
     createPortal(obj) {
         const props = obj.properties || {};
         const x = obj.x;
-        const y = (obj.y || 0) - (obj.height || 40) / 2;
-        
-        const portal = this.add.circle(x, y, 25, 0x6644ff, 0.6);
-        portal.setStrokeStyle(3, 0xaa88ff);
+        const y = obj.y;
+
+        const portal = this.add.image(x, y, '_portal_icon');
+        portal.setDisplaySize(50, 50);
+        portal.setAlpha(0.85);
+
+        // 发光动画
+        this.tweens.add({
+            targets: portal,
+            scaleX: 1.15,
+            scaleY: 1.15,
+            alpha: 0.6,
+            yoyo: true,
+            repeat: -1,
+            duration: 1200,
+            ease: 'Sine.easeInOut'
+        });
+
+        // 标签
+        this.add.text(x, y - 32, '✦', {
+            fontSize: '16px', color: '#aaccff',
+            backgroundColor: '#00000066', padding: { x: 4, y: 2 }
+        }).setOrigin(0.5).setDepth(10);
+
         portal.portalData = {
             targetMap: props.targetMap || '',
             targetX: props.targetX || 100,
             targetY: props.targetY || 100
         };
-        
+
         portal.setInteractive();
         portal.on('pointerdown', () => {
             if (portal.portalData.targetMap) {
@@ -860,16 +982,16 @@ class GameScene extends Phaser.Scene {
         const props = obj.properties || {};
         const name = props.name || 'NPC';
         const x = obj.x;
-        const y = (obj.y || 0) - (obj.height || 36) / 2;
-        
-        const npc = this.add.circle(x, y, 18, 0xffcc44);
-        npc.setStrokeStyle(2, 0xaa8800);
-        
-        const label = this.add.text(x, y - 35, name, {
-            fontSize: '12px', color: '#ffcc00',
-            backgroundColor: '#000000aa', padding: { x: 4, y: 2 }
-        }).setOrigin(0.5);
-        
+        const y = obj.y;
+
+        const npc = this.add.image(x, y, '_npc_icon');
+        npc.setDisplaySize(32, 32);
+
+        const label = this.add.text(x, y - 30, name, {
+            fontSize: '12px', color: '#ffeebb',
+            backgroundColor: '#000000cc', padding: { x: 4, y: 2 }
+        }).setOrigin(0.5).setDepth(10);
+
         npc.setInteractive();
         npc.on('pointerdown', () => console.log('与', name, '对话'));
     }
@@ -897,9 +1019,10 @@ class GameScene extends Phaser.Scene {
         const oldScrollX = this.cameras.main.scrollX;
         const oldScrollY = this.cameras.main.scrollY;
 
-        // 停止跟随玩家并隐藏玩家
+        // 停止跟随玩家并隐藏玩家和草药（小地图只显示地形，不显示草药）
         this.cameras.main.stopFollow();
         this.player.setVisible(false);
+        this.herbs.forEach(h => { if (!h.collected && h.sprite) h.sprite.setVisible(false); });
 
         // 计算能显示完整地图的缩放比例
         const viewW = this.cameras.main.width;
@@ -929,6 +1052,7 @@ class GameScene extends Phaser.Scene {
 
             // 恢复摄像机状态
             this.player.setVisible(true);
+            this.herbs.forEach(h => { if (!h.collected && h.sprite) h.sprite.setVisible(true); });
             this.cameras.main.setZoom(oldZoom);
             this.cameras.main.setScroll(oldScrollX, oldScrollY);
             const cam = this.config.camera;
@@ -1142,7 +1266,7 @@ class GameScene extends Phaser.Scene {
     collect(herb) {
         herb.collected = true;
         herb.sprite.setVisible(false);
-        herb.label.setVisible(false);
+        if (herb.label) herb.label.setVisible(false);
 
         window.gameStateManager.addHerbToBackpack(herb.data.id);
         window.uiManager.showCollectSuccess(herb.data.name);
