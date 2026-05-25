@@ -9,6 +9,7 @@ class GameScene extends Phaser.Scene {
 
         this.player = null;
         this.herbs = [];
+        this.npcs = [];      // NPC 交互数据：{ name, x, y, w, h, storyIdx }
         this.cursors = null;
         this.wasd = null;
         this.eKey = null;
@@ -21,6 +22,16 @@ class GameScene extends Phaser.Scene {
         this.walkCollisionTileWidth = null;
         this.walkCollisionTileHeight = null;
         this._walkColliderBound = false;   // 场景重启时重置
+
+        // NPC/交互物 → 第一章剧情场景索引映射
+        // 索引对应 story_chapter1.json.scenes 数组位置
+        this._npcStorySceneMap = {
+            'woodcutter_npc': 2,       // C03 砍柴老汉问路
+            'washerwoman_npc': 4,      // C05 洗衣村妇
+            'merchant_npc': 5,         // C06 行商王掌柜
+            'abandoned_basket': 3,     // C04 废弃草药篓
+            'gancao': 1,               // C02 第一株甘草
+        };
     }
 
     /**
@@ -86,6 +97,29 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
+     * ★ 场景重启时重置状态（Phaser scene.start() 不会调用 constructor）
+     */
+    init() {
+        console.log('GameScene: init() - 重置场景状态');
+        this.player = null;
+        this.herbs = [];
+        this.npcs = [];
+        this.cursors = null;
+        this.wasd = null;
+        this.eKey = null;
+        this.tiledMap = null;
+        this.walkCollisionData = null;
+        this.walkCollisionTileWidth = null;
+        this.walkCollisionTileHeight = null;
+        this._walkColliderBound = false;
+        this._walkColliderRetryEvent = null;
+        this.collisionLayer = null;
+        this.collisionMap = null;
+        this._rawMapJson = null;
+        this._shutdownRegistered = false;
+    }
+
+    /**
      * 预加载资源
      */
     preload() {
@@ -109,6 +143,11 @@ class GameScene extends Phaser.Scene {
                     this.textures.remove(key);
                     console.log('已清除旧纹理:', key);
                 }
+            }
+
+            // ★ 清除旧的碰撞纹理，确保重启时重新生成
+            if (this.textures.exists('_collision_tile')) {
+                this.textures.remove('_collision_tile');
             }
             
             // 使用 Phaser 内置的 Tiled JSON 加载（存入 tilemap cache）
@@ -143,6 +182,18 @@ class GameScene extends Phaser.Scene {
         herbTextures.forEach(id => {
             this.load.image(`herb_${id}`, `src/assets/pictures/herbs/${id}.png`);
         });
+
+        // ── 加载 NPC 纹理 ──
+        const npcTextures = ['washerwoman_npc', 'woodcutter_npc', 'merchant_npc'];
+        npcTextures.forEach(id => {
+            this.load.image(`npc_${id}`, `src/assets/pictures/herbs/${id}.png`);
+        });
+
+        // ── 加载交互物纹理 ──
+        const objTextures = ['abandoned_basket', 'plain'];
+        objTextures.forEach(id => {
+            this.load.image(`obj_${id}`, `src/assets/pictures/herbs/${id}.png`);
+        });
     }
 
     /**
@@ -176,9 +227,15 @@ class GameScene extends Phaser.Scene {
             this.createHerbs();
         }
         
-        // 设置玩家初始位置
+        // 设置玩家初始位置（优先使用剧情返回位置）
         const mapConfig = this.config.maps[this.config.currentMapId];
-        if (mapConfig && mapConfig.playerStart && this.player) {
+        const returnPos = window._returnPlayerPos;
+        if (returnPos && returnPos.mapId === this.config.currentMapId && this.player) {
+            this.player.x = returnPos.x;
+            this.player.y = returnPos.y;
+            window._returnPlayerPos = null;  // 仅用一次，用完清除
+            console.log('玩家位置恢复:', this.player.x, this.player.y);
+        } else if (mapConfig && mapConfig.playerStart && this.player) {
             this.player.x = mapConfig.playerStart.x;
             this.player.y = mapConfig.playerStart.y;
             console.log('玩家初始位置:', this.player.x, this.player.y);
@@ -205,6 +262,23 @@ class GameScene extends Phaser.Scene {
         }
 
         console.log('GameScene: 创建完成');
+
+        // ★ 注册 shutdown 事件处理器：当 GameScene 被停止时（如进入剧情），确保下次重启时状态正确
+        if (!this._shutdownRegistered) {
+            this.events.on('shutdown', () => {
+                console.log('GameScene: shutdown 事件触发，清理场景...');
+                // ★ 释放键盘输入，防止按键状态残留
+                if (this.input && this.input.keyboard) {
+                    this.input.keyboard.enabled = false;
+                }
+                // 停止重试定时器
+                if (this._walkColliderRetryEvent) {
+                    this._walkColliderRetryEvent.remove(false);
+                    this._walkColliderRetryEvent = null;
+                }
+            });
+            this._shutdownRegistered = true;
+        }
     }
 
     /**
@@ -216,6 +290,11 @@ class GameScene extends Phaser.Scene {
             const gameContainer = document.getElementById('game-container');
             if (gameContainer) {
                 gameContainer.style.display = 'block';  // CSS 默认 display:none，必须显式设 block
+            }
+
+            // ★ 确保 Phaser canvas 可以接收键盘焦点（修复从剧情返回后按键失效的问题）
+            if (this.game && this.game.canvas) {
+                this.game.canvas.focus();
             }
 
             // 确保所有永久HUD面板可见
@@ -807,9 +886,15 @@ class GameScene extends Phaser.Scene {
             
             if (type === 'herb') {
                 this.createHerb(obj);
+            } else if (type === 'herbs') {
+                // 地图中 type="herbs" 的实际是剧情触发甘草（非采集）
+                this.createStoryHerb(obj);
             } else if (type === 'portal') {
                 this.createPortal(obj);
             } else if (type === 'npc') {
+                this.createNPC(obj);
+            } else if (type === 'object') {
+                // 交互物（废弃药篓等），直接复用 createNPC 的交互逻辑
                 this.createNPC(obj);
             }
         });
@@ -848,26 +933,7 @@ class GameScene extends Phaser.Scene {
             g.destroy();
         }
 
-        // ── NPC 图标 (32×32 像素风行人) ──
-        if (!this.textures.exists('_npc_icon')) {
-            const g = this.make.graphics({ add: false });
-            // 头
-            g.fillStyle(0xffddaa);
-            g.fillCircle(16, 7, 5);
-            // 身体
-            g.fillStyle(0x8866aa);
-            g.fillRect(12, 13, 8, 10);
-            // 手臂
-            g.fillStyle(0xffddaa);
-            g.fillRect(6, 14, 5, 3);
-            g.fillRect(21, 14, 5, 3);
-            // 腿
-            g.fillStyle(0x554488);
-            g.fillRect(12, 23, 4, 8);
-            g.fillRect(17, 23, 4, 8);
-            g.generateTexture('_npc_icon', 32, 32);
-            g.destroy();
-        }
+        // ── NPC 图标已由地图 tileset 层绘制，不再生成程序化图标 ──
 
         // ── 传送门图标 (50×50 像素风漩涡) ──
         if (!this.textures.exists('_portal_icon')) {
@@ -897,7 +963,7 @@ class GameScene extends Phaser.Scene {
      * 创建草药
      */
     createHerb(obj) {
-        const props = obj.properties || {};
+        const props = this._parseProps(obj);
         const herbId = props.herbId || 'gancao';
         const herbData = this.gameData.HERBS_DATA.find(h => h.id === herbId);
         if (!herbData) return;
@@ -934,7 +1000,7 @@ class GameScene extends Phaser.Scene {
      * 创建传送门
      */
     createPortal(obj) {
-        const props = obj.properties || {};
+        const props = this._parseProps(obj);
         const x = obj.x;
         const y = obj.y;
 
@@ -976,24 +1042,127 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * 创建 NPC
+     * 创建 NPC / 交互物（加载图片并显示在地图上）
+     * 存储交互数据用于 E 键触发第一章剧情
      */
     createNPC(obj) {
-        const props = obj.properties || {};
-        const name = props.name || 'NPC';
-        const x = obj.x;
-        const y = obj.y;
+        const props = this._parseProps(obj);
+        let npcId = props.npc_id || '';
+        const name = (obj.name || props.name || 'NPC').trim();
 
-        const npc = this.add.image(x, y, '_npc_icon');
-        npc.setDisplaySize(32, 32);
+        // 对于没有 npc_id 的交互物（如药篓），从名称映射
+        const nameToId = {
+            '药篓': 'abandoned_basket',
+        };
+        if (!npcId && nameToId[name]) {
+            npcId = nameToId[name];
+        }
 
-        const label = this.add.text(x, y - 30, name, {
-            fontSize: '12px', color: '#ffeebb',
-            backgroundColor: '#000000cc', padding: { x: 4, y: 2 }
-        }).setOrigin(0.5).setDepth(10);
+        const storyIdx = this._npcStorySceneMap[npcId] !== undefined
+            ? this._npcStorySceneMap[npcId]
+            : -1;
 
-        npc.setInteractive();
-        npc.on('pointerdown', () => console.log('与', name, '对话'));
+        // ★ 剧情已完成 → 不再创建精灵和交互数据
+        if (npcId && window._completedNpcs && window._completedNpcs.has(npcId)) {
+            console.log(`NPC/交互物: "${name}" (${npcId}) 剧情已完成，跳过创建`);
+            return;
+        }
+
+        // 精灵锚点(0.5, 1) → 底部中心对齐对象中心
+        const spriteX = obj.x + (obj.width || 0) / 2;
+        const spriteY = obj.y + (obj.height || 0) / 2;
+
+        // 交互检测坐标（与精灵位置一致）
+        const interactX = spriteX;
+        const interactY = spriteY;
+
+        console.log(`NPC/交互物: "${name}" (${npcId}) → 剧情索引: ${storyIdx}, 位置: (${spriteX}, ${spriteY})`);
+
+        // 创建精灵（先尝试 npc_ 前缀，再尝试 obj_ 前缀）
+        const texKeyNpc = `npc_${npcId}`;
+        const texKeyObj = `obj_${npcId}`;
+        let npcSprite = null;
+
+        if (npcId && this.textures.exists(texKeyNpc)) {
+            npcSprite = this.add.image(spriteX, spriteY, texKeyNpc);
+            npcSprite.setOrigin(0.5, 1);   // 底部中心锚点，脚踩地面
+            npcSprite.setDepth(5);
+            console.log(`  ✓ 精灵已创建: ${texKeyNpc}`);
+        } else if (npcId && this.textures.exists(texKeyObj)) {
+            npcSprite = this.add.image(spriteX, spriteY, texKeyObj);
+            npcSprite.setOrigin(0.5, 1);
+            npcSprite.setDepth(5);
+            console.log(`  ✓ 精灵已创建: ${texKeyObj}`);
+        } else if (npcId) {
+            // 如果没有对应纹理，生成一个占位图标
+            console.warn(`  ⚠ 纹理不存在: ${texKeyNpc} / ${texKeyObj}，使用占位图标`);
+            const g = this.make.graphics({ add: false });
+            g.fillStyle(0xcc8844);
+            g.fillCircle(16, 16, 14);
+            g.fillStyle(0x664422);
+            g.fillCircle(12, 12, 4);
+            g.fillCircle(20, 12, 4);
+            g.fillCircle(16, 16, 3);
+            g.generateTexture(`_npc_fallback_${npcId}`, 32, 32);
+            g.destroy();
+            npcSprite = this.add.image(spriteX, spriteY, `_npc_fallback_${npcId}`);
+            npcSprite.setOrigin(0.5, 1);
+            npcSprite.setDepth(5);
+        } else {
+            console.warn(`  ⚠ 缺少可识别 ID，跳过精灵创建: "${name}"`);
+        }
+
+        // 存储 NPC 交互数据（交互距离用对象中心，精灵用底部锚点）
+        this.npcs.push({
+            name: name,
+            npcId: npcId,
+            x: interactX,
+            y: interactY,
+            w: obj.width || 60,
+            h: obj.height || 60,
+            storyIdx: storyIdx,
+            interacted: false,
+            sprite: npcSprite
+        });
+    }
+
+    /**
+     * 创建剧情甘草（地图中 type="herbs" 的对象，触发 C02 第一株甘草剧情）
+     */
+    createStoryHerb(obj) {
+        const props = this._parseProps(obj);
+        const herbId = props.herbId || 'gancao';
+        const storyIdx = this._npcStorySceneMap[herbId] !== undefined
+            ? this._npcStorySceneMap[herbId]
+            : -1;
+
+        console.log(`剧情交互物: ${herbId} → 剧情索引: ${storyIdx}`);
+
+        this.npcs.push({
+            name: '甘草',
+            npcId: herbId,
+            x: obj.x + (obj.width || 0) / 2,
+            y: obj.y + (obj.height || 0) / 2,
+            w: obj.width || 60,
+            h: obj.height || 100,
+            storyIdx: storyIdx,
+            interacted: false
+        });
+    }
+
+    /**
+     * 解析 Tiled 对象属性（兼容数组格式和对象格式）
+     */
+    _parseProps(obj) {
+        if (!obj.properties) return {};
+        if (Array.isArray(obj.properties)) {
+            const result = {};
+            obj.properties.forEach(p => {
+                if (p.name) result[p.name] = p.value;
+            });
+            return result;
+        }
+        return obj.properties;
     }
 
     /**
@@ -1156,6 +1325,17 @@ class GameScene extends Phaser.Scene {
      * 输入
      */
     setupInput() {
+        // ★ 确保键盘输入处于启用状态（修复从剧情场景返回时键盘被禁用的问题）
+        if (!this.input || !this.input.keyboard) {
+            console.warn('GameScene: 输入插件未初始化，跳过键盘设置');
+            return;
+        }
+
+        this.input.keyboard.enabled = true;
+        
+        // ★ 重置键盘状态，清除场景切换时可能残留的按键按下状态
+        this.input.keyboard.resetKeys();
+
         this.cursors = this.input.keyboard.createCursorKeys();
 
         this.wasd = {
@@ -1175,6 +1355,8 @@ class GameScene extends Phaser.Scene {
         this.input.keyboard.on('keydown-B', () => window.uiManager.openModal('backpack-modal'));
         this.input.keyboard.on('keydown-T', () => window.uiManager.openModal('herb-guide-modal'));
         this.input.keyboard.on('keydown-ESC', () => window.uiManager.closeAllModals());
+
+        console.log('GameScene: 键盘输入设置完成');
     }
 
     /**
@@ -1186,6 +1368,7 @@ class GameScene extends Phaser.Scene {
         this.updateMovement();
         window.uiManager.updateMinimap(this.player.x, this.player.y);
         this.checkCollection();
+        this.checkNPCInteraction();
 
         if (window.gameStateManager.state.debugMode) {
             window.uiManager.updateDebugInfo({
@@ -1273,6 +1456,73 @@ class GameScene extends Phaser.Scene {
         window.uiManager.updateBackpackUI();
         window.uiManager.updateHerbGuideUI();
         window.uiManager.updateTaskProgress();
+    }
+
+    /**
+     * 检测 NPC 交互（E 键触发第一章剧情）
+     */
+    checkNPCInteraction() {
+        if (!this.player || !this.eKey) return;
+        const interactDist = 80; // NPC 交互距离
+
+        let nearNpc = null;
+        this.npcs.forEach(npc => {
+            if (npc.storyIdx < 0) return;
+            const d = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, npc.x, npc.y
+            );
+            if (d < interactDist) nearNpc = npc;
+        });
+
+        if (nearNpc) {
+            // 显示 E 键交互提示
+            window.uiManager.showCollectPrompt(`与${nearNpc.name}对话`);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                this.triggerStoryScene(nearNpc);
+            }
+        }
+        // 注意：如果同时在草药附近，checkCollection 的提示会覆盖此提示，功能正常
+    }
+
+    /**
+     * 触发第一章剧情场景（切换到 IntroScene 播放指定场景）
+     * @param {Object} npcData - NPC 交互数据 { name, storyIdx }
+     */
+    triggerStoryScene(npcData) {
+        const chapter1Data = window._chapter1Data;
+        if (!chapter1Data || !chapter1Data.scenes) {
+            console.error('第一章剧情数据未加载，无法触发剧情');
+            return;
+        }
+        if (npcData.storyIdx < 0 || npcData.storyIdx >= chapter1Data.scenes.length) {
+            console.error('场景索引无效:', npcData.storyIdx);
+            return;
+        }
+
+        console.log(`触发剧情: ${npcData.name} → 场景索引 ${npcData.storyIdx}`);
+        npcData.interacted = true;
+
+        // ★ 标记该 NPC 剧情已完成，返回后不再显示
+        if (!window._completedNpcs) window._completedNpcs = new Set();
+        window._completedNpcs.add(npcData.npcId);
+
+        // 隐藏采集提示
+        window.uiManager.hideCollectPrompt();
+
+        // ★ 保存当前玩家位置，剧情结束后恢复
+        window._returnPlayerPos = {
+            x: this.player.x,
+            y: this.player.y,
+            mapId: this.config.currentMapId
+        };
+
+        // 使用 IntroScene 播放指定剧情场景，播放完毕自动返回 GameScene
+        this.scene.start('IntroScene', {
+            debugMode: true,
+            debugTargetIdx: npcData.storyIdx,
+            forceChapter1: chapter1Data,
+            returnToGame: true   // ★ 剧情结束后自动返回游戏，不显示调试提示
+        });
     }
 
     /**

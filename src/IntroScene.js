@@ -265,6 +265,7 @@ class IntroScene extends Phaser.Scene {
                 console.log('[调试] ★★ IntroScene 以调试模式启动 ★★', initData);
                 this._debugMode = true;
                 this._debugTargetSceneIdx = initData.debugTargetIdx || 0;
+                this._returnToGame = initData.returnToGame || false;  // ★ NPC 交互模式：剧情结束自动返回游戏
 
                 // 隐藏 GameScene 的 HTML UI（地图、背包等）
                 this._hideHTMLUI();
@@ -633,6 +634,19 @@ class IntroScene extends Phaser.Scene {
                 throw new Error(`prologueData 无效: ${JSON.stringify(this.prologueData)}`);
             }
 
+            // ★ NPC 交互模式：只播放目标场景，跳过后续场景直接返回游戏
+            if (this._returnToGame && this._debugTargetSceneIdx !== null && sceneIndex > this._debugTargetSceneIdx) {
+                console.log(`[NPC剧情] 目标场景（索引${this._debugTargetSceneIdx}）已播完，不继续场景${sceneIndex}，返回 GameScene`);
+                this._debugMode = false;
+                this._returnToGame = false;
+                this._debugTargetSceneIdx = null;
+                this._showHTMLUI();
+                this.time.delayedCall(300, () => {
+                    this.scene.start('GameScene');
+                });
+                return;
+            }
+
             // === 关键修复：确保 IntroScene 渲染在最顶层（覆盖 GameScene 地图） ===
             this.scene.bringToTop();
             console.log('[诊断] IntroScene 已 bringToTop，当前场景栈:', this.scene.manager.getScenes(true).map(s => s.sceneKey));
@@ -666,6 +680,18 @@ class IntroScene extends Phaser.Scene {
             if (sceneIndex >= this.prologueData.scenes.length) {
             // === 调试模式检查：不自动跳转到 GameScene ===
             if (this._debugMode) {
+                // ★ NPC 交互模式：剧情结束自动返回游戏
+                if (this._returnToGame) {
+                    console.log('[NPC剧情] 场景播放完毕，自动返回 GameScene');
+                    this._debugMode = false;
+                    this._debugTargetSceneIdx = null;
+                    this._returnToGame = false;
+                    this._showHTMLUI();
+                    this.time.delayedCall(300, () => {
+                        this.scene.start('GameScene');
+                    });
+                    return;
+                }
                 console.log('[调试] 场景已全部播完（调试模式），停在最后一幕');
                 this._debugMode = false;
                 this._debugTargetSceneIdx = null;  // 清理调试目标索引
@@ -890,6 +916,18 @@ class IntroScene extends Phaser.Scene {
                 this._showTitleCard(step);
                 break;
             case 'end':
+                // === NPC 交互模式：剧情结束自动返回游戏 ===
+                if (this._debugMode && this._returnToGame) {
+                    console.log('[NPC剧情] 遇到 end 步骤，自动返回 GameScene');
+                    this._debugMode = false;
+                    this._debugTargetSceneIdx = null;
+                    this._returnToGame = false;
+                    this._showHTMLUI();
+                    this.time.delayedCall(300, () => {
+                        this.scene.start('GameScene');
+                    });
+                    break;
+                }
                 // === 调试模式下不跳转到 GameScene，显示调试结束提示 ===
                 if (this._debugMode) {
                     console.log('[调试] 遇到 end 步骤，显示调试结束提示（不跳转 GameScene）');
@@ -3191,7 +3229,13 @@ class IntroScene extends Phaser.Scene {
      * 跳过序章
      */
     _skipPrologue() {
-        console.log('IntroScene: 跳过序章');
+        console.log('IntroScene: 跳过序章，准备返回游戏');
+
+        // 确保键盘输入在返回前恢复
+        if (this.input && this.input.keyboard) {
+            this.input.keyboard.enabled = true;
+            this.input.keyboard.removeAllListeners();
+        }
 
         // 恢复HTML UI元素
         this._showHTMLUI();
