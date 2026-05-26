@@ -97,6 +97,7 @@
                 <div id="map-switch-buttons">
                     <button id="btn-plain" class="map-btn" data-map="plain">🏞️ 平原</button>
                     <button id="btn-stream" class="map-btn" data-map="stream">🏞️ 溪流</button>
+                    <button id="btn-village" class="map-btn" data-map="village">🏘️ 翠竹村</button>
                 </div>
                 <p style="text-align: center; color: #8b7355; font-size: 14px;">
                     点击上方按钮切换当前所在地图
@@ -529,18 +530,16 @@
         // 地图切换按钮
         var btnPlain = document.getElementById('btn-plain');
         var btnStream = document.getElementById('btn-stream');
+        var btnVillage = document.getElementById('btn-village');
         
         function switchMap(mapId) {
             console.log('切换地图到:', mapId);
             if (window.GameConfig) {
                 window.GameConfig.currentMapId = mapId;
                 // 更新按钮状态
-                if (btnPlain) {
-                    btnPlain.classList.toggle('active', mapId === 'plain');
-                }
-                if (btnStream) {
-                    btnStream.classList.toggle('active', mapId === 'stream');
-                }
+                if (btnPlain) btnPlain.classList.toggle('active', mapId === 'plain');
+                if (btnStream) btnStream.classList.toggle('active', mapId === 'stream');
+                if (btnVillage) btnVillage.classList.toggle('active', mapId === 'village');
                 // 关闭地图弹窗
                 var mapModal = document.getElementById('map-modal');
                 if (mapModal) mapModal.style.display = 'none';
@@ -556,17 +555,15 @@
             }
         }
         
-        if (btnPlain) {
-            btnPlain.onclick = function() { switchMap('plain'); };
-        }
-        if (btnStream) {
-            btnStream.onclick = function() { switchMap('stream'); };
-        }
+        if (btnPlain) { btnPlain.onclick = function() { switchMap('plain'); }; }
+        if (btnStream) { btnStream.onclick = function() { switchMap('stream'); }; }
+        if (btnVillage) { btnVillage.onclick = function() { switchMap('village'); }; }
         
         // 设置当前地图按钮为激活状态
-        if (window.GameConfig && btnPlain && btnStream) {
+        if (window.GameConfig && btnPlain && btnStream && btnVillage) {
             btnPlain.classList.toggle('active', window.GameConfig.currentMapId === 'plain');
             btnStream.classList.toggle('active', window.GameConfig.currentMapId === 'stream');
+            btnVillage.classList.toggle('active', window.GameConfig.currentMapId === 'village');
         }
         
         console.log('所有事件绑定完成');

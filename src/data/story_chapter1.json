@@ -319,6 +319,7 @@
       "type": "scene",
       "background": "bg_village_gate.png",
       "bgm": "bgm_village.mp3",
+      "autoChainToNext": true,
       "_trigger": {
         "type": "zone",
         "zoneId": "zone_village_gate",
@@ -439,6 +440,12 @@
           "hint": "探索翠竹村！\n地图上「！」标记处有可交互对象\n完成全部 5 处地点后推进主线",
           "hintPosition": "top-center",
           "nextDelay": 0
+        },
+        {
+          "id": "C08_village_map",
+          "type": "show_village_map",
+          "mapImage": "village_map_full",
+          "hint": "点击地图上的地点标记进行探索"
         }
       ]
     },

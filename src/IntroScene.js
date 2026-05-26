@@ -243,6 +243,9 @@ class IntroScene extends Phaser.Scene {
 
         // 加载CG图片（第一章）
         this.load.image('cg_06_gugen_discovery', 'src/assets/pictures/cg/cg_06_gugen.png');
+
+        // 加载翠竹村地图全景图
+        this.load.image('village_map_full', 'src/assets/picture/翠竹村地图.png');
     }
 
     /**
@@ -635,16 +638,37 @@ class IntroScene extends Phaser.Scene {
             }
 
             // ★ NPC 交互模式：只播放目标场景，跳过后续场景直接返回游戏
+            // 特殊：部分场景标记了 autoChainToNext，允许自动衔接下一个场景（如 C07→C08）
             if (this._returnToGame && this._debugTargetSceneIdx !== null && sceneIndex > this._debugTargetSceneIdx) {
-                console.log(`[NPC剧情] 目标场景（索引${this._debugTargetSceneIdx}）已播完，不继续场景${sceneIndex}，返回 GameScene`);
-                this._debugMode = false;
-                this._returnToGame = false;
-                this._debugTargetSceneIdx = null;
-                this._showHTMLUI();
-                this.time.delayedCall(300, () => {
-                    this.scene.start('GameScene');
-                });
-                return;
+                const triggerScene = this.prologueData.scenes[this._debugTargetSceneIdx];
+                if (triggerScene && triggerScene.autoChainToNext && sceneIndex === this._debugTargetSceneIdx + 1) {
+                    console.log(`[NPC剧情] autoChainToNext - 从${triggerScene.id}自动推进到${sceneIndex}`);
+                    this._debugTargetSceneIdx = sceneIndex;
+                    // 放行，继续执行（不 return）
+                } else {
+                    console.log(`[NPC剧情] 目标场景（索引${this._debugTargetSceneIdx}）已播完，不继续场景${sceneIndex}，返回 GameScene`);
+                    // ★ 如果是从翠竹村地图交互触发的（_returnToVillageMap），确保回到村庄地图
+                    if (window._returnToVillageMap) {
+                        console.log('[NPC剧情] ★ 村庄事件完成，返回翠竹村地图');
+                        if (window.GameConfig) {
+                            window.GameConfig.currentMapId = 'village';
+                        }
+                        window._forceVillageMap = true;
+                        window._returnToVillageMap = false;
+                    } else if (triggerScene && triggerScene.id === 'C08' && window.GameConfig) {
+                        console.log('[NPC剧情] ★ C08完成，设置翠竹村地图');
+                        window.GameConfig.currentMapId = 'village';
+                        window._forceVillageMap = true;
+                    }
+                    this._debugMode = false;
+                    this._returnToGame = false;
+                    this._debugTargetSceneIdx = null;
+                    this._showHTMLUI();
+                    this.time.delayedCall(300, () => {
+                        this.scene.start('GameScene');
+                    });
+                    return;
+                }
             }
 
             // === 关键修复：确保 IntroScene 渲染在最顶层（覆盖 GameScene 地图） ===
@@ -683,6 +707,20 @@ class IntroScene extends Phaser.Scene {
                 // ★ NPC 交互模式：剧情结束自动返回游戏
                 if (this._returnToGame) {
                     console.log('[NPC剧情] 场景播放完毕，自动返回 GameScene');
+                    // ★ 如果是从翠竹村地图交互触发的，确保回到村庄地图
+                    if (window._returnToVillageMap) {
+                        console.log('[NPC剧情] ★ 村庄事件全部完成，返回翠竹村地图');
+                        if (window.GameConfig) window.GameConfig.currentMapId = 'village';
+                        window._forceVillageMap = true;
+                        window._returnToVillageMap = false;
+                    } else if (!window._forceVillageMap && window.GameConfig) {
+                        const lastScene = this.prologueData.scenes[sceneIndex - 1];
+                        if (lastScene && lastScene.id === 'C08') {
+                            console.log('[NPC剧情] C08自然结束，强制切换到翠竹村地图');
+                            window.GameConfig.currentMapId = 'village';
+                            window._forceVillageMap = true;
+                        }
+                    }
                     this._debugMode = false;
                     this._debugTargetSceneIdx = null;
                     this._returnToGame = false;
@@ -914,6 +952,40 @@ class IntroScene extends Phaser.Scene {
                 break;
             case 'title_card':
                 this._showTitleCard(step);
+                break;
+            case 'show_village_map':
+                // ★ C08 完成后自动切换到 GameScene 翠竹村图片地图
+                console.log('[剧情] ★★★ C08完成，准备跳转翠竹村地图 ★★★');
+                console.log('[剧情] 当前场景key:', this.scene.key);
+                console.log('[剧情] GameScene存在:', !!this.game.scene.getScene('GameScene'));
+                if (window.GameConfig) {
+                    window.GameConfig.currentMapId = 'village';
+                    console.log('[剧情] currentMapId 已设为:', window.GameConfig.currentMapId);
+                }
+                // ★ 设置强制标志（双保险，防止 currentMapId 被覆盖）
+                window._forceVillageMap = true;
+                // 清理 NPC 模式状态
+                this._debugMode = false;
+                this._returnToGame = false;
+                this._debugTargetSceneIdx = null;
+                // 恢复 UI 并跳转
+                this._showHTMLUI();
+                // ★ 使用 RAF + 微延时，确保不在 Phaser 步骤处理中同步切换场景
+                const game = this.game;
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        console.log('[剧情] ★ 执行 scene.start(GameScene)...');
+                        try {
+                            game.scene.start('GameScene');
+                            console.log('[剧情] ✅ scene.start(GameScene) 已调用');
+                        } catch(e) {
+                            console.error('[剧情] ❌ scene.start 失败:', e);
+                            // 兜底：直接启动
+                            game.scene.stop('IntroScene');
+                            game.scene.start('GameScene');
+                        }
+                    }, 50);
+                });
                 break;
             case 'end':
                 // === NPC 交互模式：剧情结束自动返回游戏 ===
@@ -3115,6 +3187,240 @@ class IntroScene extends Phaser.Scene {
         if (typeof gsmState.attributes[attrId] !== 'number') gsmState.attributes[attrId] = 0;
         gsmState.attributes[attrId] += delta;
         console.log(`IntroScene: 属性变化 ${attrId} ${delta > 0 ? '+' : ''}${delta} →`, gsmState.attributes[attrId]);
+    }
+
+    /**
+     * 显示翠竹村地图全景（C08 结束后展示村庄总览）
+     * @param {Object} step - 步骤数据
+     */
+    _showVillageMap(step) {
+        console.log('IntroScene: 显示翠竹村地图全景', step);
+
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        // === 清理所有现有UI ===
+        if (this.dialogBox) this.dialogBox.setVisible(false);
+        if (this.narrationText) this.narrationText.setVisible(false);
+        if (this.avatarImage) this.avatarImage.setVisible(false);
+        if (this.avatarSprite) this.avatarSprite.setVisible(false);
+        if (this.nameText) this.nameText.setVisible(false);
+        if (this.contentText) this.contentText.setVisible(false);
+        if (this.continueHint) this.continueHint.setVisible(false);
+        if (this.skipButton) this.skipButton.setVisible(false);
+        this._hideOverlayImage();
+        this._hideCharacterPortrait();
+        if (this.cgDisplay) this.cgDisplay.hide();
+
+        // 隐藏当前背景图
+        if (this.bgImage) {
+            this.bgImage.setVisible(false);
+            this.bgImage.setAlpha(0);
+        }
+
+        const mapKey = step.mapImage || 'village_map_full';
+        if (!this.textures.exists(mapKey)) {
+            console.error('IntroScene: 地图图片纹理不存在', mapKey);
+            this._nextStep();
+            return;
+        }
+
+        // === 显示地图图片（适配屏幕） ===
+        const mapImg = this.add.image(width / 2, height / 2, mapKey)
+            .setOrigin(0.5, 0.5)
+            .setDepth(5);
+
+        // 按比例缩放以适应屏幕（保持宽高比，不留白边）
+        const tex = this.textures.get(mapKey);
+        const imgRatio = tex.source[0] / tex.source[1]; // 图片宽高比
+        const screenRatio = width / height;
+        let displayWidth, displayHeight;
+        if (imgRatio > screenRatio) {
+            displayWidth = width;
+            displayHeight = width / imgRatio;
+        } else {
+            displayHeight = height;
+            displayWidth = height * imgRatio;
+        }
+        mapImg.setDisplaySize(displayWidth, displayHeight);
+        this._villageMapImg = mapImg;
+
+        // === 顶部标题栏 ===
+        const titleBar = this.add.rectangle(width / 2, 28, width, 56, 0x1a1a2e, 0.85)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+        const titleText = this.add.text(width / 2, 28, '翠竹村', {
+            fontSize: '24px',
+            fontFamily: '"FangSong", "KaiTi", "STFangsong", serif',
+            color: '#d4af37',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5, 0.5).setDepth(11);
+
+        // === 提示文字 ===
+        const hintText = step.hint || '点击地图上的地点进行探索';
+        const hintLabel = this.add.text(width / 2, height - 30, hintText, {
+            fontSize: '16px',
+            fontFamily: '"FangSong", serif',
+            color: '#cccccc',
+            backgroundColor: '#00000088',
+            padding: { x: 12, y: 6 }
+        }).setOrigin(0.5, 0.5).setDepth(11).setScrollFactor(0);
+
+        // === 定义可点击的地点（坐标基于图片比例 0~1，会自动映射到实际显示尺寸）===
+        // 这些坐标是相对于地图图片中心的偏移比例
+        const locations = [
+            { id: 'plains_exit',   name: '城郊平原',   x: 0.08,  y: 0.35, label: '城郊平原' },
+            { id: 'village_gate',  name: '翠竹村牌坊', x: 0.22,  y: 0.48, label: '牌坊' },
+            { id: 'cunzhang_home', name: '村长家',     x: 0.50,  y: 0.12, label: '村长家' },
+            { id: 'herb_garden',   name: '药圃',       x: 0.36,  y: 0.38, label: '药圃' },
+            { id: 'well',          name: '水井',       x: 0.54,  y: 0.48, label: '水井' },
+            { id: 'residence',     name: '民居',       x: 0.32,  y: 0.72, label: '民居' },
+            { id: 'workshop',      name: '作坊',       x: 0.70,  y: 0.72, label: '作坊' },
+            { id: 'ancient_tree',  name: '古树',       x: 0.76,  y: 0.30, label: '古树' },
+            { id: 'valley_entrance',name: '溪流山谷',   x: 0.94,  y: 0.45, label: '溪谷' },
+        ];
+
+        // 保存引用以便清理
+        this._villageMapHotspots = [];
+
+        // 为每个地点创建可点击区域
+        locations.forEach(loc => {
+            // 将比例坐标转换为屏幕绝对坐标（基于地图显示位置）
+            const spotX = width / 2 + (loc.x - 0.5) * displayWidth;
+            const spotY = height / 2 + (loc.y - 0.5) * displayHeight;
+
+            // 创建点击区域（透明圆形）
+            const hitArea = this.add.circle(spotX, spotY, 28, 0xffffff, 0)
+                .setInteractive({ useHandCursor: true })
+                .setDepth(8);
+
+            // 地点标记图标（小圆点+脉冲动画）
+            const dot = this.add.circle(spotX, spotY, 6, 0xd4af37, 0.9)
+                .setStrokeStyle(2, 0xffffff, 0.8)
+                .setDepth(9);
+
+            // 脉冲扩散动画（吸引注意力）
+            const pulseRing = this.add.circle(spotX, spotY, 6, 0xd4af37, 0)
+                .setStrokeStyle(1.5, 0xd4af37, 0.5)
+                .setDepth(8);
+
+            this.tweens.add({
+                targets: pulseRing,
+                radius: 20,
+                alpha: 0,
+                duration: 1500,
+                repeat: -1,
+                ease: 'Sine.easeOut'
+            });
+
+            // 地名标签
+            const label = this.add.text(spotX, spotY - 22, loc.label, {
+                fontSize: '13px',
+                fontFamily: '"FangSong", "STFangsong", serif',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 2,
+                backgroundColor: '#00000066',
+                padding: { x: 4, y: 1 }
+            }).setOrigin(0.5, 0.5).setDepth(10);
+
+            // 点击事件
+            hitArea.on('pointerdown', () => {
+                console.log(`[村庄地图] 点击了地点: ${loc.name} (${loc.id})`);
+
+                // ★ 点击反馈：浮动提示（后续可扩展为跳转到对应剧情/场景）
+                this._showFloatingText(`${loc.name}`, 0xd4af37);
+
+                // TODO: 后续扩展 — 根据地点ID触发对应剧情或切换场景
+                // 例如：loc.id === 'cunzhang_home' → 触发C09等
+            });
+
+            // 悬停高亮
+            hitArea.on('pointerover', () => {
+                dot.setFillStyle(0xffd700, 1);
+                dot.setScale(1.3);
+                label.setColor('#ffd700');
+                this.tweens.killTweensOf(pulseRing);
+                pulseRing.setStrokeStyle(2, 0xffd700, 0.7);
+            });
+            hitArea.on('pointerout', () => {
+                dot.setFillStyle(0xd4af37, 0.9);
+                dot.setScale(1);
+                label.setColor('#ffffff');
+                pulseRing.setStrokeStyle(1.5, 0xd4af37, 0.5);
+                this.tweens.add({
+                    targets: pulseRing,
+                    radius: 20,
+                    alpha: 0,
+                    duration: 1500,
+                    repeat: -1,
+                    ease: 'Sine.easeOut'
+                });
+            });
+
+            // 保存所有创建的对象以便清理
+            this._villageMapHotspots.push({ hitArea, dot, pulseRing, label });
+        });
+
+        // === 底部"继续"按钮（点击后推进剧情/返回游戏）===
+        const continueBtn = this.add.text(width - 80, height - 30, '进入村子 ▸', {
+            fontSize: '16px',
+            fontFamily: '"FangSong", serif',
+            color: '#d4af37',
+            backgroundColor: '#000000aa',
+            padding: { x: 14, y: 8 },
+            borderRadius: 6
+        }).setOrigin(0.5, 0.5).setDepth(12).setInteractive({ useHandCursor: true });
+
+        continueBtn.on('pointerover', () => continueBtn.setColor('#ffdd44'));
+        continueBtn.on('pointerout', () => continueBtn.setColor('#d4af37'));
+        continueBtn.on('pointerdown', () => {
+            console.log('[村庄地图] 点击继续 → 进入翠竹村地图');
+            this._cleanupVillageMap();
+            // ★ 切换到翠竹村图片地图后返回游戏
+            if (window.GameConfig) {
+                window.GameConfig.currentMapId = 'village';
+            }
+            this._nextStep();
+        });
+
+        this._villageMapContinueBtn = continueBtn;
+
+        // 淡入效果
+        mapImg.setAlpha(0);
+        titleBar.setAlpha(0);
+        titleText.setAlpha(0);
+        this.tweens.add({
+            targets: [mapImg, titleBar, titleText],
+            alpha: 1,
+            duration: 600,
+            ease: 'Power2Out'
+        });
+    }
+
+    /**
+     * 清理村庄地图UI元素
+     */
+    _cleanupVillageMap() {
+        if (this._villageMapImg) { this._villageMapImg.destroy(); this._villageMapImg = null; }
+        if (this._villageMapContinueBtn) { this._villageMapContinueBtn.destroy(); this._villageMapContinueBtn = null; }
+
+        if (this._villageMapHotspots) {
+            this._villageMapHotspots.forEach(h => {
+                if (h.hitArea) h.hitArea.destroy();
+                if (h.dot) h.dot.destroy();
+                if (h.pulseRing) h.pulseRing.destroy();
+                if (h.label) h.label.destroy();
+            });
+            this._villageMapHotspots = [];
+        }
+
+        // 恢复背景图
+        if (this.bgImage) {
+            this.bgImage.setVisible(true);
+            this.bgImage.setAlpha(1);
+        }
     }
 
     /**

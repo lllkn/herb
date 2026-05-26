@@ -125,6 +125,12 @@ const GameConfig = {
                 'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (3).png'
             ],
             playerStart: { x: 2056, y: 344 }
+        },
+        // 地图3 - 翠竹村（图片式交互地图，非 Tilemap）
+        'village': {
+            name: '翠竹村',
+            isImageMap: true,
+            imagePath: 'src/assets/picture/翠竹村地图.png'
         }
     },
 

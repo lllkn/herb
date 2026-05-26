@@ -50,8 +50,8 @@ const GameData = {
           description: '各地药铺、村庄好感度+10', descDetail: '白院长亲笔书写，盖有学堂朱印。持此信者可在各地药铺获得优待，亦能证明你师出名门。' },
         { id: 'bai_caotu', name: '百草图录', type: 'document', category: '文书', icon: '📖', rarity: 'epic', rarityLabel: '史诗',
           description: '记录已发现草药的图鉴手册，可随时查阅', descDetail: '白院长毕生心血之作，收录天下草木药性。每一页都是一位医者的智慧结晶。' },
-        { id: 'map_cuizhu', name: '翠竹村地图', type: 'document', category: '文书', icon: '🗺️', rarity: 'uncommon', rarityLabel: '优良',
-          description: '翠竹村及周边区域的手绘地图', descDetail: '手绘于泛黄的宣纸之上，标注了村落、溪流、山林和可能的草药分布点。' },
+        { id: 'map_cuizhu', name: '城郊地图', type: 'document', category: '文书', icon: '🗺️', rarity: 'uncommon', rarityLabel: '优良',
+          description: '翠竹村周边区域的手绘地图', descDetail: '手绘于泛黄的宣纸之上，标注了村落、溪流、山林和可能的草药分布点。' },
         { id: 'map_qinghe', name: '清禾镇地图', type: 'document', category: '文书', icon: '🗺️', rarity: 'uncommon', rarityLabel: '优良',
           description: '清禾镇的详细地图，标注了商铺与地标', descDetail: '清禾镇为方圆百里最大的集市所在。此图标注了药铺、客栈、市集等重要地点。' },
         // === 特殊物品 ===

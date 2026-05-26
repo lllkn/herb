@@ -130,35 +130,49 @@ class GameScene extends Phaser.Scene {
     preload() {
         console.log('GameScene: 预加载资源...');
         
+        // ★ 强制村庄地图标志（C08 show_village_map 设置的双保险）
+        if (window._forceVillageMap) {
+            console.log('[GameScene preload] 检测到 _forceVillageMap 标志，强制使用 village 地图');
+            this.config.currentMapId = 'village';
+            window._forceVillageMap = false;
+        }
+        
         const mapId = this.config.currentMapId;
+        console.log('[GameScene preload] currentMapId =', mapId);
         const mapConfig = this.config.maps[mapId];
 
         if (mapConfig) {
-            // 清除旧的瓦片纹理缓存
-            const maxTilesets = 10;
-            for (let i = 0; i < maxTilesets; i++) {
-                const key = `tileset_${i}`;
-                if (this.textures.exists(key)) {
-                    this.textures.remove(key);
-                    console.log('已清除旧纹理:', key);
+            // ★ 图片式地图（非 Tilemap）：直接加载背景图片
+            if (mapConfig.isImageMap && mapConfig.imagePath) {
+                console.log(`[图片地图] 加载图片: ${mapConfig.imagePath}`);
+                this.load.image('_image_map_bg', mapConfig.imagePath);
+            } else {
+                // 清除旧的瓦片纹理缓存
+                const maxTilesets = 10;
+                for (let i = 0; i < maxTilesets; i++) {
+                    const key = `tileset_${i}`;
+                    if (this.textures.exists(key)) {
+                        this.textures.remove(key);
+                        console.log('已清除旧纹理:', key);
+                    }
                 }
-            }
 
-            // ★ 清除旧的碰撞纹理，确保重启时重新生成
-            if (this.textures.exists('_collision_tile')) {
-                this.textures.remove('_collision_tile');
+                // ★ 清除旧的碰撞纹理，确保重启时重新生成
+                if (this.textures.exists('_collision_tile')) {
+                    this.textures.remove('_collision_tile');
+                }
+                
+                // ★ JSON 不在 preload 加载，由 tryLoadMap() 同步 XHR 直接读取最新文件
+                
+                // 加载瓦片图片
+                if (mapConfig.tileImages) {
+                    mapConfig.tileImages.forEach((imgPath, index) => {
+                        const key = `tileset_${index}`;
+                        this.load.image(key, imgPath + '?v=' + Date.now());
+                    });
+                }
+                console.log(`预加载地图: ${mapId} - ${mapConfig.jsonPath}`);
             }
-            
-            // ★ JSON 不在 preload 加载，由 tryLoadMap() 同步 XHR 直接读取最新文件
-            
-            // 加载瓦片图片
-            if (mapConfig.tileImages) {
-                mapConfig.tileImages.forEach((imgPath, index) => {
-                    const key = `tileset_${index}`;
-                    this.load.image(key, imgPath + '?v=' + Date.now());
-                });
-            }
-            console.log(`预加载地图: ${mapId} - ${mapConfig.jsonPath}`);
         }
 
         // ── 清除旧玩家纹理和动画缓存 ──
@@ -200,11 +214,25 @@ class GameScene extends Phaser.Scene {
     create() {
         console.log('GameScene: 开始创建...');
 
+        // ★ 每次创建时重置状态（scene.start 不重置实例属性）
+        this._isImageMapMode = false;
+        this._imageMapBg = null;
+        this._villageHotspots = [];
+        // ★ 清除强制标志（防止后续地图切换时残留）
+        window._forceVillageMap = false;
+
         // 生成对象纹理（草药/NPC/传送门图标，替代圆圈）
         this.generateObjectTextures();
 
         // 加载地图（需要先加载，以便确定世界边界）
         this.tryLoadMap();
+        
+        // ★ 图片式地图：跳过玩家、碰撞、摄像机跟随等，直接初始化交互UI
+        if (this._isImageMapMode) {
+            this._ensureMainUI();       // ★ 关键：恢复主UI，隐藏IntroScene的遮罩层
+            this._setupImageMapUI();
+            return;
+        }
         
         // 创建玩家
         this.createPlayer();
@@ -335,6 +363,16 @@ class GameScene extends Phaser.Scene {
             console.warn('未找到地图配置');
             return;
         }
+
+        // ★ 图片式地图：走图片渲染路径
+        if (mapConfig.isImageMap) {
+            this._isImageMapMode = true;
+            this._initImageMap(mapConfig);
+            return;
+        }
+
+        // ★ 非图片式地图：重置标志
+        this._isImageMapMode = false;
 
         // ★ 始终同步 XHR 直接读取磁盘，URL 加随机参数确保绕过所有缓存层
         console.log('tryLoadMap: 同步 XHR 强制读取最新 JSON...');
@@ -1287,11 +1325,371 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * 备用：用背景图片
+     * 初始化图片式地图（非 Tilemap，静态背景图+可点击交互点）
+     * @param {Object} mapConfig - 地图配置（含 imagePath）
      */
-    useBackgroundImage() {
-        console.log('使用背景图片模式');
-        // 可以用 src/assets/picture/地图.png 作为背景
+    _initImageMap(mapConfig) {
+        console.log('[图片地图] 初始化:', mapConfig.name);
+
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+
+        if (!this.textures.exists('_image_map_bg')) {
+            console.error('[图片地图] 纹理未加载');
+            return;
+        }
+
+        // === 显示地图背景图 ===
+        const bg = this.add.image(width / 2, height / 2, '_image_map_bg')
+            .setOrigin(0.5, 0.5)
+            .setDepth(1);
+        
+        // 自适应屏幕缩放
+        const tex = this.textures.get('_image_map_bg');
+        const src = tex.source[0];
+        const imgRatio = src.width / src.height;
+        const screenRatio = width / height;
+        let dw, dh;
+        if (imgRatio > screenRatio) { dw = width; dh = width / imgRatio; }
+        else { dh = height; dw = height * imgRatio; }
+        bg.setDisplaySize(dw, dh);
+        this._imageMapBg = bg;
+
+        // 设置世界边界为屏幕大小
+        this.physics.world.setBounds(0, 0, width, height);
+        this.cameras.main.setBounds(0, 0, width, height);
+
+        // 标记 tiledMap 为空（避免后续报错）
+        this.tiledMap = null;
+
+        // 保存尺寸供热点使用
+        this._imageMapW = dw;
+        this._imageMapH = dh;
+    }
+
+    /**
+     * 图片式地图：设置交互UI（标题栏 + 可点击地点 + 底部提示）
+     */
+    /**
+     * ★ 初始化/重置村庄事件状态（持久化到 window，跨场景不丢失）
+     */
+    _initVillageEventState() {
+        if (!window._villageEventState) {
+            window._villageEventState = {
+                herb_garden: 'pending',      // pending → completed (C09)
+                well: 'pending',             // pending → completed (C10)
+                workshop: 'c11_pending',     // c11_pending → c11_done → completed (C11→C12 顺序)
+                residence: 'pending',         // pending → completed (C13)
+            };
+        }
+        // ★ 处理刚从剧情返回的完成标记
+        if (window._pendingVillageEvent) {
+            const evt = window._pendingVillageEvent;
+            const st = window._villageEventState;
+            st[evt.spotId] = evt.nextState;
+            console.log(`[村庄事件] ✅ ${evt.spotId} → ${evt.nextState}`, st);
+            delete window._pendingVillageEvent;
+        }
+    }
+
+    /**
+     * ★ 获取村庄热点的剧情事件配置
+     * @returns {Object|null} 事件配置，无剧情则 null
+     */
+    _getVillageEventConfig(spotId) {
+        const configs = {
+            herb_garden: { eventId: 'EVT_LAOLI_HERB_GARDEN', sceneIdx: 8,  locKey: 'loc_herb_garden',    name: 'C09·药圃辨药' },
+            well:        { eventId: 'EVT_WELL_VILLAGER',      sceneIdx: 9,  locKey: 'loc_well',           name: 'C10·水井线索' },
+            residence:   { eventId: 'EVT_ZHANG_DIAGNOSIS',    sceneIdx: 12, locKey: 'loc_zhang_home',     name: 'C13·张大娘问诊' },
+        };
+        return configs[spotId] || null;
+    }
+
+    /**
+     * ★ 触发村庄剧情事件（模拟 DebugManager 的跳转逻辑）
+     */
+    _triggerVillageEvent(sceneIdx, eventName) {
+        this.time.delayedCall(150, () => {
+            // ★ 确保第一章数据已加载（优先用 window 缓存，否则直接 fetch）
+            const chapter1Data = window._chapter1Data;
+            if (!chapter1Data) {
+                console.error('[村庄事件] ✗ window._chapter1Data 未加载，无法触发剧情');
+                return;
+            }
+
+            const startData = {
+                debugMode: true,
+                debugTargetIdx: sceneIdx,
+                returnToGame: true,
+                forceChapter1: chapter1Data,  // ★ 直接传入第一章数据，不走 _loadChapter 判断
+            };
+            // ★ 标记：剧情结束后必须回到翠竹村地图
+            window._returnToVillageMap = true;
+            console.log(`[村庄事件] ▶ 触发 ${eventName}（索引=${sceneIdx}，对应 ${chapter1Data.scenes[sceneIdx]?.id}），forceChapter1 已传递`);
+
+            // ★ 使用 game.scene.start 停止 GameScene，启动 IntroScene
+            this.game.scene.start('IntroScene', startData);
+        });
+    }
+
+    _setupImageMapUI() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        const dw = this._imageMapW || width;
+        const dh = this._imageMapH || height;
+
+        // ★ 确保 Canvas 在最顶层可见
+        this.scene.bringToTop();
+        const canvas = this.game.canvas;
+        if (canvas) {
+            canvas.style.display = 'block';
+            canvas.style.visibility = 'visible';
+        }
+
+        // ★ 确保背景图直接可见
+        if (this._imageMapBg) {
+            this._imageMapBg.setAlpha(1);
+            this._imageMapBg.setVisible(true);
+        }
+
+        // ★ 初始化村庄事件状态（并消费上次完成的标记）
+        this._initVillageEventState();
+
+        // === 顶部标题栏 ===
+        const titleBar = this.add.rectangle(width / 2, 28, width, 56, 0x1a1a2e, 0.85)
+            .setScrollFactor(0).setDepth(10);
+        this.add.text(width / 2, 28, '翠竹村', {
+            fontSize: '24px',
+            fontFamily: '"FangSong", "KaiTi", "STFangsong", serif',
+            color: '#d4af37',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(11);
+
+        // === 定义可点击地点（比例坐标 0~1，自动映射到实际显示尺寸）===
+        const locations = [
+            { id: 'plains_exit',   name: '城郊平原',   x: 0.08, y: 0.35, label: '城郊平原' },
+            { id: 'village_gate',  name: '翠竹村牌坊', x: 0.22, y: 0.48, label: '牌坊' },
+            { id: 'cunzhang_home', name: '村长家',     x: 0.50, y: 0.12, label: '村长家' },
+            { id: 'herb_garden',   name: '药圃',       x: 0.36, y: 0.38, label: '药圃',    hasStory: true, storyKey: 'C09' },
+            { id: 'well',          name: '水井',       x: 0.54, y: 0.48, label: '水井',    hasStory: true, storyKey: 'C10' },
+            { id: 'residence',     name: '民居',       x: 0.32, y: 0.72, label: '民居',    hasStory: true, storyKey: 'C13' },
+            { id: 'workshop',      name: '作坊',       x: 0.70, y: 0.72, label: '作坊',    hasStory: true, storyKey: 'C11+12' },
+            { id: 'ancient_tree',  name: '古树',       x: 0.76, y: 0.30, label: '古树' },
+            { id: 'valley_entrance',name: '溪流山谷',  x: 0.94, y: 0.45, label: '溪谷' },
+        ];
+
+        this._villageHotspots = [];
+
+        locations.forEach(loc => {
+            const spotX = width / 2 + (loc.x - 0.5) * dw;
+            const spotY = height / 2 + (loc.y - 0.5) * dh;
+
+            // ── 判断该地点是否有未完成的剧情（决定是否显示 "!"）──
+            let showExclamation = false;
+            if (loc.hasStory) {
+                const st = window._villageEventState;
+                const s = st[loc.id];
+                if (loc.id === 'workshop') {
+                    // 作坊：c11_pending 或 c11_done 都显示 "!"（还有事件未完成）
+                    showExclamation = (s === 'c11_pending' || s === 'c11_done');
+                } else {
+                    showExclamation = (s !== 'completed');
+                }
+            }
+
+            // 点击区域（透明圆形）
+            const hitArea = this.add.circle(spotX, spotY, 28, 0xffffff, 0)
+                .setInteractive({ useHandCursor: true })
+                .setDepth(8)
+                .setScrollFactor(0);
+
+            // 地点标记
+            let dot, pulseRing;
+            if (showExclamation) {
+                // ★ 有剧情 → 红色叹号标记
+                dot = this.add.text(spotX, spotY, '❗', {
+                    fontSize: '22px',
+                }).setOrigin(0.5, 0.5).setDepth(9).setScrollFactor(0);
+
+                pulseRing = this.add.circle(spotX, spotY, 10, 0xff4444, 0)
+                    .setStrokeStyle(2, 0xff6666, 0.7)
+                    .setDepth(8)
+                    .setScrollFactor(0);
+                this.tweens.add({
+                    targets: pulseRing,
+                    radius: 24,
+                    alpha: 0,
+                    duration: 1200,
+                    repeat: -1,
+                    ease: 'Sine.easeOut'
+                });
+            } else {
+                // 无剧情或已完成 → 金色圆点
+                dot = this.add.circle(spotX, spotY, 6, 0xd4af37, 0.9)
+                    .setStrokeStyle(2, 0xffffff, 0.8)
+                    .setDepth(9)
+                    .setScrollFactor(0);
+
+                pulseRing = this.add.circle(spotX, spotY, 6, 0xd4af37, 0)
+                    .setStrokeStyle(1.5, 0xd4af37, 0.5)
+                    .setDepth(8)
+                    .setScrollFactor(0);
+                this.tweens.add({
+                    targets: pulseRing,
+                    radius: 20,
+                    alpha: 0,
+                    duration: 1500,
+                    repeat: -1,
+                    ease: 'Sine.easeOut'
+                });
+            }
+
+            // 地名标签
+            const label = this.add.text(spotX, spotY - 22, loc.label, {
+                fontSize: '13px',
+                fontFamily: '"FangSong", "STFangsong", serif',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 2,
+                backgroundColor: '#00000066',
+                padding: { x: 4, y: 1 }
+            }).setOrigin(0.5).setDepth(10).setScrollFactor(0);
+
+            // 点击事件
+            hitArea.on('pointerdown', () => {
+                console.log(`[村庄地图] 点击了: ${loc.name} (${loc.id}) hasStory=${loc.hasStory}`);
+
+                if (!loc.hasStory) {
+                    // 无剧情 → 仅浮动文字
+                    this._showVillageFloatText(`${loc.name}`, spotX, spotY);
+                    return;
+                }
+
+                // ★ 检查事件状态
+                const st = window._villageEventState;
+                const currentState = st[loc.id];
+
+                // ── 作坊特殊处理：C11 → C12 顺序触发 ──
+                if (loc.id === 'workshop') {
+                    if (currentState === 'completed') {
+                        this._showVillageFloatText('已经探索完毕了', spotX, spotY);
+                        return;
+                    }
+                    if (currentState === 'c11_pending') {
+                        // 触发 C11（晒药台）
+                        window._pendingVillageEvent = {
+                            spotId: 'workshop', locKey: 'loc_drying_platform',
+                            eventIdx: 10, nextState: 'c11_done'
+                        };
+                        this._triggerVillageEvent(10, 'C11·晒药台');
+                    } else if (currentState === 'c11_done') {
+                        // 触发 C12（空置药铺）
+                        window._pendingVillageEvent = {
+                            spotId: 'workshop', locKey: 'loc_empty_shop',
+                            eventIdx: 11, nextState: 'completed'
+                        };
+                        this._triggerVillageEvent(11, 'C12·空置药铺');
+                    }
+                    return;
+                }
+
+                // ── 普通单次事件 ──
+                if (currentState === 'completed') {
+                    this._showVillageFloatText('已经探索完毕了', spotX, spotY);
+                    return;
+                }
+
+                const cfg = this._getVillageEventConfig(loc.id);
+                if (cfg) {
+                    window._pendingVillageEvent = {
+                        spotId: loc.id, locKey: cfg.locKey,
+                        eventIdx: cfg.sceneIdx, nextState: 'completed'
+                    };
+                    this._triggerVillageEvent(cfg.sceneIdx, cfg.name);
+                }
+            });
+
+            // 悬停高亮
+            hitArea.on('pointerover', () => {
+                if (showExclamation) {
+                    dot.setScale(1.3);
+                    this.tweens.killTweensOf(pulseRing);
+                    pulseRing.setStrokeStyle(2.5, 0xff8888, 0.9);
+                } else {
+                    dot.setFillStyle(0xffd700, 1); dot.setScale(1.3);
+                    this.tweens.killTweensOf(pulseRing);
+                    pulseRing.setStrokeStyle(2, 0xffd700, 0.7);
+                }
+                label.setColor('#ffdd44');
+            });
+            hitArea.on('pointerout', () => {
+                if (showExclamation) {
+                    dot.setScale(1);
+                    pulseRing.setStrokeStyle(2, 0xff6666, 0.7);
+                    this.tweens.add({ targets: pulseRing, radius: 24, alpha: 0, duration: 1200, repeat: -1, ease: 'Sine.easeOut' });
+                } else {
+                    dot.setFillStyle(0xd4af37, 0.9); dot.setScale(1);
+                    pulseRing.setStrokeStyle(1.5, 0xd4af37, 0.5);
+                    this.tweens.add({ targets: pulseRing, radius: 20, alpha: 0, duration: 1500, repeat: -1, ease: 'Sine.easeOut' });
+                }
+                label.setColor('#ffffff');
+            });
+
+            // 储存引用（如果是文本类型的 dot，需要特殊处理悬停动画）
+            const isTextDot = (showExclamation);
+            this._villageHotspots.push({ hitArea, dot, pulseRing, label, locId: loc.id, isTextDot });
+        });
+
+        // === 底部提示文字（动态，根据探索进度变化）===
+        const state = window._villageEventState;
+        const completedCount = [state.herb_garden, state.well, state.residence]
+            .filter(s => s === 'completed').length
+            + (state.workshop === 'completed' ? 1 : 0);
+        const totalTasks = 4;
+        const hintText = completedCount >= totalTasks
+            ? '🎉 翠竹村探索完成！返回村长家推进主线'
+            : `点击地图上 ❗ 标记处探索村庄 · 已完成 ${completedCount}/${totalTasks}`;
+        this.add.text(width / 2, height - 28, hintText, {
+            fontSize: '14px',
+            fontFamily: '"FangSong", serif',
+            color: completedCount >= totalTasks ? '#ffd700' : '#cccccc',
+            backgroundColor: '#00000088',
+            padding: { x: 12, y: 6 }
+        }).setOrigin(0.5).setDepth(11).setScrollFactor(0);
+
+        console.log('[图片地图] UI 初始化完成，共', locations.length, '个交互点，',
+            '剧情进度:', completedCount, '/', totalTasks);
+
+        // 更新UI（图片地图模式也需要）
+        if (window.uiManager) {
+            window.uiManager.updateMinimapTitle();
+            window.uiManager.updateBackpackUI();
+        }
+    }
+
+    /**
+     * 村庄地图：显示浮动文字反馈
+     */
+    _showVillageFloatText(text, x, y) {
+        const floatText = this.add.text(x, y - 40, text, {
+            fontSize: '18px',
+            fontFamily: '"FangSong", serif',
+            color: '#ffd700',
+            stroke: '#000000',
+            strokeThickness: 3,
+            backgroundColor: '#000000aa',
+            padding: { x: 8, y: 4 }
+        }).setOrigin(0.5).setDepth(20).setScrollFactor(0);
+
+        this.tweens.add({
+            targets: floatText,
+            y: floatText.y - 50,
+            alpha: 0,
+            duration: 1200,
+            ease: 'Cubic.easeOut',
+            onComplete: () => floatText.destroy()
+        });
     }
 
     /**

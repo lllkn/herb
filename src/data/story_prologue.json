@@ -825,7 +825,7 @@
           "id": "S07_tutorial_1",
           "type": "tutorial",
           "tutorialAction": "open_backpack_tutorial",
-          "hint": "按 B 键或点击右上角「背包」按钮查看行囊，看完后自行关闭",
+          "hint": "点击右上角「背包」按钮查看行囊，看完后自行关闭",
           "hintPosition": "bottom",
           "nextDelay": 0
         },
@@ -881,7 +881,7 @@
           "character": "xiaolan",
           "expression": "anxious",
           "name": "小兰",
-          "text": "师兄/师姐！你终于来了！今早刚收到翠竹村加急送来的信——（递过信纸）",
+          "text": "师姐！你终于来了！今早刚收到翠竹村加急送来的信——（递过信纸）",
           "avatar": "xiaolan.png",
           "nextDelay": 500
         },
@@ -1038,7 +1038,7 @@
           "character": "xiaolan",
           "expression": "grateful",
           "name": "小兰",
-          "text": "（挥手，眼中含泪）师兄/师姐一路平安！……记得平安回来啊！翠竹村的婆婆们还在等着呢！",
+          "text": "（挥手，眼中含泪）师姐一路平安！……记得平安回来啊！咱们师弟师妹等你回家呢！",
           "avatar": "xiaolan.png",
           "nextDelay": 500
         },
@@ -1129,7 +1129,7 @@
             },
             {
               "id": "map_cuizhu",
-              "name": "翠竹村地图",
+              "name": "城郊地图",
               "description": "解锁",
               "icon": "🗺"
             }

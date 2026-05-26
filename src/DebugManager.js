@@ -542,6 +542,7 @@ class DebugManager {
                     const startData = { 
                         debugMode: true, 
                         debugTargetIdx: idx,
+                        returnToGame: true,  // ★ 剧情结束后自动返回 GameScene
                     };
                     if (usedFallback && data && data.storyId === 'chapter_1') {
                         startData.forceChapter1 = data;
