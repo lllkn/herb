@@ -243,16 +243,24 @@
             </div>
         </div>
 
-        <!-- 药铺弹窗 -->
+        <!-- 药铺弹窗（直接启动问诊小游戏，此处为快速入口） -->
         <div id="medicine-shop-modal" class="modal">
             <div class="modal-header">
-                <h2>💊 药斋</h2>
+                <h2>💊 清禾药斋</h2>
                 <button class="modal-close">✕</button>
             </div>
-            <div class="modal-body">
-                <p style="text-align: center; color: #8b7355; margin-top: 50px; font-size: 18px;">
-                    🏪 药斋界面<br><br>
-                    <span style="font-size: 14px;">此处将展示药材购买、处方配制药能</span>
+            <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 30px;">
+                <p style="text-align: center; color: #8b7355; font-size: 18px; line-height: 2;">
+                    📜 杏林问诊录<br>
+                    <span style="font-size: 14px;">望闻问切 · 四诊合参 · 辨证开方</span>
+                </p>
+                <button id="btn-start-diagnosis" 
+                    style="padding: 12px 36px; font-size: 18px; background: #4A2410; color: #FFE580; 
+                           border: 2px solid #D4883A; border-radius: 12px; cursor: pointer; font-family: serif;">
+                    ✦ 开始问诊 ✦
+                </button>
+                <p style="text-align: center; color: #907858; font-size: 13px; margin-top: 8px;">
+                    轮流挑战柳清婉、张大娘、周远山三位病症
                 </p>
             </div>
         </div>

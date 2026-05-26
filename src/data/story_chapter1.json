@@ -839,11 +839,21 @@
           "nextDelay": 500
         },
         {
+          "id": "C13_004",
+          "type": "dialogue",
+          "character": "zhangdaniang",
+          "expression": "grateful",
+          "name": "张大娘",
+          "text": "（颤巍巍从枕下摸出一个布包）老身没什么值钱的东西……这是攒了许久的诊金，大夫莫要嫌弃。村里老少都看在眼里，定会念着您的好……",
+          "avatar": "zhangdaniang.png",
+          "nextDelay": 800
+        },
+        {
           "id": "C13_reward",
           "type": "reward",
           "items": [
-            { "id": "copper",     "name": "诊费",   "count": 30,  "icon": "💰" },
-            { "id": "reputation", "name": "医者声望", "count": 10, "icon": "⭐" }
+            { "id": "copper",     "name": "诊金报酬", "count": 80,  "icon": "💰" },
+            { "id": "reputation", "name": "翠竹村声望", "count": 15, "icon": "⭐" }
           ],
           "nextDelay": 800
         }
@@ -870,7 +880,7 @@
           "character": "cunzhang",
           "expression": "serious",
           "name": "村长 张老汉",
-          "text": "大夫，张大娘的方子里需要「茵陈」和「芦根」……村里的药圃全枯了，只有东边溪谷才有。",
+          "text": "大夫，张大娘的方子里需要「山药」和「茯苓」……村里的药铺早没了存货，只有东边溪谷的山坡上才有野生的。",
           "avatar": "village_chief.png",
           "nextDelay": 500
         },
@@ -880,7 +890,7 @@
           "character": "cunzhang",
           "expression": "worried",
           "name": "村长 张老汉",
-          "text": "茵陈要在清明节气才药效最好，现在时节正合适。但溪谷路不好走，你一个人……",
+          "text": "山药要在霜降后采挖药性最足，现在时节正合适。但溪谷路不好走，你一个人……",
           "avatar": "village_chief.png",
           "nextDelay": 500
         },
@@ -890,7 +900,7 @@
           "character": "qingmiao",
           "expression": "happy",
           "name": "青苗",
-          "text": "（抢答）青苗可以引路！青苗感知到溪谷那边有大量茵陈的气息！还有芦根！很多！",
+          "text": "（抢答）青苗可以引路！青苗感知到溪谷那边有大量野生山药的气息！还有茯苓！很多！",
           "avatar": "qingmiao.png",
           "nextDelay": 500
         },
@@ -933,7 +943,7 @@
           "character": "qingmiao",
           "expression": "happy",
           "name": "青苗",
-          "text": "（兴奋地绕着主人飞转）到了！茵陈就在溪边！芦根也有！还有……（停顿）……还有一股很奇怪的气味。主人，小心一点。",
+          "text": "（兴奋地绕着主人飞转）到了！山药就在溪谷山坡上！茯苓也有！还有……（停顿）……还有一股很奇怪的气味。主人，小心一点。",
           "avatar": "qingmiao.png",
           "nextDelay": 500
         },
@@ -941,14 +951,14 @@
           "id": "C15_002",
           "type": "tutorial",
           "tutorialAction": "valley_explore",
-          "hint": "溪流山谷·探索提示\n🌿 沿溪岸向南行进，采集茵陈和芦根\n⚠️ 水面不可直接通行，需踩石桥\n🔍 注意青苗的感知提示",
+          "hint": "溪流山谷·探索提示\n🌿 沿溪岸向南行进，采集山药和茯苓\n⚠️ 水面不可直接通行，需踩石桥\n🔍 注意青苗的感知提示",
           "hintPosition": "top-center",
           "nextDelay": 0
         },
         {
           "id": "C15_003",
           "type": "narration",
-          "text": "沿溪岸向南，茵陈的清香越来越浓……",
+          "text": "沿溪岸向南，山药的藤蔓爬满了山坡……",
           "nextDelay": 2000
         },
         {
@@ -957,17 +967,17 @@
           "character": "qingmiao",
           "expression": "happy",
           "name": "青苗",
-          "text": "那里！那里！茵陈！清明时节的茵陈最好！快采快采！",
+          "text": "那里！那里！山药！霜降后的山药最肥！快挖快挖！",
           "avatar": "qingmiao.png",
           "nextDelay": 300
         },
         {
           "id": "C15_005",
           "type": "tutorial",
-          "tutorialAction": "collect_yinchen",
-          "herbId": "yinchen",
+          "tutorialAction": "collect_shanyao",
+          "herbId": "shanyao",
           "requiredCount": 5,
-          "hint": "采集茵陈 ×5（清明节气·品质+2）",
+          "hint": "采集山药 ×5（霜降后采挖·品质+2）",
           "hintPosition": "bottom-center",
           "nextDelay": 0
         },
@@ -977,14 +987,14 @@
           "character": "qingmiao",
           "expression": "happy",
           "name": "青苗",
-          "text": "茵陈够了！继续往里走——芦根在溪边深处！",
+          "text": "山药够了！继续往里走——茯苓在松林深处！",
           "avatar": "qingmiao.png",
           "nextDelay": 300
         },
         {
           "id": "C15_007",
           "type": "narration",
-          "text": "芦苇越来越密，水雾漫上来，遮住了前路……",
+          "text": "松林越来越密，雾气漫上来，遮住了前路……",
           "nextDelay": 2000
         },
         {
@@ -1027,7 +1037,7 @@
         {
           "id": "C15_012",
           "type": "narration",
-          "text": "芦苇尽头，豁然开朗——",
+          "text": "松林尽头，豁然开朗——",
           "nextDelay": 1500
         },
         {
@@ -1097,7 +1107,7 @@
         {
           "id": "C15_015",
           "type": "narration",
-          "text": "正这时，芦苇丛中传来脚步声——一个风尘仆仆的旅人，从雾气中走出。",
+          "text": "正这时，松林深处传来脚步声——一个风尘仆仆的旅人，从雾气中走出。",
           "nextDelay": 1500
         },
         {
@@ -1162,7 +1172,7 @@
         {
           "id": "C16_001",
           "type": "narration",
-          "text": "背囊里，茵陈和芦根的清香混合着溪水的气息——张大娘的药，备齐了。",
+          "text": "背囊里，山药和茯苓的清香混合着溪水的气息——张大娘的药，备齐了。",
           "nextDelay": 2000
         },
         {
