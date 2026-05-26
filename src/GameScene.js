@@ -33,6 +33,7 @@ class GameScene extends Phaser.Scene {
             'merchant_npc': 5,         // C06 行商王掌柜
             'abandoned_basket': 3,     // C04 废弃草药篓
             'gancao': 1,               // C02 第一株甘草
+            'cuizhu_gate': 6,          // C07 翠竹村牌坊
         };
     }
 
@@ -106,6 +107,7 @@ class GameScene extends Phaser.Scene {
         this.player = null;
         this.herbs = [];
         this.npcs = [];
+        this.portals = [];
         this.cursors = null;
         this.wasd = null;
         this.eKey = null;
@@ -119,6 +121,7 @@ class GameScene extends Phaser.Scene {
         this.collisionMap = null;
         this._rawMapJson = null;
         this._shutdownRegistered = false;
+        this._gancaoStoryTriggering = false;
     }
 
     /**
@@ -131,12 +134,6 @@ class GameScene extends Phaser.Scene {
         const mapConfig = this.config.maps[mapId];
 
         if (mapConfig) {
-            // 清除旧的地图缓存，防止切换地图时键冲突
-            if (this.cache.json.exists('gameMap')) {
-                this.cache.json.remove('gameMap');
-                console.log('已清除旧缓存: gameMap');
-            }
-            
             // 清除旧的瓦片纹理缓存
             const maxTilesets = 10;
             for (let i = 0; i < maxTilesets; i++) {
@@ -152,14 +149,13 @@ class GameScene extends Phaser.Scene {
                 this.textures.remove('_collision_tile');
             }
             
-            // 直接加载原始 Tiled JSON 数据，手动解析外部 tileset
-            this.load.json('gameMap', mapConfig.jsonPath);
+            // ★ JSON 不在 preload 加载，由 tryLoadMap() 同步 XHR 直接读取最新文件
             
             // 加载瓦片图片
             if (mapConfig.tileImages) {
                 mapConfig.tileImages.forEach((imgPath, index) => {
                     const key = `tileset_${index}`;
-                    this.load.image(key, imgPath);
+                    this.load.image(key, imgPath + '?v=' + Date.now());
                 });
             }
             console.log(`预加载地图: ${mapId} - ${mapConfig.jsonPath}`);
@@ -329,6 +325,7 @@ class GameScene extends Phaser.Scene {
 
     /**
      * 尝试加载 Tiled 地图
+     * ★ 始终使用同步 XHR 直接从磁盘读取，绝对不走任何缓存
      */
     tryLoadMap() {
         const mapId = this.config.currentMapId;
@@ -339,21 +336,30 @@ class GameScene extends Phaser.Scene {
             return;
         }
 
-        if (this.cache.json.exists('gameMap')) {
-            console.log('tryLoadMap: 已缓存 gameMap，直接初始化');
-            this._rawMapJson = this.cache.json.get('gameMap');
-            this.initTiledMap();
-            return;
+        // ★ 始终同步 XHR 直接读取磁盘，URL 加随机参数确保绕过所有缓存层
+        console.log('tryLoadMap: 同步 XHR 强制读取最新 JSON...');
+        try {
+            const xhr = new XMLHttpRequest();
+            const cacheBuster = '_=' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+            xhr.open('GET', mapConfig.jsonPath + '?' + cacheBuster, false);
+            xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            xhr.send(null);
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                this._rawMapJson = data;
+                const objLayer = data.layers.find(l => l.type === 'objectgroup');
+                console.log('tryLoadMap: JSON 加载成功, 对象层',
+                    objLayer ? objLayer.objects.length + '个对象' : '无',
+                    objLayer ? JSON.stringify(objLayer.objects.map(o => ({name:o.name, x:Math.round(o.x), y:Math.round(o.y)}))) : '');
+                this.initTiledMap();
+                return;
+            }
+        } catch (e) {
+            console.error('同步 XHR 失败:', e.message);
         }
 
-        if (this.cache.json.get('gameMap')) {
-            console.log('tryLoadMap: 从缓存 json 创建');
-            this._rawMapJson = this.cache.json.get('gameMap');
-            this.initTiledMap();
-            return;
-        }
-
-        this.loadMapFallback(mapConfig);
+        this.showError('地图加载失败');
+        this.tiledMap = null;
     }
 
     /**
@@ -361,16 +367,13 @@ class GameScene extends Phaser.Scene {
      */
     loadMapFallback(mapConfig) {
         console.warn('地图 JSON 未加载，尝试备用加载...');
-        fetch(mapConfig.jsonPath)
+        fetch(mapConfig.jsonPath + '?v=' + Date.now(), { cache: 'no-cache' })
             .then(r => {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.json();
             })
             .then(data => {
                 console.log('fetch 加载成功，手动创建地图...');
-                if (!this.cache.json.exists('gameMap')) {
-                    this.cache.json.add('gameMap', data);
-                }
                 this._rawMapJson = data;
                 this.initTiledMap();
             })
@@ -573,13 +576,14 @@ class GameScene extends Phaser.Scene {
      */
     createMapFromCachedTilemap(mapConfig) {
         try {
-            const map = this.make.tilemap({ key: 'gameMap' });
+            // ★ 使用 _rawMapJson 直接创建，不再依赖预加载的 'gameMap' key
+            const map = this.make.tilemap({ data: this._rawMapJson });
             if (!map) {
-                throw new Error('make.tilemap(key=gameMap) 返回 null');
+                throw new Error('make.tilemap(data) 返回 null');
             }
 
             this.tiledMap = map;
-            this._rawMapJson = this.cache.json.get('gameMap');
+            // _rawMapJson 已由 tryLoadMap() 设置，不再从缓存读取
             console.log('✅ 缓存 tilemap 创建成功，图层:', map.layers.map(l => l.name).join(', '));
 
             const loadedTilesets = [];
@@ -681,11 +685,10 @@ class GameScene extends Phaser.Scene {
             console.log('createMapFromCachedTilemap: 已调用 setupWalkCollision 和 bindWalkCollider');
         } catch (e) {
             console.warn('缓存 tilemap 创建失败，回退到手动创建:', e.message);
-            const mapData = this.cache.json.get('gameMap');
-            if (mapData) {
-                this.createMapFromData(mapData, mapConfig);
+            if (this._rawMapJson) {
+                this.createMapFromData(this._rawMapJson, mapConfig);
             } else {
-                this.showError('无法创建地图: 缓存 tilemap 和 JSON 数据均不可用');
+                this.showError('无法创建地图: JSON 数据不可用');
             }
         }
     }
@@ -718,10 +721,9 @@ class GameScene extends Phaser.Scene {
         try {
             console.log('===== 初始化 Tiled 地图 =====');
 
-            // 0. 获取原始 JSON 数据（缓存区）
-            this._rawMapJson = this.cache.json.get('gameMap');
+            // 0. 使用 tryLoadMap() 已经通过 XHR 加载的 JSON 数据
             if (!this._rawMapJson) {
-                console.warn('JSON缓存中无 gameMap，尝试备用加载...');
+                console.warn('_rawMapJson 为空，尝试备用加载...');
                 this.loadMapFallback(mapConfig);
                 return;
             }
@@ -938,7 +940,13 @@ class GameScene extends Phaser.Scene {
                 // 地图中 type="herbs" 的实际是剧情触发甘草（非采集）
                 this.createStoryHerb(obj);
             } else if (type === 'portal') {
-                this.createPortal(obj);
+                // ★ 翠竹村牌坊：触发剧情 C07，而非传送
+                if (obj.name && obj.name.includes('翠竹村')) {
+                    console.log(`翠竹村牌坊 → 剧情触发模式`);
+                    this.createNPC(obj);  // 复用 NPC 创建逻辑
+                } else {
+                    this.createPortal(obj);
+                }
             } else if (type === 'npc') {
                 this.createNPC(obj);
             } else if (type === 'object') {
@@ -1018,6 +1026,15 @@ class GameScene extends Phaser.Scene {
 
         const x = obj.x;
         const y = obj.y;
+
+        // ★ 甘草：跳过已采集的位置
+        if (herbId === 'gancao' && window._collectedGancaoPositions) {
+            const posKey = `${Math.round(x)}_${Math.round(y)}`;
+            if (window._collectedGancaoPositions.has(posKey)) {
+                console.log(`甘草 (${x},${y}) 已采集，跳过创建`);
+                return;
+            }
+        }
 
         let herbSprite;
 
@@ -1141,9 +1158,10 @@ class GameScene extends Phaser.Scene {
         let npcId = props.npc_id || '';
         const name = (obj.name || props.name || 'NPC').trim();
 
-        // 对于没有 npc_id 的交互物（如药篓），从名称映射
+        // 对于没有 npc_id 的交互物（如药篓、翠竹村牌坊），从名称映射
         const nameToId = {
             '药篓': 'abandoned_basket',
+            '翠竹村': 'cuizhu_gate',
         };
         if (!npcId && nameToId[name]) {
             npcId = nameToId[name];
@@ -1152,12 +1170,6 @@ class GameScene extends Phaser.Scene {
         const storyIdx = this._npcStorySceneMap[npcId] !== undefined
             ? this._npcStorySceneMap[npcId]
             : -1;
-
-        // ★ 剧情已完成 → 不再创建精灵和交互数据
-        if (npcId && window._completedNpcs && window._completedNpcs.has(npcId)) {
-            console.log(`NPC/交互物: "${name}" (${npcId}) 剧情已完成，跳过创建`);
-            return;
-        }
 
         // 精灵锚点(0.5, 1) → 底部中心对齐对象中心
         const spriteX = obj.x + (obj.width || 0) / 2;
@@ -1169,7 +1181,7 @@ class GameScene extends Phaser.Scene {
 
         console.log(`NPC/交互物: "${name}" (${npcId}) → 剧情索引: ${storyIdx}, 位置: (${spriteX}, ${spriteY})`);
 
-        // 创建精灵（先尝试 npc_ 前缀，再尝试 obj_ 前缀）
+        // 创建精灵（先尝试 npc_ 前缀，再尝试 obj_ 前缀，最后尝试 tileset 纹理回退）
         const texKeyNpc = `npc_${npcId}`;
         const texKeyObj = `obj_${npcId}`;
         let npcSprite = null;
@@ -1185,20 +1197,38 @@ class GameScene extends Phaser.Scene {
             npcSprite.setDepth(5);
             console.log(`  ✓ 精灵已创建: ${texKeyObj}`);
         } else if (npcId) {
-            // 如果没有对应纹理，生成一个占位图标
-            console.warn(`  ⚠ 纹理不存在: ${texKeyNpc} / ${texKeyObj}，使用占位图标`);
-            const g = this.make.graphics({ add: false });
-            g.fillStyle(0xcc8844);
-            g.fillCircle(16, 16, 14);
-            g.fillStyle(0x664422);
-            g.fillCircle(12, 12, 4);
-            g.fillCircle(20, 12, 4);
-            g.fillCircle(16, 16, 3);
-            g.generateTexture(`_npc_fallback_${npcId}`, 32, 32);
-            g.destroy();
-            npcSprite = this.add.image(spriteX, spriteY, `_npc_fallback_${npcId}`);
-            npcSprite.setOrigin(0.5, 1);
-            npcSprite.setDepth(5);
+            // ★ 回退1：尝试通过 tileset GID 查找纹理（如翠竹村牌坊用 plain.png）
+            const tsName = this._getTilesetNameByGid(obj.gid || 0);
+            if (tsName) {
+                const fallbackKeys = [`obj_${tsName}`, `npc_${tsName}`, tsName];
+                let foundKey = null;
+                for (const k of fallbackKeys) {
+                    if (this.textures.exists(k)) { foundKey = k; break; }
+                }
+                if (foundKey) {
+                    npcSprite = this.add.image(spriteX, spriteY, foundKey);
+                    npcSprite.setOrigin(0.5, 1);
+                    npcSprite.setDepth(5);
+                    console.log(`  ✓ 精灵已创建（tileset回退）: ${foundKey}`);
+                }
+            }
+            
+            // ★ 回退2：如果仍没有纹理，生成一个占位图标
+            if (!npcSprite) {
+                console.warn(`  ⚠ 纹理不存在: ${texKeyNpc} / ${texKeyObj}，使用占位图标`);
+                const g = this.make.graphics({ add: false });
+                g.fillStyle(0xcc8844);
+                g.fillCircle(16, 16, 14);
+                g.fillStyle(0x664422);
+                g.fillCircle(12, 12, 4);
+                g.fillCircle(20, 12, 4);
+                g.fillCircle(16, 16, 3);
+                g.generateTexture(`_npc_fallback_${npcId}`, 32, 32);
+                g.destroy();
+                npcSprite = this.add.image(spriteX, spriteY, `_npc_fallback_${npcId}`);
+                npcSprite.setOrigin(0.5, 1);
+                npcSprite.setDepth(5);
+            }
         } else {
             console.warn(`  ⚠ 缺少可识别 ID，跳过精灵创建: "${name}"`);
         }
@@ -1527,6 +1557,23 @@ class GameScene extends Phaser.Scene {
         });
 
         if (near) {
+            // ★ 甘草：C02 剧情未完成 → 靠近自动触发（不需要按 E），同时自动采集
+            if (near.data.id === 'gancao') {
+                const gancaoCompleted = window._completedNpcs && window._completedNpcs.has('gancao');
+                if (!gancaoCompleted && !this._gancaoStoryTriggering) {
+                    this._gancaoStoryTriggering = true;
+                    console.log('▶ 靠近甘草，自动采集并触发 C02 第一株甘草剧情');
+                    // ★ 先采集甘草（入背包、保存位置、隐藏），再触发剧情
+                    this.collect(near);
+                    this.triggerStoryScene({
+                        name: '甘草',
+                        npcId: 'gancao',
+                        storyIdx: this._npcStorySceneMap['gancao'] || 1
+                    });
+                    return;
+                }
+                // ★ C02 已完成，正常采集
+            }
             window.uiManager.showCollectPrompt(near.data.name);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
                 this.collect(near);
@@ -1550,26 +1597,15 @@ class GameScene extends Phaser.Scene {
         window.uiManager.updateHerbGuideUI();
         window.uiManager.updateTaskProgress();
 
-        // ★ 甘草采集计数 → 采完3株后触发 C02 第一株甘草剧情
+        // ★ 甘草采集计数 + 持久化位置（防止场景重启后复现）
         console.log(`[collect] herbId=${herb.data.id}, name=${herb.data.name}`);
         if (herb.data.id === 'gancao') {
-            const completed = window._completedNpcs && window._completedNpcs.has('gancao');
-            if (completed) return;
-
             window._gancaoCollected = (window._gancaoCollected || 0) + 1;
+            if (!window._collectedGancaoPositions) window._collectedGancaoPositions = new Set();
+            const posKey = `${Math.round(herb.sprite.x)}_${Math.round(herb.sprite.y)}`;
+            window._collectedGancaoPositions.add(posKey);
             const remaining = this.herbs.filter(h => h.data.id === 'gancao' && !h.collected).length;
-            console.log(`甘草采集进度: ${window._gancaoCollected}/3, 剩余: ${remaining}`);
-
-            if (window._gancaoCollected >= 3) {
-                this.time.delayedCall(600, () => {
-                    console.log('▶ 触发 C02 第一株甘草剧情');
-                    this.triggerStoryScene({
-                        name: '甘草',
-                        npcId: 'gancao',
-                        storyIdx: this._npcStorySceneMap['gancao'] || 1
-                    });
-                });
-            }
+            console.log(`甘草采集进度: ${window._gancaoCollected}/3, 剩余: ${remaining}, 位置已保存: ${posKey}`);
         }
     }
 
