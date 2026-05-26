@@ -124,7 +124,7 @@ const GameConfig = {
                 'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (2).png',
                 'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (3).png'
             ],
-            playerStart: { x: 2330, y: 1250 }
+            playerStart: { x: 2056, y: 344 }
         }
     },
 

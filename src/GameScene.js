@@ -2,6 +2,7 @@
  * 游戏场景模块 - GameScene
  * Phaser 游戏核心逻辑
  */
+console.log('GameScene.js: script loaded');
 
 class GameScene extends Phaser.Scene {
     constructor() {
@@ -10,6 +11,7 @@ class GameScene extends Phaser.Scene {
         this.player = null;
         this.herbs = [];
         this.npcs = [];      // NPC 交互数据：{ name, x, y, w, h, storyIdx }
+        this.portals = [];   // 传送门数据：{ sprite, targetMap }
         this.cursors = null;
         this.wasd = null;
         this.eKey = null;
@@ -150,8 +152,8 @@ class GameScene extends Phaser.Scene {
                 this.textures.remove('_collision_tile');
             }
             
-            // 使用 Phaser 内置的 Tiled JSON 加载（存入 tilemap cache）
-            this.load.tilemapTiledJSON('gameMap', mapConfig.jsonPath);
+            // 直接加载原始 Tiled JSON 数据，手动解析外部 tileset
+            this.load.json('gameMap', mapConfig.jsonPath);
             
             // 加载瓦片图片
             if (mapConfig.tileImages) {
@@ -333,27 +335,32 @@ class GameScene extends Phaser.Scene {
         const mapConfig = this.config.maps[mapId];
 
         if (!mapConfig) {
-            console.error('未找到地图配置:', mapId);
-            this.showError('未找到地图配置: ' + mapId);
+            console.warn('未找到地图配置');
             return;
         }
 
-        // 检查缓存中是否有地图数据
-        if (!this.cache.json.exists('gameMap')) {
-            console.warn('地图 JSON 未加载，尝试备用加载...');
-            this.loadMapFallback(mapConfig);
+        if (this.cache.json.exists('gameMap')) {
+            console.log('tryLoadMap: 已缓存 gameMap，直接初始化');
+            this._rawMapJson = this.cache.json.get('gameMap');
+            this.initTiledMap();
             return;
         }
 
-        this.initTiledMap();
+        if (this.cache.json.get('gameMap')) {
+            console.log('tryLoadMap: 从缓存 json 创建');
+            this._rawMapJson = this.cache.json.get('gameMap');
+            this.initTiledMap();
+            return;
+        }
+
+        this.loadMapFallback(mapConfig);
     }
-    
+
     /**
-     * 备用加载方案：使用 fetch
+     * 备用加载地图 JSON（Fetch 回退）
      */
     loadMapFallback(mapConfig) {
-        console.log('使用 fetch 加载地图 JSON...');
-        
+        console.warn('地图 JSON 未加载，尝试备用加载...');
         fetch(mapConfig.jsonPath)
             .then(r => {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -361,7 +368,11 @@ class GameScene extends Phaser.Scene {
             })
             .then(data => {
                 console.log('fetch 加载成功，手动创建地图...');
-                this.createMapFromData(data, mapConfig);
+                if (!this.cache.json.exists('gameMap')) {
+                    this.cache.json.add('gameMap', data);
+                }
+                this._rawMapJson = data;
+                this.initTiledMap();
             })
             .catch(err => {
                 console.error('fetch 加载失败:', err);
@@ -369,7 +380,7 @@ class GameScene extends Phaser.Scene {
                 this.tiledMap = null;
             });
     }
-    
+
     /**
      * 从 JSON 数据手动创建地图
      */
@@ -395,80 +406,105 @@ class GameScene extends Phaser.Scene {
             
             // 2. 添加瓦片集图片
             const loadedTilesets = [];
-            
-            if (mapConfig.tileImages) {
+
+            if (mapConfig.tileImages && Array.isArray(mapConfig.tileImages)) {
                 mapConfig.tileImages.forEach((imgPath, index) => {
                     const key = `tileset_${index}`;
-                    
-                    // 检查图片是否已加载
-                    if (this.textures.exists(key)) {
-                        const tsName = 'tileset_' + index;
-                        
-                        // 从 mapData.tilesets 获取 firstgid
-                        const tsInfo = mapData.tilesets ? mapData.tilesets[index] : null;
-                        const firstgid = tsInfo ? tsInfo.firstgid : (index === 0 ? 1 : 0);
-                        
-                        console.log(`手动模式: 关联 ${tsName} -> ${key}, firstgid=${firstgid}`);
-                        
-                        // 传入完整的 addTilesetImage 参数，包括 firstgid
-                        const ts = this.tiledMap.addTilesetImage(
-                            tsName,
-                            key,
-                            this.tiledMap.tileWidth,
-                            this.tiledMap.tileHeight,
-                            0,
-                            0,
-                            firstgid
-                        );
-                        
-                        if (ts) {
-                            loadedTilesets.push(ts);
-                            console.log('  ✓ 成功, tileCount=' + ts.total);
-                        } else {
-                            console.warn('  ✗ addTilesetImage 失败');
-                        }
-                    } else {
+                    if (!this.textures.exists(key)) {
                         console.warn('  ✗ 纹理不存在:', key);
+                        return;
+                    }
+
+                    const base = imgPath.split('/').pop().replace(/\.[^.]+$/, '');
+                    const tsInfo = (mapData.tilesets || []).find(ts => {
+                        if (!ts) return false;
+                        const srcBase = ts.source ? ts.source.split('/').pop().replace(/\.[^.]+$/, '') : '';
+                        return ts.name === base || srcBase === base;
+                    });
+
+                    const firstgid = tsInfo ? tsInfo.firstgid : (index === 0 ? 1 : 0);
+                    let tsName = `tileset_${index}`;
+                    if (tsInfo) {
+                        if (tsInfo.name) tsName = tsInfo.name;
+                        else if (tsInfo.source) tsName = tsInfo.source.split('/').pop().replace(/\.[^.]+$/, '');
+                    }
+
+                    console.log(`手动模式: 关联 ${tsName} -> ${key}, firstgid=${firstgid}`);
+                    const ts = this.tiledMap.addTilesetImage(
+                        tsName,
+                        key,
+                        this.tiledMap.tileWidth,
+                        this.tiledMap.tileHeight,
+                        0,
+                        0,
+                        firstgid
+                    );
+
+                    if (ts) {
+                        loadedTilesets.push(ts);
+                        console.log('  ✓ 成功, tileCount=' + (ts.total || 'unknown'));
+                    } else {
+                        console.warn('  ✗ addTilesetImage 失败:', tsName, key);
                     }
                 });
             }
             
+            if (loadedTilesets.length !== (mapConfig.tileImages ? mapConfig.tileImages.length : 0)) {
+                console.warn('瓦片集加载数量与配置不一致:', loadedTilesets.length, 'vs', mapConfig.tileImages ? mapConfig.tileImages.length : 0);
+            }
             console.log('成功加载瓦片集数量:', loadedTilesets.length);
             
             // 3. 创建图层
             if (mapData.layers) {
                 let layerCount = 0;
-                
+
+                // 找到行走层索引，用于把它对齐到深度 0，保持其它图层相对顺序
+                const walkLayerIndex = mapData.layers.findIndex(l => l.name === '行走层' || (typeof l.name === 'string' && /行走层/i.test(l.name)) || (typeof l.name === 'string' && /walk/i.test(l.name)));
+                const depthShift = walkLayerIndex >= 0 ? -walkLayerIndex : 0;
+
                 mapData.layers.forEach((layer, index) => {
                     console.log(`图层[${index}]:`, layer.name, '类型:', layer.type);
-                    
+
                     if (layer.type === 'tilelayer' && layer.data) {
-                        // 创建空白图层 - 传入所有瓦片集
                         const layerName = layer.name || 'Layer_' + index;
-                        
-                        // 使用所有加载的瓦片集
                         const tileLayer = loadedTilesets.length > 0 
                             ? this.tiledMap.createBlankLayer(layerName, loadedTilesets, 0, 0)
                             : null;
-                        
+
                         if (tileLayer) {
-                            // 填充瓦片数据
-                            const dataLen = layer.data ? layer.data.length : 0;
+                            const depth = index + depthShift;
+                            tileLayer.setDepth(depth);
+                            const visible = layer.visible !== false || (Array.isArray(layer.data) && layer.data.some(gid => gid > 0));
+                            tileLayer.setVisible(visible);
+                            tileLayer.setAlpha(typeof layer.opacity === 'number' ? layer.opacity : 1);
+
+                            const dataLen = layer.data.length;
                             const expectedLen = layer.width * layer.height;
-                            
                             if (dataLen !== expectedLen) {
                                 console.warn('图层数据长度不匹配:', dataLen, '!=', expectedLen);
                             }
-                            
+
+                            const rows = [];
                             for (let y = 0; y < layer.height; y++) {
-                                for (let x = 0; x < layer.width; x++) {
-                                    const idx = y * layer.width + x;
-                                    if (idx < dataLen) {
-                                        const gid = layer.data[idx];
+                                const row = layer.data.slice(y * layer.width, (y + 1) * layer.width);
+                                if (row.length < layer.width) {
+                                    row.push(...Array(layer.width - row.length).fill(0));
+                                }
+                                rows.push(row);
+                            }
+
+                            try {
+                                tileLayer.putTilesAt(rows, 0, 0);
+                            } catch (e) {
+                                console.warn('tileLayer.putTilesAt 失败，回退到逐瓦片填充:', e.message);
+                                for (let y = 0; y < layer.height; y++) {
+                                    for (let x = 0; x < layer.width; x++) {
+                                        const idx = y * layer.width + x;
+                                        const gid = idx < dataLen ? layer.data[idx] : 0;
                                         if (gid > 0) {
                                             try {
                                                 tileLayer.putTileAt(gid, x, y);
-                                            } catch(e) {
+                                            } catch (innerErr) {
                                                 // 忽略单个瓦片放置错误
                                             }
                                         }
@@ -477,7 +513,7 @@ class GameScene extends Phaser.Scene {
                             }
                             
                             layerCount++;
-                            console.log('✓ 图层创建成功:', layerName, '瓦片数:', dataLen);
+                            console.log('✓ 图层创建成功:', layerName, '瓦片数:', dataLen, '深度:', depth);
                         } else {
                             console.warn('✗ createBlankLayer 失败:', layerName);
                         }
@@ -531,6 +567,128 @@ class GameScene extends Phaser.Scene {
             this.tiledMap = null;
         }
     }
+
+    /**
+     * 从缓存 tilemap 直接创建地图，优先使用 Phaser 内置解析而非手动填充。
+     */
+    createMapFromCachedTilemap(mapConfig) {
+        try {
+            const map = this.make.tilemap({ key: 'gameMap' });
+            if (!map) {
+                throw new Error('make.tilemap(key=gameMap) 返回 null');
+            }
+
+            this.tiledMap = map;
+            this._rawMapJson = this.cache.json.get('gameMap');
+            console.log('✅ 缓存 tilemap 创建成功，图层:', map.layers.map(l => l.name).join(', '));
+
+            const loadedTilesets = [];
+            const mapData = this._rawMapJson;
+            if (mapConfig.tileImages) {
+                mapConfig.tileImages.forEach((imgPath, index) => {
+                    const key = `tileset_${index}`;
+                    if (!this.textures.exists(key)) {
+                        console.warn('  ✗ 纹理不存在:', key);
+                        return;
+                    }
+
+                    const base = imgPath.split('/').pop().replace(/\.[^.]+$/, '');
+                    const tsInfo = (mapData.tilesets || []).find(ts => {
+                        if (!ts) return false;
+                        const srcBase = ts.source ? ts.source.split('/').pop().replace(/\.[^.]+$/, '') : '';
+                        return ts.name === base || srcBase === base;
+                    });
+
+                    const firstgid = tsInfo ? tsInfo.firstgid : (index === 0 ? 1 : 0);
+                    let tsName = `tileset_${index}`;
+                    if (tsInfo) {
+                        if (tsInfo.name) {
+                            tsName = tsInfo.name;
+                        } else if (tsInfo.source) {
+                            const fileName = tsInfo.source.split('/').pop();
+                            tsName = fileName ? fileName.replace(/\.[^.]+$/, '') : tsName;
+                        }
+                    }
+
+                    console.log(`加载缓存 tilemap 瓦片集: ${tsName} -> ${key}, firstgid=${firstgid}`);
+                    const ts = map.addTilesetImage(
+                        tsName,
+                        key,
+                        map.tileWidth,
+                        map.tileHeight,
+                        0,
+                        0,
+                        firstgid
+                    );
+                    if (ts) {
+                        loadedTilesets.push(ts);
+                    } else {
+                        console.warn('  ✗ addTilesetImage 失败:', tsName, key);
+                    }
+                });
+            }
+
+            if (loadedTilesets.length === 0) {
+                throw new Error('未能加载任何 tileset');
+            }
+
+            let layerCount = 0;
+
+            // 计算行走层索引并做深度偏移，使行走层在深度 0
+            const walkLayerIndexCached = map.layers.findIndex(l => l.name === '行走层' || (typeof l.name === 'string' && /行走层/i.test(l.name)) || (typeof l.name === 'string' && /walk/i.test(l.name)));
+            const depthShiftCached = walkLayerIndexCached >= 0 ? -walkLayerIndexCached : 0;
+
+            map.layers.forEach((layer, index) => {
+                if (layer.type === 'tilelayer') {
+                    const tileLayer = map.createLayer(layer.name, loadedTilesets, 0, 0);
+                    if (!tileLayer) {
+                        console.warn('✗ createLayer 失败:', layer.name);
+                        return;
+                    }
+                    const rawLayer = this._rawMapJson && this._rawMapJson.layers
+                        ? this._rawMapJson.layers.find(l => l.name === layer.name)
+                        : null;
+                    const visible = rawLayer
+                        ? (rawLayer.visible !== false || (Array.isArray(rawLayer.data) && rawLayer.data.some(gid => gid > 0)))
+                        : (layer.visible !== false);
+                    const depth = index + depthShiftCached;
+                    tileLayer.setDepth(depth);
+                    tileLayer.setVisible(visible);
+                    tileLayer.setAlpha(typeof layer.opacity === 'number' ? layer.opacity : 1);
+                    layerCount++;
+                    console.log('✓ createLayer:', layer.name, 'index:', index, 'depth:', depth);
+                }
+            });
+
+            console.log(`成功创建缓存 tilemap 图层: ${layerCount}`);
+
+            map.layers.forEach(layer => {
+                if (layer.type === 'objectgroup' && layer.objects) {
+                    this.loadObjects(layer);
+                }
+            });
+
+            const w = map.widthInPixels;
+            const h = map.heightInPixels;
+            this.physics.world.setBounds(0, 0, w, h);
+            this.cameras.main.setBounds(0, 0, w, h);
+            this.config.currentMapWidth = w;
+            this.config.currentMapHeight = h;
+            this.cameras.main.setBackgroundColor('#1a3a0a');
+            this.generateMinimap();
+            this.setupWalkCollision();
+            this.bindWalkCollider();
+            console.log('createMapFromCachedTilemap: 已调用 setupWalkCollision 和 bindWalkCollider');
+        } catch (e) {
+            console.warn('缓存 tilemap 创建失败，回退到手动创建:', e.message);
+            const mapData = this.cache.json.get('gameMap');
+            if (mapData) {
+                this.createMapFromData(mapData, mapConfig);
+            } else {
+                this.showError('无法创建地图: 缓存 tilemap 和 JSON 数据均不可用');
+            }
+        }
+    }
     
     /**
      * 显示错误信息到游戏画面
@@ -560,133 +718,23 @@ class GameScene extends Phaser.Scene {
         try {
             console.log('===== 初始化 Tiled 地图 =====');
 
-            // 0. 保存原始 JSON 数据（供 setupWalkCollision 使用）
-            //    必须在 make.tilemap 之前读取，因为部分 Phaser 版本会清理 JSON 缓存
+            // 0. 获取原始 JSON 数据（缓存区）
             this._rawMapJson = this.cache.json.get('gameMap');
             if (!this._rawMapJson) {
-                console.warn('JSON缓存中无 gameMap，碰撞功能将受限');
-            } else {
-                console.log('✅ _rawMapJson 已保存，图层:', this._rawMapJson.layers.map(l => l.name).join(', '));
-            }
-
-            // 1. 创建 tilemap
-            this.tiledMap = this.make.tilemap({ key: 'gameMap' });
-
-            if (!this.tiledMap) {
-                console.error('Tilemap 创建失败');
-                this.tiledMap = null;
+                console.warn('JSON缓存中无 gameMap，尝试备用加载...');
+                this.loadMapFallback(mapConfig);
                 return;
             }
+            console.log('✅ _rawMapJson 已获取，图层:', this._rawMapJson.layers.map(l => l.name).join(', '));
 
-            console.log('Tilemap 创建成功');
-            console.log('  尺寸:', this.tiledMap.width, 'x', this.tiledMap.height);
-            console.log('  瓦片:', this.tiledMap.tileWidth, 'x', this.tiledMap.tileHeight);
-
-            // 2. 加载瓦片集图片
-            const jsonTilesets = this.tiledMap.tilesets;
-            console.log('JSON 中瓦片集数量:', jsonTilesets.length);
-
-            const loadedTilesets = [];
-
-            for (let i = 0; i < jsonTilesets.length; i++) {
-                const tsInfo = jsonTilesets[i];
-
-                // 从 JSON 获取名称（外部引用只有 source，需要提取文件名）
-                let tsName = tsInfo.name;
-                if (!tsName && tsInfo.source) {
-                    tsName = tsInfo.source.replace(/^.*[\\/]/, '').replace('.tsx', '');
-                }
-                if (!tsName) {
-                    tsName = 'tileset_' + i;
-                }
-
-                const imgKey = `tileset_${i}`;
-
-                console.log(`[${i}] 瓦片集: name="${tsName}", firstgid=${tsInfo.firstgid || 'unknown'}`);
-
-                // 检查纹理是否存在
-                if (!this.textures.exists(imgKey)) {
-                    console.warn(`  ✗ 纹理不存在: ${imgKey}`);
-                    continue;
-                }
-
-                // 获取纹理尺寸（调试用）
-                const texture = this.textures.get(imgKey);
-                const src = texture.getSourceImage();
-                console.log(`  图片尺寸: ${src.width}x${src.height}`);
-
-                // 关联图片 - 传入完整参数（tileWidth, tileHeight, margin, spacing, gid）
-                // gid 就是 JSON 中的 firstgid，确保瓦片ID正确映射
-                const ts = this.tiledMap.addTilesetImage(
-                    tsName,
-                    imgKey,
-                    this.tiledMap.tileWidth,   // 16
-                    this.tiledMap.tileHeight,  // 16
-                    0,                         // margin
-                    0,                         // spacing
-                    tsInfo.firstgid || 1       // 关键：传入正确的 firstgid
-                );
-
-                if (ts) {
-                    loadedTilesets.push(ts);
-                    console.log(`  ✓ 关联成功, tileCount=${ts.total}`);
-                } else {
-                    console.warn(`  ✗ 关联失败`);
-                }
+            const hasExternalTileset = Array.isArray(this._rawMapJson.tilesets) && this._rawMapJson.tilesets.some(ts => ts && ts.source);
+            if (hasExternalTileset) {
+                console.warn('检测到外部 tileset，使用手动 mapData 创建路径');
+                this.createMapFromData(this._rawMapJson, mapConfig);
+            } else {
+                // 1. 尝试使用缓存 tilemap 创建地图，避免手动空层填充错误
+                this.createMapFromCachedTilemap(mapConfig);
             }
-
-            console.log('成功关联瓦片集:', loadedTilesets.length, '/', jsonTilesets.length);
-
-            // 3. 创建图层
-            const layers = this.tiledMap.layers;
-            console.log('图层数量:', layers.length);
-
-            let layerCount = 0;
-            for (let i = 0; i < layers.length; i++) {
-                const layer = layers[i];
-
-                if (layer.type === 'TileLayer') {
-                    console.log(`创建图层[${i}]: "${layer.name}"`);
-
-                    // 传入所有已加载的 tilesets
-                    const tileLayer = loadedTilesets.length > 0
-                        ? this.tiledMap.createLayer(layer.name, loadedTilesets, 0, 0)
-                        : this.tiledMap.createLayer(layer.name);
-
-                    if (tileLayer) {
-                        layerCount++;
-                        tileLayer.setDepth(i);
-                        console.log(`  ✓ 成功`);
-                    } else {
-                        console.warn(`  ✗ 失败`);
-                    }
-                }
-            }
-
-            console.log(`成功创建 ${layerCount} 个图层`);
-
-            // 3.5 设置行走层碰撞
-            this.setupWalkCollision();
-            this.bindWalkCollider();
-
-            // 4. 加载对象层（草药、传送门、NPC）
-            const objectLayers = this.tiledMap.layers.filter(l =>
-                l.type === 'ObjectLayer' || l.type === 'objectgroup'
-            );
-            console.log('对象层数量:', objectLayers.length);
-            objectLayers.forEach(layer => this.loadObjects(layer));
-
-            // 5. 设置世界边界
-            const w = this.tiledMap.widthInPixels;
-            const h = this.tiledMap.heightInPixels;
-            this.physics.world.setBounds(0, 0, w, h);
-            this.cameras.main.setBounds(0, 0, w, h);
-
-            console.log('===== 地图加载完成:', w, 'x', h, '=====');
-
-            // 保存地图实际尺寸供小地图使用
-            this.config.currentMapWidth = w;
-            this.config.currentMapHeight = h;
 
         } catch (e) {
             console.error('===== 地图初始化失败 =====');
@@ -993,6 +1041,9 @@ class GameScene extends Phaser.Scene {
             herbSprite.setDisplaySize(28, 28);
         }
 
+        // ★ 设置深度在地面图层之上（图块层 depth=0/1/2），玩家/NPC 之下（depth=5/10）
+        herbSprite.setDepth(4);
+
         this.herbs.push({ sprite: herbSprite, data: herbData, collected: false });
     }
 
@@ -1001,44 +1052,84 @@ class GameScene extends Phaser.Scene {
      */
     createPortal(obj) {
         const props = this._parseProps(obj);
-        const x = obj.x;
-        const y = obj.y;
+        const targetMap = props.targetMap || '';
+        const x = obj.x + (obj.width || 0) / 2;
+        const y = obj.y + (obj.height || 0) / 2;
 
-        const portal = this.add.image(x, y, '_portal_icon');
-        portal.setDisplaySize(50, 50);
-        portal.setAlpha(0.85);
+        console.log(`传送门: "${obj.name}" → ${targetMap}, 位置: (${x}, ${y})`);
 
-        // 发光动画
-        this.tweens.add({
-            targets: portal,
-            scaleX: 1.15,
-            scaleY: 1.15,
-            alpha: 0.6,
-            yoyo: true,
-            repeat: -1,
-            duration: 1200,
-            ease: 'Sine.easeInOut'
-        });
+        // 优先使用对象 tileset 图片（如翠竹村牌坊 plain.png）
+        let portalSprite = null;
+        const tsName = this._getTilesetNameByGid(obj.gid || 0);
+        console.log(`  gid=${obj.gid} → tileset="${tsName || 'unknown'}"`);
+
+        if (tsName) {
+            // 尝试多种可能的纹理 key
+            const texKeys = [`obj_${tsName}`, `npc_${tsName}`, `${tsName}`];
+            let foundKey = null;
+            for (const k of texKeys) {
+                if (this.textures.exists(k)) { foundKey = k; break; }
+            }
+            if (foundKey) {
+                portalSprite = this.add.image(x, y, foundKey);
+                console.log(`  ✓ 传送门纹理: ${foundKey}`);
+            }
+        }
+
+        if (!portalSprite) {
+            // 兜底：程序漩涡图标
+            portalSprite = this.add.image(x, y, '_portal_icon');
+            portalSprite.setDisplaySize(50, 50);
+            portalSprite.setAlpha(0.85);
+            this.tweens.add({
+                targets: portalSprite, scaleX: 1.15, scaleY: 1.15,
+                alpha: 0.6, yoyo: true, repeat: -1, duration: 1200, ease: 'Sine.easeInOut'
+            });
+            console.log(`  ⚠ 兜底漩涡图标`);
+        }
+
+        portalSprite.setOrigin(0.5, 0.5);
+        portalSprite.setDepth(5);  // 与 NPC 同层，确保在地面之上
 
         // 标签
-        this.add.text(x, y - 32, '✦', {
-            fontSize: '16px', color: '#aaccff',
-            backgroundColor: '#00000066', padding: { x: 4, y: 2 }
-        }).setOrigin(0.5).setDepth(10);
+        this.add.text(x, obj.y - 22, (obj.name || '传送门'), {
+            fontSize: '14px', color: '#ffdd88',
+            backgroundColor: '#332211cc', padding: { x: 8, y: 4 }
+        }).setOrigin(0.5, 1).setDepth(10);
 
-        portal.portalData = {
-            targetMap: props.targetMap || '',
-            targetX: props.targetX || 100,
-            targetY: props.targetY || 100
+        // 存储传送数据（供 E 键交互和 click 使用）
+        const portalData = {
+            sprite: portalSprite,
+            name: obj.name || '传送门',
+            targetMap: targetMap,
+            x: x, y: y
         };
+        this.portals.push(portalData);
 
-        portal.setInteractive();
-        portal.on('pointerdown', () => {
-            if (portal.portalData.targetMap) {
-                this.config.currentMapId = portal.portalData.targetMap;
-                this.scene.restart();
-            }
+        // 点击传送
+        portalSprite.setInteractive();
+        portalSprite.on('pointerdown', () => {
+            window._returnPlayerPos = null;  // 传送不保留位置
+            this.config.currentMapId = targetMap;
+            this.scene.restart();
         });
+    }
+
+    /**
+     * 根据 gid 查找 tileset 名称
+     */
+    _getTilesetNameByGid(gid) {
+        if (!this._rawMapJson || !this._rawMapJson.tilesets) return null;
+        const tilesets = this._rawMapJson.tilesets;
+        for (let i = 0; i < tilesets.length; i++) {
+            const ts = tilesets[i];
+            const nextGid = (i + 1 < tilesets.length) ? tilesets[i + 1].firstgid : Infinity;
+            if (gid >= ts.firstgid && gid < nextGid) {
+                const source = ts.source || '';
+                return source.replace(/^.*[\\/]/, '').replace(/\.tsx$/i, '');
+            }
+        }
+        return null;
     }
 
     /**
@@ -1296,11 +1387,12 @@ class GameScene extends Phaser.Scene {
 
             const herb = this.add.circle(pos.x, pos.y, 15, this.getHerbColor(pos.type));
             herb.setStrokeStyle(2, 0xffffff);
+            herb.setDepth(4);  // ★ 在地面图层之上
 
             const label = this.add.text(pos.x, pos.y + 25, data.name, {
                 fontSize: '12px', color: '#ffffff',
                 backgroundColor: '#00000088', padding: { x: 4, y: 2 }
-            }).setOrigin(0.5);
+            }).setOrigin(0.5).setDepth(5);
 
             this.herbs.push({ sprite: herb, label, data, collected: false });
         });
@@ -1369,6 +1461,7 @@ class GameScene extends Phaser.Scene {
         window.uiManager.updateMinimap(this.player.x, this.player.y);
         this.checkCollection();
         this.checkNPCInteraction();
+        this.checkPortalInteraction();  // ★ 传送门 E 键交互
 
         if (window.gameStateManager.state.debugMode) {
             window.uiManager.updateDebugInfo({
@@ -1456,6 +1549,28 @@ class GameScene extends Phaser.Scene {
         window.uiManager.updateBackpackUI();
         window.uiManager.updateHerbGuideUI();
         window.uiManager.updateTaskProgress();
+
+        // ★ 甘草采集计数 → 采完3株后触发 C02 第一株甘草剧情
+        console.log(`[collect] herbId=${herb.data.id}, name=${herb.data.name}`);
+        if (herb.data.id === 'gancao') {
+            const completed = window._completedNpcs && window._completedNpcs.has('gancao');
+            if (completed) return;
+
+            window._gancaoCollected = (window._gancaoCollected || 0) + 1;
+            const remaining = this.herbs.filter(h => h.data.id === 'gancao' && !h.collected).length;
+            console.log(`甘草采集进度: ${window._gancaoCollected}/3, 剩余: ${remaining}`);
+
+            if (window._gancaoCollected >= 3) {
+                this.time.delayedCall(600, () => {
+                    console.log('▶ 触发 C02 第一株甘草剧情');
+                    this.triggerStoryScene({
+                        name: '甘草',
+                        npcId: 'gancao',
+                        storyIdx: this._npcStorySceneMap['gancao'] || 1
+                    });
+                });
+            }
+        }
     }
 
     /**
@@ -1482,6 +1597,29 @@ class GameScene extends Phaser.Scene {
             }
         }
         // 注意：如果同时在草药附近，checkCollection 的提示会覆盖此提示，功能正常
+    }
+
+    /**
+     * 检测传送门交互（E 键传送）
+     */
+    checkPortalInteraction() {
+        if (!this.player || !this.eKey || this.portals.length === 0) return;
+        const interactDist = 100;
+
+        let nearPortal = null;
+        this.portals.forEach(p => {
+            const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, p.x, p.y);
+            if (d < interactDist) nearPortal = p;
+        });
+
+        if (nearPortal) {
+            window.uiManager.showCollectPrompt(`前往${nearPortal.name}`);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                window._returnPlayerPos = null;
+                this.config.currentMapId = nearPortal.targetMap;
+                this.scene.restart();
+            }
+        }
     }
 
     /**
@@ -1534,3 +1672,4 @@ class GameScene extends Phaser.Scene {
 }
 
 window.GameScene = GameScene;
+console.log('GameScene.js: GameScene assigned to window');
