@@ -110,7 +110,8 @@ const GameConfig = {
                 'src/tilesets/Gemini_Generated_Image_a0qfh7a0qfh7a0qf.png',
                 'src/tilesets/Gemini_Generated_Image_21rixx21rixx21ri.png',
                 'src/tilesets/Gemini_Generated_Image_bh33dibh33dibh33.png',
-                'src/tilesets/Gemini_Generated_Image_i693pii693pii693.png'
+                'src/tilesets/Gemini_Generated_Image_i693pii693pii693.png',
+                'src/assets/pictures/herbs/tukeng.png'
             ],
             playerStart: { x: 664, y: 744 }  // 行走层(41,46)中心
         },
