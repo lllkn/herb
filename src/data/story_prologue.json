@@ -177,7 +177,7 @@
           "character": "bai",
           "expression": "smile",
           "name": "白院长",
-          "text": "（点头）很好。结业之前，老夫还有最后一课要教你——随我去药圃吧。",
+          "text": "（点头）同时。结业之前，老夫还有最后一课要教你——随我去药圃吧。",
           "avatar": "bai.png",
           "nextDelay": 500
         },
@@ -1060,6 +1060,12 @@
       "name": "学堂南门·踏上旅途",
       "type": "cg",
       "duration": 120,
+      "unlockSystems": [
+        "pet_follow",
+        "herb_collection",
+        "backpack_system",
+        "map_travel"
+      ],
       "cgId": "CG_04",
       "cgConfig": {
         "image": "cg_04_departure.png",
@@ -1084,31 +1090,22 @@
         },
         {
           "id": "S09_002",
-          "type": "narration",
+          "type": "cg_display",
           "text": "你迈出了学堂的大门。",
           "nextDelay": 2000
         },
         {
           "id": "S09_003",
-          "type": "narration",
+          "type": "cg_display",
           "text": "前方的路有多远，你不知道。",
           "nextDelay": 2000
         },
         {
           "id": "S09_004",
-          "type": "narration",
+          "type": "cg_display",
           "text": "但那些等待着草药、等待着医者的人们，你已经在路上了。",
           "textColor": "#f0e8d4",
           "nextDelay": 2000
-        },
-        {
-          "id": "S09_005",
-          "type": "title_card",
-          "text": "——百草行，开始了。",
-          "textColor": "#f0e8d4",
-          "bgColor": "#000000",
-          "duration": 2000,
-          "nextDelay": 1500
         },
         {
           "id": "S09_reward",
@@ -1137,16 +1134,83 @@
           "nextDelay": 1500
         },
         {
-          "id": "S09_end",
-          "type": "end",
-          "nextScene": "GameScene",
-          "fadeOutDuration": 1500,
-          "unlockSystems": [
-            "pet_follow",
-            "herb_collection",
-            "backpack_system",
-            "map_travel"
-          ]
+          "id": "S09_005",
+          "type": "title_card",
+          "text": "——百草行，开始了。",
+          "textColor": "#f0e8d4",
+          "bgColor": "#000000",
+          "duration": 2000,
+          "nextDelay": 1000,
+          "nextScene": "S10"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "name": "搭车路途·南下翠竹村",
+      "type": "scene",
+      "duration": 200,
+      "background": "牛车赶路.png",
+      "bgm": "bgm_journey.mp3",
+      "steps": [
+        {
+          "id": "S10_001",
+          "type": "narration",
+          "text": "告别学堂，你在门外搭上了一辆南下的牛车。",
+          "nextDelay": 1800
+        },
+        {
+          "id": "S10_002",
+          "type": "narration",
+          "text": "车辕吱呀作响，老牛不紧不慢。回望岐黄学堂的屋檐，渐渐隐入山峦之后。",
+          "nextDelay": 2200
+        },
+        {
+          "id": "S10_003",
+          "type": "narration",
+          "text": "三年来头一次离开。肩头的行囊沉甸甸的——草药、图谱、铜钱，还有院长那封墨迹未干的推荐信。",
+          "textColor": "#d4c8a8",
+          "nextDelay": 2500
+        },
+        {
+          "id": "S10_004",
+          "type": "narration",
+          "text": "你摸了摸怀中的《百草图录》。那些空白页仿佛在轻声催促——前方有多少草木等待辨认，多少病患等待救治。",
+          "textColor": "#d4c8a8",
+          "nextDelay": 2500
+        },
+        {
+          "id": "S10_005",
+          "type": "narration",
+          "text": "方才还是学堂里习医的学生，如今已是独当一面的行医者了。这份责任，比想象中更沉……却也更踏实。",
+          "textColor": "#d4b080",
+          "nextDelay": 2800
+        },
+        {
+          "id": "S10_006",
+          "type": "narration",
+          "text": "路旁田野渐次开阔。秋风拂面，带来远处竹林的簌簌声。前方——就是翠竹村的方向了。",
+          "nextDelay": 2200
+        },
+        {
+          "id": "S10_007",
+          "type": "narration",
+          "text": "不知走了多久，赶车的老伯勒住缰绳——\n「小大夫，往南走，见到竹林就到了。」",
+          "nextDelay": 2500
+        },
+        {
+          "id": "S10_008",
+          "type": "narration",
+          "text": "你跳下车，道了谢。眼前的岔路口向南延伸，竹林掩映间隐约有炊烟升起。",
+          "nextDelay": 2000
+        },
+        {
+          "id": "S10_009",
+          "type": "narration",
+          "text": "深吸一口气，草木的清香混杂着田野的泥土气息。三年所学，便要从脚下这条路开始了。",
+          "textColor": "#e8d8c0",
+          "nextDelay": 2200,
+          "nextScene": "C01"
         }
       ]
     }

@@ -443,6 +443,34 @@
     
     <!-- 启动游戏 -->
     <script>
+    // ★ 修复 AudioContext：浏览器要求在用户交互后才能创建/恢复音频上下文
+    // 在页面首次点击/触摸/按键时，恢复所有已挂起的 AudioContext
+    (function() {
+        function resumeAudioContexts() {
+            // 遍历所有已创建的 AudioContext
+            if (window.game && window.game.sound) {
+                try {
+                    const ctx = window.game.sound.context;
+                    if (ctx && ctx.state === 'suspended') {
+                        ctx.resume().then(function() {
+                            console.log('[音频] AudioContext 已恢复');
+                        }).catch(function(e) {
+                            console.warn('[音频] AudioContext 恢复失败:', e.message);
+                        });
+                    }
+                } catch(e) {
+                    // Phaser SoundManager 可能未完全初始化，静默跳过
+                }
+            }
+            document.removeEventListener('click', resumeAudioContexts);
+            document.removeEventListener('touchstart', resumeAudioContexts);
+            document.removeEventListener('keydown', resumeAudioContexts);
+        }
+        document.addEventListener('click', resumeAudioContexts, { once: true });
+        document.addEventListener('touchstart', resumeAudioContexts, { once: true });
+        document.addEventListener('keydown', resumeAudioContexts, { once: true });
+    })();
+
     // 等待所有资源 + Phaser 完全加载
     window.addEventListener('load', function() {
         setTimeout(() => {

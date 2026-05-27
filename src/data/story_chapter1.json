@@ -5,7 +5,6 @@
   "storyId": "chapter_1",
   "title": "第一章·翠竹村的春天",
   "scenes": [
-    
     {
       "id": "C01",
       "name": "出生区搭车过场",
@@ -20,12 +19,6 @@
         "eventId": "EVT_PLAINS_ENTRY"
       },
       "steps": [
-        {
-          "id": "C01_001",
-          "type": "narration",
-          "text": "山路蜿蜒，赶车的老伯在翠竹村岔路口将你放下。\n「小大夫，往南走，见到竹林就到了。」",
-          "nextDelay": 2500
-        },
         {
           "id": "C01_002",
           "type": "dialogue",
@@ -43,11 +36,15 @@
           "hint": "WASD 移动 · 靠近草药按 E 采集 · 靠近 NPC 按 E 对话",
           "hintPosition": "bottom-center",
           "nextDelay": 0
+        },
+        {
+          "id": "C01_end",
+          "type": "end",
+          "nextScene": "GameScene",
+          "fadeOutDuration": 1500
         }
       ]
     },
-
-    
     {
       "id": "C02",
       "name": "第一株甘草",
@@ -83,8 +80,6 @@
         }
       ]
     },
-
-    
     {
       "id": "C03",
       "name": "砍柴老汉问路",
@@ -155,8 +150,6 @@
         }
       ]
     },
-
-    
     {
       "id": "C04",
       "name": "废弃草药篓",
@@ -192,8 +185,6 @@
         }
       ]
     },
-
-    
     {
       "id": "C05",
       "name": "洗衣村妇",
@@ -241,8 +232,6 @@
         }
       ]
     },
-
-    
     {
       "id": "C06",
       "name": "行商王掌柜",
@@ -311,8 +300,6 @@
         }
       ]
     },
-
-    
     {
       "id": "C07",
       "name": "翠竹村牌坊",
@@ -352,8 +339,6 @@
         }
       ]
     },
-
-    
     {
       "id": "C08",
       "name": "村长接委托",
@@ -449,8 +434,6 @@
         }
       ]
     },
-
-    
     {
       "id": "C09",
       "name": "草药圃辨药",
@@ -492,7 +475,10 @@
             "correctAnswer": "jinyinhua",
             "instructions": "三花选一，找出金银花"
           },
-          "rewardOnCorrect": { "attr": "herb_knowledge", "delta": 3 },
+          "rewardOnCorrect": {
+            "attr": "herb_knowledge",
+            "delta": 3
+          },
           "nextDelay": 500
         },
         {
@@ -510,14 +496,17 @@
           "id": "C09_reward",
           "type": "reward",
           "items": [
-            { "id": "jinyinhua", "name": "金银花", "count": 3, "icon": "🌸" }
+            {
+              "id": "jinyinhua",
+              "name": "金银花",
+              "count": 3,
+              "icon": "🌸"
+            }
           ],
           "nextDelay": 800
         }
       ]
     },
-
-    
     {
       "id": "C10",
       "name": "水井边病情线索",
@@ -565,8 +554,6 @@
         }
       ]
     },
-
-    
     {
       "id": "C11",
       "name": "晒药台炮制教程",
@@ -606,7 +593,10 @@
             "herbName": "菊花",
             "totalFlowers": 5
           },
-          "rewardOnCorrect": { "attr": "herb_knowledge", "delta": 2 },
+          "rewardOnCorrect": {
+            "attr": "herb_knowledge",
+            "delta": 2
+          },
           "nextDelay": 500
         },
         {
@@ -623,14 +613,17 @@
           "id": "C11_reward",
           "type": "reward",
           "items": [
-            { "id": "juhua_dried", "name": "晒菊花", "count": 1, "icon": "🌼" }
+            {
+              "id": "juhua_dried",
+              "name": "晒菊花",
+              "count": 1,
+              "icon": "🌼"
+            }
           ],
           "nextDelay": 800
         }
       ]
     },
-
-    
     {
       "id": "C12",
       "name": "空置铺面药铺委托",
@@ -709,15 +702,23 @@
           "id": "C12_reward",
           "type": "reward",
           "items": [
-            { "id": "shop_permit", "name": "药铺经营资格", "count": 1, "icon": "🏮" },
-            { "id": "copper",      "name": "开业铜钱",      "count": 50, "icon": "💰" }
+            {
+              "id": "shop_permit",
+              "name": "药铺经营资格",
+              "count": 1,
+              "icon": "🏮"
+            },
+            {
+              "id": "copper",
+              "name": "开业铜钱",
+              "count": 50,
+              "icon": "💰"
+            }
           ],
           "nextDelay": 1000
         }
       ]
     },
-
-    
     {
       "id": "C13",
       "name": "张大娘家四诊问诊",
@@ -763,9 +764,21 @@
               "label": "🔭 望",
               "question": "观察张大娘的面色与神态——",
               "options": [
-                { "text": "面色苍白，嘴唇无华，神情倦怠", "correct": true,  "clue": "血虚·气虚迹象" },
-                { "text": "面色潮红，双目充血，烦躁不安", "correct": false, "clue": "实热（不符）" },
-                { "text": "面色暗黄，眼袋浮肿，肢体沉重", "correct": false, "clue": "湿证（不符）" }
+                {
+                  "text": "面色苍白，嘴唇无华，神情倦怠",
+                  "correct": true,
+                  "clue": "血虚·气虚迹象"
+                },
+                {
+                  "text": "面色潮红，双目充血，烦躁不安",
+                  "correct": false,
+                  "clue": "实热（不符）"
+                },
+                {
+                  "text": "面色暗黄，眼袋浮肿，肢体沉重",
+                  "correct": false,
+                  "clue": "湿证（不符）"
+                }
               ]
             },
             {
@@ -773,8 +786,16 @@
               "label": "👂 闻",
               "question": "侧耳倾听——",
               "options": [
-                { "text": "声音低微，气短懒言，咳声无力", "correct": true,  "clue": "肺气虚确认" },
-                { "text": "咳声有力，多痰黄稠",           "correct": false, "clue": "痰热（不符）" }
+                {
+                  "text": "声音低微，气短懒言，咳声无力",
+                  "correct": true,
+                  "clue": "肺气虚确认"
+                },
+                {
+                  "text": "咳声有力，多痰黄稠",
+                  "correct": false,
+                  "clue": "痰热（不符）"
+                }
               ]
             },
             {
@@ -784,9 +805,21 @@
               "allowMulti": true,
               "minSelect": 1,
               "options": [
-                { "text": "「腰膝酸软从何时开始？」",     "correct": true,  "clue": "肾虚佐证" },
-                { "text": "「夜间是否盗汗、多梦？」",     "correct": true,  "clue": "阴虚内热" },
-                { "text": "「近来是否发热恶寒头痛？」",   "correct": false, "clue": "外感（不对症）" }
+                {
+                  "text": "「腰膝酸软从何时开始？」",
+                  "correct": true,
+                  "clue": "肾虚佐证"
+                },
+                {
+                  "text": "「夜间是否盗汗、多梦？」",
+                  "correct": true,
+                  "clue": "阴虚内热"
+                },
+                {
+                  "text": "「近来是否发热恶寒头痛？」",
+                  "correct": false,
+                  "clue": "外感（不对症）"
+                }
               ]
             },
             {
@@ -794,9 +827,21 @@
               "label": "✋ 切",
               "question": "把脉——脉象为？",
               "options": [
-                { "text": "脉沉细而无力",     "correct": true,  "clue": "肾虚气虚定论" },
-                { "text": "脉浮紧，按之有力", "correct": false, "clue": "风寒表证（不符）" },
-                { "text": "脉滑数，流利",     "correct": false, "clue": "痰热（不符）" }
+                {
+                  "text": "脉沉细而无力",
+                  "correct": true,
+                  "clue": "肾虚气虚定论"
+                },
+                {
+                  "text": "脉浮紧，按之有力",
+                  "correct": false,
+                  "clue": "风寒表证（不符）"
+                },
+                {
+                  "text": "脉滑数，流利",
+                  "correct": false,
+                  "clue": "痰热（不符）"
+                }
               ]
             }
           ],
@@ -804,11 +849,19 @@
           "diagnosisResult": "四诊合参：张大娘证属「肺肾两虚」——宜补肺益肾，固本培元。",
           "scoreThreshold": 3,
           "perfectFeedback": "四诊精准！青苗竖起叶芽为你喝彩。",
-          "passFeedback":    "诊断基本正确，继续积累经验。",
-          "failFeedback":    "青苗悄悄补全了遗漏的线索……",
-          "rewardOnPerfect": { "diagnosis": 8, "reputation": 5 },
-          "rewardOnPass":    { "diagnosis": 4, "reputation": 2 },
-          "rewardOnFail":    { "diagnosis": 1 },
+          "passFeedback": "诊断基本正确，继续积累经验。",
+          "failFeedback": "青苗悄悄补全了遗漏的线索……",
+          "rewardOnPerfect": {
+            "diagnosis": 8,
+            "reputation": 5
+          },
+          "rewardOnPass": {
+            "diagnosis": 4,
+            "reputation": 2
+          },
+          "rewardOnFail": {
+            "diagnosis": 1
+          },
           "nextDelay": 800
         },
         {
@@ -816,23 +869,54 @@
           "type": "minigame_prescription",
           "syndrome": "肺肾两虚证",
           "instruction": "从背包选取合适药材开具处方（3-5味）",
-          "requiredHerbs": ["shanyao"],
-          "optionalHerbs": ["fuling", "gancao", "baihe", "gouqi", "bohe"],
-          "forbiddenHerbs": ["dahuang", "mangxiao"],
+          "requiredHerbs": [
+            "shanyao"
+          ],
+          "optionalHerbs": [
+            "fuling",
+            "gancao",
+            "baihe",
+            "gouqi",
+            "bohe"
+          ],
+          "forbiddenHerbs": [
+            "dahuang",
+            "mangxiao"
+          ],
           "minCount": 3,
           "maxCount": 5,
           "scoringRules": [
-            { "herbId": "shanyao", "score": 3, "reason": "山药—补肾益肺，君药" },
-            { "herbId": "fuling",  "score": 3, "reason": "茯苓—健脾渗湿，臣药" },
-            { "herbId": "gancao",  "score": 2, "reason": "甘草—调和诸药，使药" },
-            { "herbId": "baihe",   "score": 2, "reason": "百合—润肺止咳，佐药" },
-            { "herbId": "gouqi",   "score": 2, "reason": "枸杞—滋补肝肾，佐药" }
+            {
+              "herbId": "shanyao",
+              "score": 3,
+              "reason": "山药—补肾益肺，君药"
+            },
+            {
+              "herbId": "fuling",
+              "score": 3,
+              "reason": "茯苓—健脾渗湿，臣药"
+            },
+            {
+              "herbId": "gancao",
+              "score": 2,
+              "reason": "甘草—调和诸药，使药"
+            },
+            {
+              "herbId": "baihe",
+              "score": 2,
+              "reason": "百合—润肺止咳，佐药"
+            },
+            {
+              "herbId": "gouqi",
+              "score": 2,
+              "reason": "枸杞—滋补肝肾，佐药"
+            }
           ],
           "perfectScore": 8,
           "passScore": 5,
           "feedbackPerfect": "处方精当！老李探头进来：「这副方子，老汉也服气！」",
-          "feedbackPass":    "处方可行，经验积累后会更精准。",
-          "feedbackFail":    "（青苗托起叶子，上面印着正确用药……）",
+          "feedbackPass": "处方可行，经验积累后会更精准。",
+          "feedbackFail": "（青苗托起叶子，上面印着正确用药……）",
           "nextDelay": 800
         },
         {
@@ -859,15 +943,23 @@
           "id": "C13_reward",
           "type": "reward",
           "items": [
-            { "id": "copper",     "name": "诊金报酬", "count": 80,  "icon": "💰" },
-            { "id": "reputation", "name": "翠竹村声望", "count": 15, "icon": "⭐" }
+            {
+              "id": "copper",
+              "name": "诊金报酬",
+              "count": 80,
+              "icon": "💰"
+            },
+            {
+              "id": "reputation",
+              "name": "翠竹村声望",
+              "count": 15,
+              "icon": "⭐"
+            }
           ],
           "nextDelay": 800
         }
       ]
     },
-
-    
     {
       "id": "C14",
       "name": "全部地点完成·推进溪谷",
@@ -923,19 +1015,22 @@
           "id": "C14_reward",
           "type": "reward",
           "items": [
-            { "id": "valley_key", "name": "溪谷通行许可", "count": 1, "icon": "🗺" }
+            {
+              "id": "valley_key",
+              "name": "溪谷通行许可",
+              "count": 1,
+              "icon": "🗺"
+            }
           ],
           "nextDelay": 800
         }
       ]
     },
-
-    
     {
-      "id": "C15",
-      "name": "溪流山谷连续剧情",
+      "id": "C15a",
+      "name": "溪流山谷·山药采集",
       "type": "scene",
-      "background": "bg_valley_entry.png",
+      "background": "c15_a.png",
       "bgm": "bgm_valley.mp3",
       "_trigger": {
         "type": "zone",
@@ -958,7 +1053,7 @@
           "id": "C15_002",
           "type": "tutorial",
           "tutorialAction": "valley_explore",
-          "hint": "溪流山谷·探索提示\n🌿 沿溪岸向南行进，采集山药和茯苓\n⚠️ 水面不可直接通行，需踩石桥\n🔍 注意青苗的感知提示",
+          "hint": "溪流山谷·探索提示\n🌿 沿溪岸向南行进，采集山药和茯苓\n⚠️ 水面不可直接通行，需踩木桥\n🔍 注意青苗的感知提示",
           "hintPosition": "top-center",
           "nextDelay": 0
         },
@@ -979,29 +1074,39 @@
           "nextDelay": 300
         },
         {
-          "id": "C15_005",
-          "type": "tutorial",
-          "tutorialAction": "collect_shanyao",
-          "herbId": "shanyao",
-          "requiredCount": 5,
-          "hint": "采集山药 ×5（霜降后采挖·品质+2）",
-          "hintPosition": "bottom-center",
-          "nextDelay": 0
-        },
+          "id": "C15a_end",
+          "type": "end",
+          "nextScene": "GameScene"
+        }
+      ]
+    },
+    {
+      "id": "C15b",
+      "name": "溪流山谷·迷雾松林",
+      "type": "scene",
+      "background": "c15_b.png",
+      "bgm": "bgm_valley.mp3",
+      "_trigger": {
+        "type": "event",
+        "eventId": "EVT_SHANYAO_COLLECTED",
+        "once": true,
+        "_comment": "采集完山药后触发"
+      },
+      "steps": [
         {
           "id": "C15_006",
           "type": "dialogue",
           "character": "qingmiao",
           "expression": "happy",
           "name": "青苗",
-          "text": "山药够了！继续往里走——茯苓在松林深处！",
+          "text": "山药够了！继续往里走——茯苓在溪岸下流！",
           "avatar": "qingmiao.png",
           "nextDelay": 300
         },
         {
           "id": "C15_007",
           "type": "narration",
-          "text": "松林越来越密，雾气漫上来，遮住了前路……",
+          "text": "走的越来越远，雾气漫上来，遮住了前路……",
           "nextDelay": 2000
         },
         {
@@ -1023,28 +1128,59 @@
           "nextDelay": 0
         },
         {
+          "id": "C15b_end",
+          "type": "end",
+          "nextScene": "GameScene"
+        }
+      ]
+    },
+    {
+      "id": "C15c",
+      "name": "溪流山谷·石菖蒲",
+      "type": "scene",
+      "background": "c15_c.png",
+      "bgm": "bgm_valley.mp3",
+      "_trigger": {
+        "type": "event",
+        "eventId": "EVT_FOLLOWED_QINGMIAO",
+        "once": true,
+        "_comment": "跟随青苗指引到达石菖蒲位置后触发"
+      },
+      "steps": [
+        {
           "id": "C15_010",
           "type": "dialogue",
           "character": "qingmiao",
           "expression": "surprised",
           "name": "青苗",
-          "text": "（停下，激动地发光）主人！这里！石菖蒲！好稀有的！",
+          "text": "（停下，激动地发光）主人！这里！石菖蒲！好稀有的，可以开窍安神，带回去给村民吧！",
           "avatar": "qingmiao.png",
           "nextDelay": 300
         },
         {
-          "id": "C15_011",
-          "type": "tutorial",
-          "tutorialAction": "collect_shichangpu",
-          "herbId": "shichangpu",
-          "requiredCount": 1,
-          "hint": "【隐藏草药】石菖蒲 ×1（稀有·高价值）",
-          "nextDelay": 0
-        },
+          "id": "C15c_end",
+          "type": "end",
+          "nextScene": "GameScene"
+        }
+      ]
+    },
+    {
+      "id": "C15d",
+      "name": "溪流山谷·蛊根草",
+      "type": "scene",
+      "background": "bg_valley_entry.png",
+      "bgm": "bgm_valley_dark.mp3",
+      "_trigger": {
+        "type": "event",
+        "eventId": "EVT_VALLEY_CLEARING",
+        "once": true,
+        "_comment": "采集石菖蒲后继续前进，到达尽头触发"
+      },
+      "steps": [
         {
           "id": "C15_012",
           "type": "narration",
-          "text": "松林尽头，豁然开朗——",
+          "text": "溪岸尽头，豁然开朗——",
           "nextDelay": 1500
         },
         {
@@ -1157,11 +1293,23 @@
           "text": "（认真地看着主人）主人……翠竹村的病，只是开始。",
           "avatar": "qingmiao.png",
           "nextDelay": 1000
+        },
+        {
+          "id": "C15_020",
+          "type": "dialogue",
+          "character": "protagonist",
+          "expression": "determined",
+          "name": "主人公",
+          "text": "等我们看完翠竹村的病，就去找崔老。",
+          "avatar": "zhurengong.png"
+        },
+        {
+          "id": "C15d_end",
+          "type": "end",
+          "nextScene": "GameScene"
         }
       ]
     },
-
-    
     {
       "id": "C16",
       "name": "第一章结局",
@@ -1195,7 +1343,7 @@
         {
           "id": "C16_title",
           "type": "title_card",
-          "text": "第一章  终",
+          "text": "第一章  终章",
           "subText": "翠竹村的春天",
           "duration": 2500,
           "nextDelay": 800
@@ -1204,10 +1352,30 @@
           "id": "C16_reward",
           "type": "reward",
           "items": [
-            { "id": "reputation",    "name": "医者声望",         "count": 30, "icon": "⭐" },
-            { "id": "copper",        "name": "铜钱",             "count": 300, "icon": "💰" },
-            { "id": "achievement",   "name": "成就·翠竹村的大夫", "count": 1,  "icon": "🏆" },
-            { "id": "shop_level2",   "name": "药铺升级资格",      "count": 1,  "icon": "🏮" }
+            {
+              "id": "reputation",
+              "name": "医者声望",
+              "count": 30,
+              "icon": "⭐"
+            },
+            {
+              "id": "copper",
+              "name": "铜钱",
+              "count": 300,
+              "icon": "💰"
+            },
+            {
+              "id": "achievement",
+              "name": "成就·翠竹村的大夫",
+              "count": 1,
+              "icon": "🏆"
+            },
+            {
+              "id": "shop_level2",
+              "name": "药铺升级资格",
+              "count": 1,
+              "icon": "🏮"
+            }
           ],
           "nextDelay": 1500
         },

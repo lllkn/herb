@@ -16,6 +16,7 @@ class IntroScene extends Phaser.Scene {
         this.currentSceneIndex = 0;   // 当前场景索引（S01-S09）
         this.currentStepIndex = 0;     // 当前步骤索引
         this.currentSteps = [];         // 当前场景的步骤列表
+        this._attributesInitialized = false; // ★ 属性是否已初始化（防止C01 end重复init）
 
         // 子系统实例
         this.typewriter = null;
@@ -163,7 +164,8 @@ class IntroScene extends Phaser.Scene {
             'laoli.png',            // 药农老李
             'villager_b.png',       // 村民乙
             'zhangdaniang.png',     // 张大娘
-            'traveler.png'          // 旅人
+            'traveler.png',         // 旅人
+            'zhurengong.png'        // 主人公
         ];
 
         chapter1Characters.forEach(file => {
@@ -186,7 +188,8 @@ class IntroScene extends Phaser.Scene {
             'bg_spirit_room.png',
             'bg_school_gate.png',
             'bg_dean_room.png',
-            'bg_processing_room.png'
+            'bg_processing_room.png',
+            '牛车赶路.png'              // S10 搭车路途背景
         ];
 
         backgrounds.forEach(file => {
@@ -228,8 +231,11 @@ class IntroScene extends Phaser.Scene {
             'bg_drying_platform.png', // 晒药台
             'bg_empty_shop.png',     // 空置铺面
             'bg_patient_room.png',    // 张大娘家
-            'bg_valley_entry.png',   // 山谷入口
-            'bg_valley_exit.png'     // 山谷出口
+            'bg_valley_entry.png',   // 山谷入口 / C15d蛊根草
+            'bg_valley_exit.png',    // 山谷出口
+            'c15_a.png',             // C15a 山药采集
+            'c15_b.png',             // C15b 迷雾松林
+            'c15_c.png'              // C15c 石菖蒲
         ];
 
         ch1Backgrounds.forEach(file => {
@@ -1406,8 +1412,20 @@ class IntroScene extends Phaser.Scene {
             case 'follow_qingmiao':         // 跟随青苗（C15）
             case 'collect_shichangpu':      // 采集石菖蒲（C15）
                 // 这些都是"提示类"教程，显示提示后点击即完成
-                console.log(`[第一章] 提示类教程: ${tutorialAction}，显示后等待玩家点击`);
-                break;  // 已通过 clickToContinue: true 处理点击完成
+                console.log(`[第一章] 提示类教程: ${tutorialAction}，isSkippable=${isSkippable}`);
+                if (isSkippable) {
+                    // 可跳过模式：玩家点击 overlay 即关闭
+                } else {
+                    // ★ 不可跳过模式（如 C01 从跨JSON加载时 _isChapter1=false）：
+                    // 自动在延迟后完成，确保教程不会卡住
+                    const autoDelay = Math.max(step.nextDelay || 3000, 2000);
+                    this.time.delayedCall(autoDelay, () => {
+                        if (this.tutorialActive) {
+                            this._onTutorialComplete(step);
+                        }
+                    });
+                }
+                break;
             // === 序章原有占位符 ===
             case 'sun_drying':
             case 'drag_herb_to_tray':
@@ -2241,8 +2259,35 @@ class IntroScene extends Phaser.Scene {
                 console.log('[调试] 步骤有 nextScene 跳转，但调试模式已阻止（停在当前场景）');
                 // 不跳转，当作普通下一步处理
             } else {
+                // ★ 场景切换前：处理当前场景的 unlockSystems（如 S09 毕业奖励）
+                const currentScene = this.prologueData.scenes[this.currentSceneIndex];
+                if (currentScene && currentScene.unlockSystems) {
+                    console.log(`[奖励] 场景 ${currentScene.id} 结束时解锁系统:`, currentScene.unlockSystems);
+                    currentScene.unlockSystems.forEach(system => {
+                        console.log('[奖励] 解锁系统:', system);
+                    });
+                }
+
                 // 跳转到指定场景
-                const nextSceneIndex = this.prologueData.scenes.findIndex(s => s.id === currentStep.nextScene);
+                let nextSceneIndex = this.prologueData.scenes.findIndex(s => s.id === currentStep.nextScene);
+
+                // ★ 跨JSON查找：当前数据中找不到 → 尝试 chapter1 缓存
+                if (nextSceneIndex < 0) {
+                    const ch1Data = this.cache.json.get('chapter1_data') || window._chapter1Data;
+                    if (ch1Data && ch1Data.scenes) {
+                        nextSceneIndex = ch1Data.scenes.findIndex(s => s.id === currentStep.nextScene);
+                        if (nextSceneIndex >= 0) {
+                            console.log(`[跨JSON] 从序章跳转到第一章场景 ${currentStep.nextScene}（索引 ${nextSceneIndex}）`);
+                            this.prologueData = ch1Data;
+                            this._isChapter1 = false;  // C01是序章衔接第一章的过场，非章节完结
+                            this._returnToGame = false;
+                            this.currentSceneIndex = -1; // _startScene 会 +1 设为 0
+                            this._startScene(nextSceneIndex);
+                            return;
+                        }
+                    }
+                }
+
                 if (nextSceneIndex >= 0) {
                     this._startScene(nextSceneIndex);
                     return;
@@ -3462,9 +3507,12 @@ class IntroScene extends Phaser.Scene {
             return;
         }
 
-        // === 序章结束逻辑（原有）===
-        // 初始化《本草情籍》属性（序章结束时赋予初始值 + 剧情加成）
-        this._initPrologueAttributes();
+        // === 序章结束逻辑 ===
+        // ★ 只在序章本体结束时初始化属性；C01等跨JSON衔接场景不重复初始化
+        if (!this._attributesInitialized) {
+            this._initPrologueAttributes();
+            this._attributesInitialized = true;
+        }
 
         // 保存游戏状态
         this._saveGameState();
@@ -3479,18 +3527,31 @@ class IntroScene extends Phaser.Scene {
         // 恢复HTML UI元素
         this._showHTMLUI();
 
-        // 淡出效果
-        if (this.cgDisplay) {
-            this.cgDisplay.inkFadeOut(() => {
-                // 跳转到游戏场景
-                this.scene.start('GameScene');
-            });
-        } else {
-            // 直接跳转
-            this.time.delayedCall(1500, () => {
-                this.scene.start('GameScene');
-            });
+        // ★ S10/C01 完成后跳转平原地图
+        // 显式设置地图为平原，确保 GameScene 加载正确地图
+        if (window.GameConfig) {
+            window.GameConfig.currentMapId = 'plain';
+            console.log('[剧情] currentMapId 已设为: plain（平原地图）');
         }
+        // 清除可能残留的村庄/溪流强制标志
+        window._forceVillageMap = false;
+        window._returnToVillageMap = false;
+        window._returnToStreamMap = false;
+
+        const fadeMs = (step && step.fadeOutDuration) || 1500;
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                console.log('[剧情] ★ C01完成，执行 this.scene.start(GameScene)...');
+                try {
+                    this.scene.start('GameScene');
+                    console.log('[剧情] ✅ scene.start(GameScene) 已调用');
+                } catch (e) {
+                    console.error('[剧情] ❌ scene.start 失败:', e);
+                    this.game.scene.stop('IntroScene');
+                    this.game.scene.start('GameScene');
+                }
+            }, fadeMs);
+        });
     }
 
     /**

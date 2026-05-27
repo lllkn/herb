@@ -20,20 +20,16 @@ class DebugManager {
         'EVT_EMPTY_SHOP':       'C12',
         'EVT_ZHANG_DIAGNOSIS':  'C13',
         'EVT_VILLAGE_COMPLETE': 'C14',
-        'EVT_VALLEY_ENTRY':     'C15',
-        'EVT_YINCHEN_ZONE':     'C15',
-        'EVT_YINCHEN_DONE':     'C15',
-        'EVT_STONE_BRIDGE':     'C15',
-        'EVT_FOG_ZONE':         'C15',
-        'EVT_HIDDEN_HERB':      'C15',
-        'EVT_GUGEN_DISCOVERY':  'C15',
-        'EVT_GUGEN_EXAMINE':    'C15',
-        'EVT_RETURN_VILLAGE':   'C16'
+        'EVT_VALLEY_ENTRY':       'C15a',
+        'EVT_SHANYAO_COLLECTED':  'C15b',
+        'EVT_FOLLOWED_QINGMIAO':  'C15c',
+        'EVT_VALLEY_CLEARING':    'C15d',
+        'EVT_RETURN_VILLAGE':     'C16'
     };
 
     // ★ 序章：场景索引表（序章没有 EVT_ 事件系统，直接用场景ID）
     static PROLOGUE_SCENES = {
-        list: ['S01','S02','S03','S04','S05','S06','S07','S08','S09'],
+        list: ['S01','S02','S03','S04','S05','S06','S07','S08','S09','S10'],
         names: {
             'S01': '开场黑屏独白',
             'S02': '岐黄学堂·清晨',
@@ -43,12 +39,13 @@ class DebugManager {
             'S06': '炮制间·亲手炮制',
             'S07': '内室·图谱托付',
             'S08': '学堂门口·道别与启程',
-            'S09': '学堂南门·踏上旅途'
+            'S09': '学堂南门·踏上旅途',
+            'S10': '搭车路途·南下翠竹村'
         },
         groups: [
             { label: '📖  学堂', ids: ['S01','S02','S03'] },
             { label: '🌿  修行', ids: ['S04','S05','S06','S07'] },
-            { label: '🚪  启程', ids: ['S08','S09'] }
+            { label: '🚪  启程', ids: ['S08','S09','S10'] }
         ]
     };
 
@@ -56,7 +53,7 @@ class DebugManager {
     static CHAPTER1_GROUPS = [
         { label: '🗺  城郊平原', ids: ['EVT_PLAINS_ENTRY','EVT_FIRST_HERB','EVT_WOODCUTTER','EVT_ABANDONED_BASKET','EVT_WASHERWOMAN','EVT_MERCHANT','EVT_VILLAGE_GATE'] },
         { label: '🏘  翠竹村',   ids: ['EVT_CUNZHANG_INTRO','EVT_LAOLI_HERB_GARDEN','EVT_WELL_VILLAGER','EVT_DRYING_PLATFORM','EVT_EMPTY_SHOP','EVT_ZHANG_DIAGNOSIS','EVT_VILLAGE_COMPLETE'] },
-        { label: '🏞  溪流山谷', ids: ['EVT_VALLEY_ENTRY','EVT_SHANYAO_ZONE','EVT_SHANYAO_DONE','EVT_STONE_BRIDGE','EVT_FOG_ZONE','EVT_HIDDEN_HERB','EVT_GUGEN_DISCOVERY','EVT_GUGEN_EXAMINE','EVT_RETURN_VILLAGE'] }
+        { label: '🏞  溪流山谷', ids: ['EVT_VALLEY_ENTRY','EVT_SHANYAO_COLLECTED','EVT_FOLLOWED_QINGMIAO','EVT_VALLEY_CLEARING','EVT_RETURN_VILLAGE'] }
     ];
 
     /**
@@ -153,7 +150,7 @@ class DebugManager {
         chapterRow.innerHTML = '<span style="color:#8b7355;">章节：</span> ';
         const chapterSel = document.createElement('select');
         chapterSel.style.cssText = 'background:#2a3a2a;color:#e8d8b8;border:1px solid #8b7355;border-radius:6px;padding:3px 6px;font-size:14px;';
-        [{ v: 0, l: '序章（S01-S09）' }, { v: 1, l: '第一章（C01-C16）' }].forEach(o => {
+        [{ v: 0, l: '序章（S01-S10）' }, { v: 1, l: '第一章（C01-C16）' }].forEach(o => {
             const op = document.createElement('option');
             op.value = o.v; op.textContent = o.l;
             if (o.v === loadChapter) op.selected = true;
@@ -366,7 +363,7 @@ class DebugManager {
      */
     _getEventName(evt) {
         const names = {
-            'EVT_PLAINS_ENTRY': '出生区搭车过场',
+            'EVT_PLAINS_ENTRY': '出生区搭车过场（⚠内容已并入序章S10）',
             'EVT_FIRST_HERB': '第一株甘草',
             'EVT_WOODCUTTER': '砍柴老汉问路',
             'EVT_ABANDONED_BASKET': '废弃草药篓',
@@ -380,15 +377,11 @@ class DebugManager {
             'EVT_EMPTY_SHOP': '空置铺面药铺',
             'EVT_ZHANG_DIAGNOSIS': '张大娘四诊问诊',
             'EVT_VILLAGE_COMPLETE': '全部地点完成',
-            'EVT_VALLEY_ENTRY': '山谷入口',
-            'EVT_YINCHEN_ZONE': '溪岸茵陈区',
-            'EVT_YINCHEN_DONE': '茵陈采集完成',
-            'EVT_STONE_BRIDGE': '石桥小操作',
-            'EVT_FOG_ZONE': '芦苇深处青苗引路',
-            'EVT_HIDDEN_HERB': '迷雾中隐藏草药',
-            'EVT_GUGEN_DISCOVERY': '谷底蛊根草发现',
-            'EVT_GUGEN_EXAMINE': '蛊根草检查旅人登场',
-            'EVT_RETURN_VILLAGE': '返回触发第一章结局'
+            'EVT_VALLEY_ENTRY': '【C15a】溪谷入口·山药采集',
+            'EVT_SHANYAO_COLLECTED': '【C15b】山药采集完成·迷雾松林',
+            'EVT_FOLLOWED_QINGMIAO': '【C15c】跟随青苗·石菖蒲',
+            'EVT_VALLEY_CLEARING': '【C15d】山谷尽头·蛊根草',
+            'EVT_RETURN_VILLAGE': '【C16】返回触发第一章结局'
         };
         return names[evt.eventId] || evt.eventId;
     }
@@ -626,7 +619,7 @@ class DebugManager {
         chapterRow.innerHTML = '<span style="color:#8b7355;">章节：</span> ';
         const chapterSel = document.createElement('select');
         chapterSel.style.cssText = 'background:#2a3a2a;color:#e8d8b8;border:1px solid #8b7355;border-radius:6px;padding:3px 6px;font-size:14px;';
-        [{ v: 0, l: '序章（S01-S09）' }, { v: 1, l: '第一章（C01-C16）' }].forEach(o => {
+        [{ v: 0, l: '序章（S01-S10）' }, { v: 1, l: '第一章（C01-C16）' }].forEach(o => {
             const op = document.createElement('option');
             op.value = o.v; op.textContent = o.l;
             if (o.v === loadChapter) op.selected = true;
@@ -676,7 +669,7 @@ class DebugManager {
             const groups = [
                 { label: '🏔 平原地区', ids: ['C01','C02','C03','C04','C05','C06','C07'] },
                 { label: '🎋 翠竹村',   ids: ['C08','C09','C10','C11','C12','C13','C14'] },
-                { label: '🌊 溪流山谷', ids: ['C15','C16'] }
+                { label: '🌊 溪流山谷', ids: ['C15a','C15b','C15c','C15d','C16'] }
             ];
 
             groups.forEach(g => {

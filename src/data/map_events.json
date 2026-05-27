@@ -1,11 +1,12 @@
 {
-  "version": "1.0",
-  "lastUpdated": "2026-05-22",
-  "description": "百草行 - 第一章地图事件触发配置（供地图系统对接）",
+  "version": "2.0",
+  "lastUpdated": "2026-05-27",
+  "description": "百草行 - 第一章地图事件触发配置（供地图系统对接）· C15拆分为C15a-d分节版",
   "events": [
     
     {
       "eventId": "EVT_PLAINS_ENTRY",
+      "sceneId": "C01",
       "trigger": "zone",
       "zoneId": "zone_map_entry",
       "once": true,
@@ -38,6 +39,7 @@
     },
     {
       "eventId": "EVT_FIRST_HERB",
+      "sceneId": "C02",
       "trigger": "zone",
       "zoneId": "zone_first_herbs",
       "once": true,
@@ -66,6 +68,7 @@
     },
     {
       "eventId": "EVT_WOODCUTTER",
+      "sceneId": "C03",
       "trigger": "npc",
       "npcId": "woodcutter_npc",
       "once": false,
@@ -126,6 +129,7 @@
     },
     {
       "eventId": "EVT_ABANDONED_BASKET",
+      "sceneId": "C04",
       "trigger": "object",
       "objectId": "abandoned_basket",
       "once": true,
@@ -154,6 +158,7 @@
     },
     {
       "eventId": "EVT_WASHERWOMAN",
+      "sceneId": "C05",
       "trigger": "npc",
       "npcId": "washerwoman_npc",
       "once": false,
@@ -191,6 +196,7 @@
     },
     {
       "eventId": "EVT_MERCHANT",
+      "sceneId": "C06",
       "trigger": "npc",
       "npcId": "merchant_npc",
       "once": false,
@@ -250,6 +256,7 @@
     },
     {
       "eventId": "EVT_VILLAGE_GATE",
+      "sceneId": "C07",
       "trigger": "zone",
       "zoneId": "zone_village_gate",
       "once": true,
@@ -282,6 +289,7 @@
     
     {
       "eventId": "EVT_CUNZHANG_INTRO",
+      "sceneId": "C08",
       "trigger": "zone",
       "zoneId": "zone_village_entrance",
       "once": true,
@@ -367,6 +375,7 @@
     },
     {
       "eventId": "EVT_LAOLI_HERB_GARDEN",
+      "sceneId": "C09",
       "trigger": "npc",
       "npcId": "laoli_npc",
       "once": false,
@@ -428,6 +437,7 @@
     },
     {
       "eventId": "EVT_WELL_VILLAGER",
+      "sceneId": "C10",
       "trigger": "npc",
       "npcId": "well_villager_npc",
       "once": false,
@@ -465,6 +475,7 @@
     },
     {
       "eventId": "EVT_DRYING_PLATFORM",
+      "sceneId": "C11",
       "trigger": "object",
       "objectId": "drying_platform_obj",
       "once": true,
@@ -534,6 +545,7 @@
     },
     {
       "eventId": "EVT_EMPTY_SHOP",
+      "sceneId": "C12",
       "trigger": "object",
       "objectId": "empty_shop_obj",
       "once": true,
@@ -609,6 +621,7 @@
     },
     {
       "eventId": "EVT_ZHANG_DIAGNOSIS",
+      "sceneId": "C13",
       "trigger": "npc",
       "npcId": "zhang_daniang_npc",
       "once": false,
@@ -738,6 +751,7 @@
     },
     {
       "eventId": "EVT_VILLAGE_COMPLETE",
+      "sceneId": "C14",
       "trigger": "condition",
       "zoneId": null,
       "npcId": null,
@@ -795,319 +809,59 @@
     
     {
       "eventId": "EVT_VALLEY_ENTRY",
+      "sceneId": "C15a",
       "trigger": "zone",
       "zoneId": "zone_valley_entry",
       "once": true,
-      "dialogType": "bubble",
-      "locComplete": null,
-      "condition": null,
-      "_note": "山谷入口，首次进入自动触发",
-      "steps": [
-        {
-          "type": "dialogue",
-          "character": "qingmiao",
-          "name": "青苗",
-          "avatar": "qingmiao.png",
-          "text": "（兴奋地绕着主人飞转）到了！山药就在溪谷山坡上！茯苓也有！还有……（停顿）……还有一股很奇怪的气味。主人，小心一点。",
-          "nextDelay": 500
-        },
-        {
-          "type": "tutorial",
-          "tutorialAction": "valley_explore",
-          "hint": "溪流山谷·探索提示\n🌿 沿溪岸向南行进，采集山药和茯苓\n⚠️ 水面不可直接通行，需踩石桥\n🔍 注意青苗的感知提示",
-          "hintPosition": "top-center",
-          "nextDelay": 0
-        }
-      ]
+      "dialogType": "overlay",
+      "_note": "【C15a】山谷入口·山药采集 — 触发 C15a 剧情，结束后回到地图采摘山药",
+      "startScene": "C15a",
+      "steps": []
     },
     {
-      "eventId": "EVT_SHANYAO_ZONE",
-      "trigger": "zone",
-      "zoneId": "zone_shanyao_area",
-      "once": true,
-      "dialogType": "bubble",
-      "locComplete": null,
-      "condition": null,
-      "_note": "溪岸山药区，采集教学",
-      "steps": [
-        {
-          "type": "dialogue",
-          "character": "qingmiao",
-          "name": "青苗",
-          "avatar": "qingmiao.png",
-          "text": "（指着山坡）那里！那里！山药！霜降后的山药最肥！快挖快挖！",
-          "nextDelay": 300
-        },
-        {
-          "type": "tutorial",
-          "tutorialAction": "collect_shanyao",
-          "herbId": "shanyao",
-          "requiredCount": 5,
-          "hint": "采集山药 ×5（霜降后采挖·品质+2）",
-          "hintPosition": "bottom-center",
-          "nextDelay": 0
-        }
-      ]
-    },
-    {
-      "eventId": "EVT_SHANYAO_DONE",
-      "trigger": "condition",
-      "zoneId": null,
-      "npcId": null,
-      "objectId": null,
-      "once": true,
-      "dialogType": "bubble",
-      "locComplete": null,
-      "condition": "herb_count",
-      "conditionHerbId": "shanyao",
-      "conditionCount": 5,
-      "_note": "山药采集完成，自动触发",
-      "steps": [
-        {
-          "type": "dialogue",
-          "character": "qingmiao",
-          "name": "青苗",
-          "avatar": "qingmiao.png",
-          "text": "山药够了！继续往里走——茯苓在松林深处！",
-          "nextDelay": 300
-        }
-      ]
-    },
-    {
-      "eventId": "EVT_STONE_BRIDGE",
-      "trigger": "object",
-      "objectId": "stone_bridge_obj",
-      "once": false,
-      "dialogType": "bubble",
-      "locComplete": null,
-      "condition": null,
-      "_note": "石桥小操作，可重复",
-      "steps": [
-        {
-          "type": "dialogue",
-          "character": "narrator",
-          "name": "旁白",
-          "text": "（碎石横列于溪面，可借力跳跃而过）",
-          "nextDelay": 800
-        },
-        {
-          "type": "tutorial",
-          "tutorialAction": "cross_bridge",
-          "hint": "踩石跨溪——保持移动方向，不要停在石上",
-          "hintPosition": "bottom-center",
-          "nextDelay": 0
-        }
-      ]
-    },
-    {
-      "eventId": "EVT_FOG_ZONE",
-      "trigger": "zone",
-      "zoneId": "zone_fog_reeds",
+      "eventId": "EVT_SHANYAO_COLLECTED",
+      "sceneId": "C15b",
+      "trigger": "callback",
       "once": true,
       "dialogType": "overlay",
-      "locComplete": null,
-      "condition": null,
-      "_note": "松林深处青苗引路",
-      "steps": [
-        {
-          "type": "narration",
-          "text": "松林越来越密，雾气漫上来，遮住了前路……",
-          "nextDelay": 2000
-        },
-        {
-          "type": "dialogue",
-          "character": "qingmiao",
-          "name": "青苗",
-          "avatar": "qingmiao.png",
-          "text": "（跳到主人头顶）别怕！青苗感知到的！往左走三步，再向前——跟着青苗走！",
-          "nextDelay": 500
-        },
-        {
-          "type": "tutorial",
-          "tutorialAction": "follow_qingmiao",
-          "hint": "跟随青苗的金色光点引路\n光点会在前方闪烁，指示方向",
-          "hintPosition": "top-center",
-          "nextDelay": 0
-        }
-      ]
+      "_note": "【C15b】山药采集完成·迷雾松林 — 采集完山药后由地图组触发 C15b 剧情",
+      "startScene": "C15b",
+      "steps": []
     },
     {
-      "eventId": "EVT_HIDDEN_HERB",
-      "trigger": "zone",
-      "zoneId": "zone_hidden_herb",
-      "once": true,
-      "dialogType": "bubble",
-      "locComplete": null,
-      "condition": null,
-      "_note": "迷雾中隐藏草药（石菖蒲）",
-      "steps": [
-        {
-          "type": "dialogue",
-          "character": "qingmiao",
-          "name": "青苗",
-          "avatar": "qingmiao.png",
-          "text": "（停下，激动地发光）主人！这里！石菖蒲！好稀有的！",
-          "nextDelay": 300
-        },
-        {
-          "type": "tutorial",
-          "tutorialAction": "collect_shichangpu",
-          "herbId": "shichangpu",
-          "requiredCount": 1,
-          "hint": "【隐藏草药】石菖蒲 ×1（稀有·高价值）",
-          "nextDelay": 0
-        }
-      ]
-    },
-    {
-      "eventId": "EVT_GUGEN_DISCOVERY",
-      "trigger": "zone",
-      "zoneId": "zone_gugen_discovery",
+      "eventId": "EVT_FOLLOWED_QINGMIAO",
+      "sceneId": "C15c",
+      "trigger": "callback",
       "once": true,
       "dialogType": "overlay",
-      "locComplete": null,
-      "condition": null,
-      "_note": "谷底蛊根草发现",
-      "steps": [
-        {
-          "type": "narration",
-          "text": "芦苇尽头，豁然开朗——",
-          "nextDelay": 1500
-        },
-        {
-          "type": "cg",
-          "cgId": "CG_06",
-          "cgConfig": {
-            "image": "cg_06_gugen_discovery.png",
-            "fadeInDuration": 1200,
-            "animation": "slow_zoom"
-          },
-          "text": "触目惊心。大片灰绿色草丛从谷底蔓延而上，周围所有植物尽数枯萎，连溪水都染上了一丝混浊。",
-          "nextDelay": 4000
-        },
-        {
-          "type": "dialogue",
-          "character": "qingmiao",
-          "expression": "surprised",
-          "name": "青苗",
-          "avatar": "qingmiao.png",
-          "text": "（瑟缩，紧抱主人）主人……这气息……不对。不像是植物，更像是……在吸收什么东西。",
-          "nextDelay": 500
-        },
-        {
-          "type": "tutorial",
-          "tutorialAction": "observe_gugen_safe",
-          "hint": "保持安全距离观察蛊根草 — 靠近后按 E 检查",
-          "hintPosition": "bottom-center",
-          "nextDelay": 0
-        }
-      ]
+      "_note": "【C15c】跟随青苗·石菖蒲 — 跟随青苗到达后由地图组触发 C15c 剧情",
+      "startScene": "C15c",
+      "steps": []
     },
     {
-      "eventId": "EVT_GUGEN_EXAMINE",
-      "trigger": "object",
-      "objectId": "gugen_grass_obj",
+      "eventId": "EVT_VALLEY_CLEARING",
+      "sceneId": "C15d",
+      "trigger": "callback",
       "once": true,
       "dialogType": "overlay",
-      "locComplete": null,
-      "condition": null,
-      "_note": "蛊根草检查，旅人登场",
-      "steps": [
-        {
-          "type": "dialogue",
-          "character": "narrator",
-          "name": "旁白",
-          "text": "（近看）灰绿色，叶片细碎如鱼鳞，茎部微微发光，根系裸露于地表——所经之处寸草不生。",
-          "nextDelay": 2500
-        },
-        {
-          "type": "choice",
-          "options": [
-            {
-              "text": "「这根系……在向外分泌某种物质。」",
-              "flag": "analysis_root",
-              "response": {
-                "type": "dialogue",
-                "character": "qingmiao",
-                "name": "青苗",
-                "avatar": "qingmiao.png",
-                "text": "对！青苗闻到了——像矿物质，又像腐败有机质。主人，记下来！",
-                "nextDelay": 500,
-                "nextStep": "EVT_TRAVELER_APPEAR"
-              }
-            },
-            {
-              "text": "「村民的病和这有关系吗？」",
-              "flag": "analysis_disease",
-              "response": {
-                "type": "dialogue",
-                "character": "qingmiao",
-                "name": "青苗",
-                "avatar": "qingmiao.png",
-                "text": "（若有所思）蛊根草出现时间……和村民第一个发病时间……主人你刚才问的这个，很重要！",
-                "nextDelay": 500,
-                "nextStep": "EVT_TRAVELER_APPEAR"
-              }
-            }
-          ]
-        },
-        {
-          "id": "EVT_TRAVELER_APPEAR",
-          "type": "narration",
-          "text": "正这时，芦苇丛中传来脚步声——一个风尘仆仆的旅人，从雾气中走出。",
-          "nextDelay": 1500
-        },
-        {
-          "type": "dialogue",
-          "character": "lvren",
-          "expression": "tired",
-          "name": "旅人",
-          "avatar": "traveler.png",
-          "text": "（停步，看着蛊根草，声音沉静）这东西……你们这里也出现了。",
-          "nextDelay": 800
-        },
-        {
-          "type": "dialogue",
-          "character": "lvren",
-          "expression": "tired",
-          "name": "旅人",
-          "avatar": "traveler.png",
-          "text": "我从北边来，一路过了三个村——全是这个。药材枯萎，老人病倒，大夫束手无策。范围越来越大。",
-          "nextDelay": 500
-        },
-        {
-          "type": "dialogue",
-          "character": "lvren",
-          "expression": "tired",
-          "name": "旅人",
-          "avatar": "traveler.png",
-          "text": "深山里有个炮制大师，叫崔老，住在松涛谷。他见过更早的蛊根草记录……若有人知道怎么应对，只有他了。",
-          "nextDelay": 500,
-          "setFlag": "clue_cuizhao_master"
-        },
-        {
-          "type": "dialogue",
-          "character": "qingmiao",
-          "name": "青苗",
-          "avatar": "qingmiao.png",
-          "text": "（认真地看着主人）主人……翠竹村的病，只是开始。",
-          "nextDelay": 1000
-        }
-      ]
+      "_note": "【C15d】山谷尽头·蛊根草 — 采集石菖蒲后到达山谷尽头，由地图组触发 C15d 剧情",
+      "startScene": "C15d",
+      "steps": []
     },
     {
       "eventId": "EVT_RETURN_VILLAGE",
+      "sceneId": "C16",
       "trigger": "zone",
       "zoneId": "zone_valley_exit",
       "once": true,
       "dialogType": "overlay",
-      "locComplete": null,
       "condition": "has_herbs",
       "conditionHerbs": [
         { "id": "shanyao", "count": 5 },
         { "id": "fuling",   "count": 3 }
       ],
-      "_note": "返回触发第一章结局",
+      "_note": "【C16】返回触发第一章结局",
+      "startScene": "C16",
       "steps": [
         {
           "type": "narration",

@@ -768,6 +768,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-height: 0;          /* ★ 允许收缩 */
+    overflow: hidden;       /* ★ 裁剪溢出，确保内部 grid 的滚动区域有界 */
 }
 
 .guide-right {
@@ -786,8 +788,10 @@ body {
 .guide-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(130px, max-content);  /* ★ 强制每行至少130px高，防止 aspect-ratio 卡片被压缩 */
     gap: 10px;
     flex: 1;
+    min-height: 0;          /* ★ 允许 flex 子项收缩，使 overflow-y: auto 正常工作 */
     overflow-y: auto;
     padding-right: 4px;
 }

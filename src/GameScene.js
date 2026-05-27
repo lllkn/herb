@@ -130,11 +130,26 @@ class GameScene extends Phaser.Scene {
     preload() {
         console.log('GameScene: 预加载资源...');
         
-        // ★ 强制村庄地图标志（C08 show_village_map 设置的双保险）
-        if (window._forceVillageMap) {
-            console.log('[GameScene preload] 检测到 _forceVillageMap 标志，强制使用 village 地图');
+        // ★ 强制村庄地图标志（双重保险：C08 show_village_map 和翠竹村剧情返回两种来源）
+        if (window._forceVillageMap || window._returnToVillageMap) {
+            console.log('[GameScene preload] 检测到村庄地图标志，强制使用 village 地图');
             this.config.currentMapId = 'village';
             window._forceVillageMap = false;
+            window._returnToVillageMap = false;
+        }
+
+        // ★ C15a 结束后返回溪谷地图（非翠竹村）
+        if (window._returnToStreamMap) {
+            console.log('[GameScene preload] 检测到溪谷地图标志，强制使用 stream 地图');
+            this.config.currentMapId = 'stream';
+            window._returnToStreamMap = false;
+            window._returnToVillageMap = false;  // 清除冲突标志
+        }
+
+        // ★ 兜底防护：如果没有有效地图配置，默认使用平原
+        if (!this.config.maps[this.config.currentMapId]) {
+            console.warn('[GameScene preload] currentMapId 无效(' + this.config.currentMapId + ')，回退到 plain');
+            this.config.currentMapId = 'plain';
         }
         
         const mapId = this.config.currentMapId;
@@ -1378,8 +1393,10 @@ class GameScene extends Phaser.Scene {
             window._villageEventState = {
                 herb_garden: 'pending',      // pending → completed (C09)
                 well: 'pending',             // pending → completed (C10)
-                workshop: 'c11_pending',     // c11_pending → c11_done → completed (C11→C12 顺序)
-                residence: 'pending',         // pending → completed (C13)
+                workshop: 'c11_pending',     // c11_pending → completed (C11·晒药台)
+                herb_shop: 'locked',         // locked → pending → completed（作坊完成后解锁 C12·药铺）
+                residence: 'pending',        // pending → completed (C13)（水井完成后才显示!）
+                valley_entrance: 'locked',   // locked → pending（C14完成后解锁 → 点击进入溪谷）
             };
         }
         // ★ 处理刚从剧情返回的完成标记
@@ -1388,7 +1405,36 @@ class GameScene extends Phaser.Scene {
             const st = window._villageEventState;
             st[evt.spotId] = evt.nextState;
             console.log(`[村庄事件] ✅ ${evt.spotId} → ${evt.nextState}`, st);
+
+            // ★ 作坊(C11)完成后 → 解锁药铺(C12)
+            if (evt.spotId === 'workshop' && evt.nextState === 'completed') {
+                st.herb_shop = 'pending';
+                console.log('[村庄事件] 🔓 作坊完成，药铺已解锁');
+            }
+
             delete window._pendingVillageEvent;
+
+            // ★ 检查是否全部完成 → 自动触发 C14
+            const allCompleted =
+                st.herb_garden === 'completed' &&
+                st.well === 'completed' &&
+                st.workshop === 'completed' &&
+                st.herb_shop === 'completed' &&
+                st.residence === 'completed';
+            if (allCompleted && !window._c14Triggered) {
+                window._c14Triggered = true;
+                window._c14JustCompleted = true;  // ★ 标记：C14结束后解锁溪谷
+                console.log('[村庄事件] 🎉 翠竹村探索全部完成！自动触发 C14');
+                // C14 在 chapter1 场景数组中索引为 13
+                this._triggerVillageEvent(13, 'EVT_VILLAGE_COMPLETE');
+            }
+        }
+
+        // ★ C14 完成后恢复 → 解锁溪谷入口
+        if (window._c14JustCompleted) {
+            window._villageEventState.valley_entrance = 'pending';
+            delete window._c14JustCompleted;
+            console.log('[村庄事件] 🔓 C14完成，溪谷入口已解锁');
         }
     }
 
@@ -1400,6 +1446,8 @@ class GameScene extends Phaser.Scene {
         const configs = {
             herb_garden: { eventId: 'EVT_LAOLI_HERB_GARDEN', sceneIdx: 8,  locKey: 'loc_herb_garden',    name: 'C09·药圃辨药' },
             well:        { eventId: 'EVT_WELL_VILLAGER',      sceneIdx: 9,  locKey: 'loc_well',           name: 'C10·水井线索' },
+            workshop:    { eventId: 'EVT_DRYING_PLATFORM',    sceneIdx: 10, locKey: 'loc_drying_platform',name: 'C11·晒药台' },
+            herb_shop:   { eventId: 'EVT_EMPTY_SHOP',         sceneIdx: 11, locKey: 'loc_empty_shop',     name: 'C12·空置药铺' },
             residence:   { eventId: 'EVT_ZHANG_DIAGNOSIS',    sceneIdx: 12, locKey: 'loc_zhang_home',     name: 'C13·张大娘问诊' },
         };
         return configs[spotId] || null;
@@ -1427,8 +1475,10 @@ class GameScene extends Phaser.Scene {
             window._returnToVillageMap = true;
             console.log(`[村庄事件] ▶ 触发 ${eventName}（索引=${sceneIdx}，对应 ${chapter1Data.scenes[sceneIdx]?.id}），forceChapter1 已传递`);
 
-            // ★ 使用 game.scene.start 停止 GameScene，启动 IntroScene
-            this.game.scene.start('IntroScene', startData);
+            // ★ 使用 this.scene.start 而非 this.game.scene.start：
+            // this.scene.start 会先 shutdown GameScene（释放键盘监听、update 循环），再启动 IntroScene，
+            // 避免两个场景同时运行导致键盘事件被 GameScene 拦截，剧情无法推进。
+            this.scene.start('IntroScene', startData);
         });
     }
 
@@ -1468,15 +1518,16 @@ class GameScene extends Phaser.Scene {
 
         // === 定义可点击地点（比例坐标 0~1，自动映射到实际显示尺寸）===
         const locations = [
-            { id: 'plains_exit',   name: '城郊平原',   x: 0.08, y: 0.35, label: '城郊平原' },
+            { id: 'plains_exit',   name: '城郊平原',   x: 0.05, y: 0.55, label: '城郊平原' },
             { id: 'village_gate',  name: '翠竹村牌坊', x: 0.22, y: 0.48, label: '牌坊' },
             { id: 'cunzhang_home', name: '村长家',     x: 0.50, y: 0.12, label: '村长家' },
             { id: 'herb_garden',   name: '药圃',       x: 0.36, y: 0.38, label: '药圃',    hasStory: true, storyKey: 'C09' },
             { id: 'well',          name: '水井',       x: 0.54, y: 0.48, label: '水井',    hasStory: true, storyKey: 'C10' },
             { id: 'residence',     name: '民居',       x: 0.32, y: 0.72, label: '民居',    hasStory: true, storyKey: 'C13' },
-            { id: 'workshop',      name: '作坊',       x: 0.70, y: 0.72, label: '作坊',    hasStory: true, storyKey: 'C11+12' },
+            { id: 'workshop',      name: '作坊',       x: 0.65, y: 0.72, label: '作坊',    hasStory: true, storyKey: 'C11' },
+            { id: 'herb_shop',     name: '药铺',       x: 0.76, y: 0.72, label: '药铺',    hasStory: true, storyKey: 'C12' },
             { id: 'ancient_tree',  name: '古树',       x: 0.76, y: 0.30, label: '古树' },
-            { id: 'valley_entrance',name: '溪流山谷',  x: 0.94, y: 0.45, label: '溪谷' },
+            { id: 'valley_entrance',name: '溪流山谷',  x: 0.94, y: 0.45, label: '溪谷',   hasStory: true, storyKey: 'C15a' },
         ];
 
         this._villageHotspots = [];
@@ -1490,9 +1541,15 @@ class GameScene extends Phaser.Scene {
             if (loc.hasStory) {
                 const st = window._villageEventState;
                 const s = st[loc.id];
-                if (loc.id === 'workshop') {
-                    // 作坊：c11_pending 或 c11_done 都显示 "!"（还有事件未完成）
-                    showExclamation = (s === 'c11_pending' || s === 'c11_done');
+                if (loc.id === 'residence') {
+                    // 民居：水井(C10)完成后才显示 "!"
+                    showExclamation = (s !== 'completed' && st.well === 'completed');
+                } else if (loc.id === 'herb_shop') {
+                    // 药铺：作坊(C11)完成后才解锁，解锁后(pending)才显示 "!"
+                    showExclamation = (s === 'pending');
+                } else if (loc.id === 'valley_entrance') {
+                    // 溪谷：C14完成后解锁，解锁后(pending)才显示 "!"
+                    showExclamation = (s === 'pending');
                 } else {
                     showExclamation = (s !== 'completed');
                 }
@@ -1561,6 +1618,14 @@ class GameScene extends Phaser.Scene {
                 console.log(`[村庄地图] 点击了: ${loc.name} (${loc.id}) hasStory=${loc.hasStory}`);
 
                 if (!loc.hasStory) {
+                    // ── 城郊平原：切换到 plain 地图 ──
+                    if (loc.id === 'plains_exit') {
+                        console.log('[村庄地图] ▶ 前往城郊平原');
+                        this.config.currentMapId = 'plain';
+                        window._currentVillageSpotCoords = null;
+                        this.scene.start('GameScene');
+                        return;
+                    }
                     // 无剧情 → 仅浮动文字
                     this._showVillageFloatText(`${loc.name}`, spotX, spotY);
                     return;
@@ -1570,32 +1635,51 @@ class GameScene extends Phaser.Scene {
                 const st = window._villageEventState;
                 const currentState = st[loc.id];
 
-                // ── 作坊特殊处理：C11 → C12 顺序触发 ──
-                if (loc.id === 'workshop') {
-                    if (currentState === 'completed') {
-                        this._showVillageFloatText('已经探索完毕了', spotX, spotY);
-                        return;
-                    }
-                    if (currentState === 'c11_pending') {
-                        // 触发 C11（晒药台）
-                        window._pendingVillageEvent = {
-                            spotId: 'workshop', locKey: 'loc_drying_platform',
-                            eventIdx: 10, nextState: 'c11_done'
-                        };
-                        this._triggerVillageEvent(10, 'C11·晒药台');
-                    } else if (currentState === 'c11_done') {
-                        // 触发 C12（空置药铺）
-                        window._pendingVillageEvent = {
-                            spotId: 'workshop', locKey: 'loc_empty_shop',
-                            eventIdx: 11, nextState: 'completed'
-                        };
-                        this._triggerVillageEvent(11, 'C12·空置药铺');
-                    }
+                // ── 民居：水井未完成 → 提示先做水井 ──
+                if (loc.id === 'residence' && st.well !== 'completed') {
+                    this._showVillageFloatText('先看看水井那边的线索', spotX, spotY);
                     return;
                 }
 
-                // ── 普通单次事件 ──
-                if (currentState === 'completed') {
+                // ── 药铺：作坊未完成 → 提示先做作坊 ──
+                if (loc.id === 'herb_shop' && st.workshop !== 'completed') {
+                    this._showVillageFloatText('作坊那边还没有忙完', spotX, spotY);
+                    return;
+                }
+
+                // ── 溪谷入口：C14完成后解锁 → 触发 C15a + 切换到溪谷地图 ──
+                if (loc.id === 'valley_entrance') {
+                    if (currentState === 'locked') {
+                        this._showVillageFloatText('村长说还不能去溪谷', spotX, spotY);
+                        return;
+                    }
+                    if (currentState === 'completed') {
+                        this._showVillageFloatText('已经探索过了', spotX, spotY);
+                        return;
+                    }
+                    const chapter1Data = window._chapter1Data;
+                    if (!chapter1Data) {
+                        this._showVillageFloatText('剧情数据加载失败', spotX, spotY);
+                        return;
+                    }
+                    // 标记：C15a 结束后返回溪谷地图（非翠竹村）
+                    window._returnToStreamMap = true;
+                    window._villageEventState.valley_entrance = 'completed';
+                    console.log('[村庄事件] ▶ 进入溪谷！触发 C15a，结束后进入溪谷地图');
+
+                    this.time.delayedCall(150, () => {
+                        this.scene.start('IntroScene', {
+                            debugMode: true,
+                            debugTargetIdx: 14,       // C15a 在 chapter1 场景数组中索引为 14
+                            returnToGame: true,
+                            forceChapter1: chapter1Data,
+                        });
+                    });
+                    return;
+                }
+
+                // ── 已完成 ──
+                if (currentState === 'completed' || currentState === 'locked') {
                     this._showVillageFloatText('已经探索完毕了', spotX, spotY);
                     return;
                 }
