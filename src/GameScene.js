@@ -205,7 +205,7 @@ class GameScene extends Phaser.Scene {
         });
 
         // ── 加载草药纹理（按 herbId 查找 assets/pictures/herbs/<id>.png）──
-        const herbTextures = ['gancao', 'jinyinhua', 'hongjingtian'];
+        const herbTextures = ['gancao', 'jinyinhua', 'hongjingtian', 'heshouwu'];
         herbTextures.forEach(id => {
             this.load.image(`herb_${id}`, `src/assets/pictures/herbs/${id}.png`);
         });
@@ -524,7 +524,7 @@ class GameScene extends Phaser.Scene {
                     if (layer.type === 'tilelayer' && layer.data) {
                         const layerName = layer.name || 'Layer_' + index;
                         const tileLayer = loadedTilesets.length > 0 
-                            ? this.tiledMap.createBlankLayer(layerName, loadedTilesets, 0, 0)
+                            ? this.tiledMap.createBlankLayer(layerName, loadedTilesets, 0, 0, layer.width, layer.height, this.tiledMap.tileWidth, this.tiledMap.tileHeight)
                             : null;
 
                         if (tileLayer) {
@@ -1080,11 +1080,11 @@ class GameScene extends Phaser.Scene {
         const x = obj.x;
         const y = obj.y;
 
-        // ★ 甘草：跳过已采集的位置
-        if (herbId === 'gancao' && window._collectedGancaoPositions) {
-            const posKey = `${Math.round(x)}_${Math.round(y)}`;
-            if (window._collectedGancaoPositions.has(posKey)) {
-                console.log(`甘草 (${x},${y}) 已采集，跳过创建`);
+        // ★ 跳过已采集的草药位置（防止场景重启后复现）
+        if (window._collectedHerbPositions) {
+            const posKey = `${herbId}_${Math.round(x)}_${Math.round(y)}`;
+            if (window._collectedHerbPositions.has(posKey)) {
+                console.log(`${herbData.name} (${x},${y}) 已采集，跳过创建`);
                 return;
             }
         }
@@ -2079,15 +2079,17 @@ class GameScene extends Phaser.Scene {
         window.uiManager.updateHerbGuideUI();
         window.uiManager.updateTaskProgress();
 
-        // ★ 甘草采集计数 + 持久化位置（防止场景重启后复现）
+        // ★ 采集计数 + 持久化位置（防止场景重启后复现）
         console.log(`[collect] herbId=${herb.data.id}, name=${herb.data.name}`);
+        if (!window._collectedHerbPositions) window._collectedHerbPositions = new Set();
+        const posKey = `${herb.data.id}_${Math.round(herb.sprite.x)}_${Math.round(herb.sprite.y)}`;
+        window._collectedHerbPositions.add(posKey);
         if (herb.data.id === 'gancao') {
             window._gancaoCollected = (window._gancaoCollected || 0) + 1;
-            if (!window._collectedGancaoPositions) window._collectedGancaoPositions = new Set();
-            const posKey = `${Math.round(herb.sprite.x)}_${Math.round(herb.sprite.y)}`;
-            window._collectedGancaoPositions.add(posKey);
             const remaining = this.herbs.filter(h => h.data.id === 'gancao' && !h.collected).length;
             console.log(`甘草采集进度: ${window._gancaoCollected}/3, 剩余: ${remaining}, 位置已保存: ${posKey}`);
+        } else {
+            console.log(`草药持久化: ${herb.data.name} 位置已保存: ${posKey}`);
         }
     }
 
