@@ -122,6 +122,17 @@ class GameScene extends Phaser.Scene {
         this._rawMapJson = null;
         this._shutdownRegistered = false;
         this._gancaoStoryTriggering = false;
+        this._gidTextureMap = null;
+        this._streamTriggers = [];      // 溪流地图区域触发器
+        // _streamTriggered 现在持久化到 window，避免场景重启后丢失
+        if (!window._streamTriggered) {
+            window._streamTriggered = new Set();
+        }
+        this._guideOverlay = null;     // C15b后的指引遮罩
+        this._guideArrow = null;       // 指引箭头
+        this._guideHint = null;        // 指引文字
+        this._guideTarget = null;      // 指引目标坐标
+        this._guideActive = false;     // 指引是否激活
     }
 
     /**
@@ -205,9 +216,17 @@ class GameScene extends Phaser.Scene {
         });
 
         // ── 加载草药纹理（按 herbId 查找 assets/pictures/herbs/<id>.png）──
-        const herbTextures = ['gancao', 'jinyinhua', 'hongjingtian', 'heshouwu'];
-        herbTextures.forEach(id => {
-            this.load.image(`herb_${id}`, `src/assets/pictures/herbs/${id}.png`);
+        const herbTextures = [
+            { id: 'gancao', file: 'gancao.png' },
+            { id: 'jinyinhua', file: 'jinyinhua.png' },
+            { id: 'hongjingtian', file: 'hongjingtian.png' },
+            { id: 'heshouwu', file: 'heshouwu.png' },
+            { id: 'shichangpu', file: '石菖蒲.png' },
+            { id: 'fuling', file: '茯苓.png' },
+            { id: 'shanyao', file: '山药.png' }
+        ];
+        herbTextures.forEach(h => {
+            this.load.image(`herb_${h.id}`, `src/assets/pictures/herbs/${h.file}`);
         });
 
         // ── 加载 NPC 纹理 ──
@@ -280,6 +299,38 @@ class GameScene extends Phaser.Scene {
             this.player.x = mapConfig.playerStart.x;
             this.player.y = mapConfig.playerStart.y;
             console.log('玩家初始位置:', this.player.x, this.player.y);
+        }
+        
+        // ★ 流地图区域触发器（剧情 C15b / C15c / C15d）
+        if (this.config.currentMapId === 'stream') {
+            this._streamTriggers = [
+                {
+                    id: 'c15b',
+                    x: 1050, y: 850, w: 800, h: 600,   // 桥右侧大范围 → C15b
+                    sceneIdx: 15,
+                    require: null
+                },
+                {
+                    id: 'c15c',
+                    x: 500, y: 850, w: 500, h: 450,    // 桥左侧靠近石菖蒲 → C15c
+                    sceneIdx: 16,
+                    require: 'c15b'
+                },
+                {
+                    id: 'c15d',
+                    x: 50, y: 850, w: 100, h: 600,     // 道路尽头 → C15d
+                    sceneIdx: 17,
+                    require: 'c15c'
+                }
+            ];
+            this._streamTriggered = window._streamTriggered;
+
+            console.log('流地图区域触发器已设置:', this._streamTriggers.length, '个区域');
+
+            // ★ C15b 剧情返回后激活过桥指引
+            if (window._streamGuideActive) {
+                this.time.delayedCall(200, () => this._setupGuideOverlay());
+            }
         }
         
         // 摄像机
@@ -438,6 +489,126 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
+     * 解析 tileset source 路径，优先提取实际可访问的 src/ 路径
+     */
+    resolveTilesetSourcePath(source, mapJsonPath) {
+        if (!source) {
+            return null;
+        }
+        const normalized = source.replace(/\\/g, '/');
+        const srcMatch = normalized.match(/(src\/.*)$/);
+        if (srcMatch) {
+            return srcMatch[1];
+        }
+        if (!mapJsonPath) {
+            return normalized;
+        }
+        const mapDir = mapJsonPath.replace(/\\/g, '/').replace(/\/[^/]*$/, '/');
+        const combined = `${mapDir}${normalized}`;
+        const segments = combined.split('/');
+        const resolved = [];
+        for (const segment of segments) {
+            if (segment === '' || segment === '.') {
+                continue;
+            }
+            if (segment === '..') {
+                resolved.pop();
+            } else {
+                resolved.push(segment);
+            }
+        }
+        return resolved.join('/');
+    }
+
+    /**
+     * 从 TSX 文件中读取 tilewidth/tileheight 和 image source 元数据
+     */
+    loadTilesetMetadataFromTsx(tsxPath) {
+        try {
+            const xhr = new XMLHttpRequest();
+            const requestPath = encodeURI(tsxPath) + '?_=' + Date.now();
+            xhr.open('GET', requestPath, false);
+            xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            xhr.send(null);
+            if (xhr.status !== 200) {
+                console.warn('TSX 读取失败:', tsxPath, 'status=', xhr.status);
+                return null;
+            }
+            const text = xhr.responseText;
+            const tilesetMatch = text.match(/<tileset[^>]*tilewidth="(\d+)"[^>]*tileheight="(\d+)"/i);
+            const imageMatch = text.match(/<image[^>]*source="([^"]+)"[^>]*width="(\d+)"[^>]*height="(\d+)"/i);
+            const metadata = {};
+            if (tilesetMatch) {
+                metadata.tileWidth = parseInt(tilesetMatch[1], 10);
+                metadata.tileHeight = parseInt(tilesetMatch[2], 10);
+            }
+            if (imageMatch) {
+                metadata.imageSource = imageMatch[1];
+                if (!metadata.tileWidth) {
+                    metadata.tileWidth = parseInt(imageMatch[2], 10);
+                }
+                if (!metadata.tileHeight) {
+                    metadata.tileHeight = parseInt(imageMatch[3], 10);
+                }
+            }
+            if (Object.keys(metadata).length > 0) {
+                return metadata;
+            }
+            console.warn('TSX metadata 未找到 tilewidth/tileheight 或 image source:', tsxPath);
+        } catch (error) {
+            console.warn('loadTilesetMetadataFromTsx 错误:', error.message, tsxPath);
+        }
+        return null;
+    }
+
+    getTilesetMetadata(tsInfo, mapConfig) {
+        if (!tsInfo || !tsInfo.source || !mapConfig) {
+            return null;
+        }
+        const sourcePath = this.resolveTilesetSourcePath(tsInfo.source, mapConfig.jsonPath);
+        if (!sourcePath) {
+            return null;
+        }
+        return this.loadTilesetMetadataFromTsx(sourcePath);
+    }
+
+    getTilesetImageBase(tsInfo, mapConfig) {
+        const metadata = this.getTilesetMetadata(tsInfo, mapConfig);
+        if (metadata && metadata.imageSource) {
+            return metadata.imageSource.split('/').pop().replace(/\.[^.]+$/, '');
+        }
+        return null;
+    }
+
+    /**
+     * 获取 tileset 的真实瓦片尺寸，优先使用 TSX 元数据
+     */
+    getTilesetTileSize(tsInfo, mapConfig) {
+        if (!tsInfo || !mapConfig) {
+            return null;
+        }
+
+        if (tsInfo.tilewidth && tsInfo.tileheight) {
+            return {
+                tileWidth: tsInfo.tilewidth,
+                tileHeight: tsInfo.tileheight
+            };
+        }
+
+        if (tsInfo.source) {
+            const sourcePath = this.resolveTilesetSourcePath(tsInfo.source, mapConfig.jsonPath);
+            if (sourcePath) {
+                const metadata = this.loadTilesetMetadataFromTsx(sourcePath);
+                if (metadata) {
+                    return metadata;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * 从 JSON 数据手动创建地图
      */
     createMapFromData(mapData, mapConfig) {
@@ -475,22 +646,37 @@ class GameScene extends Phaser.Scene {
                     const tsInfo = (mapData.tilesets || []).find(ts => {
                         if (!ts) return false;
                         const srcBase = ts.source ? ts.source.split('/').pop().replace(/\.[^.]+$/, '') : '';
-                        return ts.name === base || srcBase === base;
+                        if (ts.name === base || srcBase === base) {
+                            return true;
+                        }
+                        const tsImageBase = this.getTilesetImageBase(ts, mapConfig);
+                        return tsImageBase === base;
                     });
 
-                    const firstgid = tsInfo ? tsInfo.firstgid : (index === 0 ? 1 : 0);
-                    let tsName = `tileset_${index}`;
-                    if (tsInfo) {
-                        if (tsInfo.name) tsName = tsInfo.name;
-                        else if (tsInfo.source) tsName = tsInfo.source.split('/').pop().replace(/\.[^.]+$/, '');
+                    if (!tsInfo) {
+                        console.warn(`  ✗ 未找到 tileset 匹配: ${base}，已跳过该 tileImages 入口`);
+                        return;
                     }
 
-                    console.log(`手动模式: 关联 ${tsName} -> ${key}, firstgid=${firstgid}`);
+                    const firstgid = tsInfo.firstgid;
+                    let tsName = `tileset_${index}`;
+                    if (tsInfo.name) {
+                        tsName = tsInfo.name;
+                    } else if (tsInfo.source) {
+                        tsName = tsInfo.source.split('/').pop().replace(/\.[^.]+$/, '');
+                    }
+
+                    const tileSize = this.getTilesetTileSize(tsInfo, mapConfig) || {
+                        tileWidth: this.tiledMap.tileWidth,
+                        tileHeight: this.tiledMap.tileHeight
+                    };
+
+                    console.log(`手动模式: 关联 ${tsName} -> ${key}, firstgid=${firstgid}, tileSize=${tileSize.tileWidth}x${tileSize.tileHeight}`);
                     const ts = this.tiledMap.addTilesetImage(
                         tsName,
                         key,
-                        this.tiledMap.tileWidth,
-                        this.tiledMap.tileHeight,
+                        tileSize.tileWidth,
+                        tileSize.tileHeight,
                         0,
                         0,
                         firstgid
@@ -509,6 +695,26 @@ class GameScene extends Phaser.Scene {
                 console.warn('瓦片集加载数量与配置不一致:', loadedTilesets.length, 'vs', mapConfig.tileImages ? mapConfig.tileImages.length : 0);
             }
             console.log('成功加载瓦片集数量:', loadedTilesets.length);
+            
+            // ★ 构建 gid → 纹理key 映射（用于渲染 objects 层中没有 type 的装饰物，如土坑）
+            this._gidTextureMap = {};
+            if (mapConfig.tileImages && mapData.tilesets) {
+                mapConfig.tileImages.forEach((imgPath, index) => {
+                    const key = `tileset_${index}`;
+                    const base = imgPath.split('/').pop().replace(/\.[^.]+$/, '');
+                    const tsEntry = (mapData.tilesets || []).find(ts => {
+                        if (!ts) return false;
+                        const srcBase = ts.source ? ts.source.split('/').pop().replace(/\.[^.]+$/, '') : '';
+                        if (ts.name === base || srcBase === base) return true;
+                        const tsImageBase = this.getTilesetImageBase(ts, mapConfig);
+                        return tsImageBase === base;
+                    });
+                    if (tsEntry && tsEntry.firstgid) {
+                        this._gidTextureMap[tsEntry.firstgid] = key;
+                        console.log(`  gidMap: ${tsEntry.firstgid} → ${key} (${base})`);
+                    }
+                });
+            }
             
             // 3. 创建图层
             if (mapData.layers) {
@@ -653,26 +859,37 @@ class GameScene extends Phaser.Scene {
                     const tsInfo = (mapData.tilesets || []).find(ts => {
                         if (!ts) return false;
                         const srcBase = ts.source ? ts.source.split('/').pop().replace(/\.[^.]+$/, '') : '';
-                        return ts.name === base || srcBase === base;
+                        if (ts.name === base || srcBase === base) {
+                            return true;
+                        }
+                        const tsImageBase = this.getTilesetImageBase(ts, mapConfig);
+                        return tsImageBase === base;
                     });
 
-                    const firstgid = tsInfo ? tsInfo.firstgid : (index === 0 ? 1 : 0);
-                    let tsName = `tileset_${index}`;
-                    if (tsInfo) {
-                        if (tsInfo.name) {
-                            tsName = tsInfo.name;
-                        } else if (tsInfo.source) {
-                            const fileName = tsInfo.source.split('/').pop();
-                            tsName = fileName ? fileName.replace(/\.[^.]+$/, '') : tsName;
-                        }
+                    if (!tsInfo) {
+                        console.warn(`  ✗ 未找到 tileset 匹配: ${base}，已跳过该 tileImages 入口`);
+                        return;
                     }
 
-                    console.log(`加载缓存 tilemap 瓦片集: ${tsName} -> ${key}, firstgid=${firstgid}`);
+                    const firstgid = tsInfo.firstgid;
+                    let tsName = `tileset_${index}`;
+                    if (tsInfo.name) {
+                        tsName = tsInfo.name;
+                    } else if (tsInfo.source) {
+                        const fileName = tsInfo.source.split('/').pop();
+                        tsName = fileName ? fileName.replace(/\.[^.]+$/, '') : tsName;
+                    }
+
+                    const tileSize = this.getTilesetTileSize(tsInfo, mapConfig) || {
+                        tileWidth: map.tileWidth,
+                        tileHeight: map.tileHeight
+                    };
+                    console.log(`加载缓存 tilemap 瓦片集: ${tsName} -> ${key}, firstgid=${firstgid}, tileSize=${tileSize.tileWidth}x${tileSize.tileHeight}`);
                     const ts = map.addTilesetImage(
                         tsName,
                         key,
-                        map.tileWidth,
-                        map.tileHeight,
+                        tileSize.tileWidth,
+                        tileSize.tileHeight,
                         0,
                         0,
                         firstgid
@@ -687,6 +904,25 @@ class GameScene extends Phaser.Scene {
 
             if (loadedTilesets.length === 0) {
                 throw new Error('未能加载任何 tileset');
+            }
+
+            // ★ 构建 gid → 纹理key 映射（用于渲染 objects 层中没有 type 的装饰物，如土坑）
+            this._gidTextureMap = {};
+            if (mapConfig.tileImages && mapData.tilesets) {
+                mapConfig.tileImages.forEach((imgPath, index) => {
+                    const key = `tileset_${index}`;
+                    const base = imgPath.split('/').pop().replace(/\.[^.]+$/, '');
+                    const tsEntry = (mapData.tilesets || []).find(ts => {
+                        if (!ts) return false;
+                        const srcBase = ts.source ? ts.source.split('/').pop().replace(/\.[^.]+$/, '') : '';
+                        if (ts.name === base || srcBase === base) return true;
+                        const tsImageBase = this.getTilesetImageBase(ts, mapConfig);
+                        return tsImageBase === base;
+                    });
+                    if (tsEntry && tsEntry.firstgid) {
+                        this._gidTextureMap[tsEntry.firstgid] = key;
+                    }
+                });
             }
 
             let layerCount = 0;
@@ -984,27 +1220,37 @@ class GameScene extends Phaser.Scene {
         if (!layer.objects) return;
         console.log('对象层:', layer.name, layer.objects.length, '个对象');
         
+        // ★ 应用图层的 offsetx/offsety 偏移（Tiled 中设置的视觉偏移，修复错位问题）
+        const offsetX = layer.offsetx || 0;
+        const offsetY = layer.offsety || 0;
+        if (offsetX !== 0 || offsetY !== 0) {
+            console.log(`  图层偏移: offsetx=${offsetX}, offsety=${offsetY}`);
+        }
+        
         layer.objects.forEach(obj => {
             const type = (obj.type || obj.class || '').toLowerCase();
             
             if (type === 'herb') {
-                this.createHerb(obj);
+                this.createHerb(obj, offsetX, offsetY);
             } else if (type === 'herbs') {
                 // 地图中 type="herbs" 的实际是剧情触发甘草（非采集）
-                this.createStoryHerb(obj);
+                this.createStoryHerb(obj, offsetX, offsetY);
             } else if (type === 'portal') {
                 // ★ 翠竹村牌坊：触发剧情 C07，而非传送
                 if (obj.name && obj.name.includes('翠竹村')) {
                     console.log(`翠竹村牌坊 → 剧情触发模式`);
-                    this.createNPC(obj);  // 复用 NPC 创建逻辑
+                    this.createNPC(obj, offsetX, offsetY);  // 复用 NPC 创建逻辑
                 } else {
-                    this.createPortal(obj);
+                    this.createPortal(obj, offsetX, offsetY);
                 }
             } else if (type === 'npc') {
-                this.createNPC(obj);
+                this.createNPC(obj, offsetX, offsetY);
             } else if (type === 'object') {
                 // 交互物（废弃药篓等），直接复用 createNPC 的交互逻辑
-                this.createNPC(obj);
+                this.createNPC(obj, offsetX, offsetY);
+            } else if (obj.gid) {
+                // 只有 gid 没有 type 的装饰物（如土坑），渲染为静态精灵
+                this.createDecorativeObj(obj, offsetX, offsetY);
             }
         });
     }
@@ -1071,14 +1317,29 @@ class GameScene extends Phaser.Scene {
     /**
      * 创建草药
      */
-    createHerb(obj) {
+    createHerb(obj, offsetX, offsetY) {
         const props = this._parseProps(obj);
-        const herbId = props.herbId || 'gancao';
+
+        // ★ 优先从 properties.herbId 获取；否则从 gid 映射到 tileset 名称再匹配 HERBS_DATA
+        let herbId = props.herbId;
+        if (!herbId && obj.gid) {
+            const tsName = this._getTilesetNameByGid(obj.gid);
+            if (tsName) {
+                const matched = this.gameData.HERBS_DATA.find(h => h.name === tsName);
+                if (matched) {
+                    herbId = matched.id;
+                    console.log(`createHerb: gid=${obj.gid} → tileset="${tsName}" → herbId="${herbId}"`);
+                }
+            }
+        }
+        if (!herbId) {
+            herbId = 'gancao';
+        }
         const herbData = this.gameData.HERBS_DATA.find(h => h.id === herbId);
         if (!herbData) return;
 
-        const x = obj.x;
-        const y = obj.y;
+        const x = obj.x + (offsetX || 0);
+        const y = obj.y + (offsetY || 0);
 
         // ★ 跳过已采集的草药位置（防止场景重启后复现）
         if (window._collectedHerbPositions) {
@@ -1120,11 +1381,11 @@ class GameScene extends Phaser.Scene {
     /**
      * 创建传送门
      */
-    createPortal(obj) {
+    createPortal(obj, offsetX, offsetY) {
         const props = this._parseProps(obj);
         const targetMap = props.targetMap || '';
-        const x = obj.x + (obj.width || 0) / 2;
-        const y = obj.y + (obj.height || 0) / 2;
+        const x = obj.x + (offsetX || 0) + (obj.width || 0) / 2;
+        const y = obj.y + (offsetY || 0) + (obj.height || 0) / 2;
 
         console.log(`传送门: "${obj.name}" → ${targetMap}, 位置: (${x}, ${y})`);
 
@@ -1203,10 +1464,51 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
+     * 根据 gid 查找对应的 Phaser 纹理 key（用于渲染 objects 层中的装饰物）
+     */
+    _getTextureKeyForGid(gid) {
+        if (!this._gidTextureMap) return null;
+        const gids = Object.keys(this._gidTextureMap).map(Number).sort((a, b) => a - b);
+        for (let i = 0; i < gids.length; i++) {
+            const startGid = gids[i];
+            const endGid = (i + 1 < gids.length) ? gids[i + 1] - 1 : Infinity;
+            if (gid >= startGid && gid <= endGid) {
+                return this._gidTextureMap[startGid];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 创建装饰物精灵（objects 层中只有 gid 但没有 type 的对象）
+     */
+    createDecorativeObj(obj, offsetX, offsetY) {
+        const gid = obj.gid;
+        if (!gid) return;
+
+        const texKey = this._getTextureKeyForGid(gid);
+        if (!texKey || !this.textures.exists(texKey)) {
+            console.warn(`createDecorativeObj: 纹理不存在, gid=${gid}, key=${texKey || 'null'}`);
+            return;
+        }
+
+        const x = obj.x + (offsetX || 0) + (obj.width || 0) / 2;
+        const y = obj.y + (offsetY || 0) + (obj.height || 0) / 2;
+
+        const sprite = this.add.image(x, y, texKey);
+        sprite.setOrigin(0.5, 0.5);
+        // ★ 深度设为 2（地面装饰，在地面 tile层之上，玩家/NPC/草药之下）
+        sprite.setDepth(2);
+        sprite.setVisible(obj.visible !== false);
+
+        console.log(`装饰物: gid=${gid} 创建于 (${Math.round(x)}, ${Math.round(y)})`);
+    }
+
+    /**
      * 创建 NPC / 交互物（加载图片并显示在地图上）
      * 存储交互数据用于 E 键触发第一章剧情
      */
-    createNPC(obj) {
+    createNPC(obj, offsetX, offsetY) {
         const props = this._parseProps(obj);
         let npcId = props.npc_id || '';
         const name = (obj.name || props.name || 'NPC').trim();
@@ -1225,8 +1527,8 @@ class GameScene extends Phaser.Scene {
             : -1;
 
         // 精灵锚点(0.5, 1) → 底部中心对齐对象中心
-        const spriteX = obj.x + (obj.width || 0) / 2;
-        const spriteY = obj.y + (obj.height || 0) / 2;
+        const spriteX = obj.x + (offsetX || 0) + (obj.width || 0) / 2;
+        const spriteY = obj.y + (offsetY || 0) + (obj.height || 0) / 2;
 
         // 交互检测坐标（与精灵位置一致）
         const interactX = spriteX;
@@ -1303,7 +1605,7 @@ class GameScene extends Phaser.Scene {
     /**
      * 创建剧情甘草（地图中 type="herbs" 的对象，触发 C02 第一株甘草剧情）
      */
-    createStoryHerb(obj) {
+    createStoryHerb(obj, offsetX, offsetY) {
         const props = this._parseProps(obj);
         const herbId = props.herbId || 'gancao';
         const storyIdx = this._npcStorySceneMap[herbId] !== undefined
@@ -1315,8 +1617,8 @@ class GameScene extends Phaser.Scene {
         this.npcs.push({
             name: '甘草',
             npcId: herbId,
-            x: obj.x + (obj.width || 0) / 2,
-            y: obj.y + (obj.height || 0) / 2,
+            x: obj.x + (offsetX || 0) + (obj.width || 0) / 2,
+            y: obj.y + (offsetY || 0) + (obj.height || 0) / 2,
             w: obj.width || 60,
             h: obj.height || 100,
             storyIdx: storyIdx,
@@ -1382,9 +1684,6 @@ class GameScene extends Phaser.Scene {
         this._imageMapH = dh;
     }
 
-    /**
-     * 图片式地图：设置交互UI（标题栏 + 可点击地点 + 底部提示）
-     */
     /**
      * ★ 初始化/重置村庄事件状态（持久化到 window，跨场景不丢失）
      */
@@ -1476,8 +1775,6 @@ class GameScene extends Phaser.Scene {
             console.log(`[村庄事件] ▶ 触发 ${eventName}（索引=${sceneIdx}，对应 ${chapter1Data.scenes[sceneIdx]?.id}），forceChapter1 已传递`);
 
             // ★ 使用 this.scene.start 而非 this.game.scene.start：
-            // this.scene.start 会先 shutdown GameScene（释放键盘监听、update 循环），再启动 IntroScene，
-            // 避免两个场景同时运行导致键盘事件被 GameScene 拦截，剧情无法推进。
             this.scene.start('IntroScene', startData);
         });
     }
@@ -1725,7 +2022,7 @@ class GameScene extends Phaser.Scene {
             this._villageHotspots.push({ hitArea, dot, pulseRing, label, locId: loc.id, isTextDot });
         });
 
-        // === 底部提示文字（动态，根据探索进度变化）===
+        // === 底部提示文字 ===
         const state = window._villageEventState;
         const completedCount = [state.herb_garden, state.well, state.residence]
             .filter(s => s === 'completed').length
@@ -1742,10 +2039,9 @@ class GameScene extends Phaser.Scene {
             padding: { x: 12, y: 6 }
         }).setOrigin(0.5).setDepth(11).setScrollFactor(0);
 
-        console.log('[图片地图] UI 初始化完成，共', locations.length, '个交互点，',
-            '剧情进度:', completedCount, '/', totalTasks);
+        console.log('[图片地图] UI 初始化完成');
 
-        // 更新UI（图片地图模式也需要）
+        // 更新UI
         if (window.uiManager) {
             window.uiManager.updateMinimapTitle();
             window.uiManager.updateBackpackUI();
@@ -1791,7 +2087,7 @@ class GameScene extends Phaser.Scene {
         const oldScrollX = this.cameras.main.scrollX;
         const oldScrollY = this.cameras.main.scrollY;
 
-        // 停止跟随玩家并隐藏玩家和草药（小地图只显示地形，不显示草药）
+        // 停止跟随玩家并隐藏玩家和草药
         this.cameras.main.stopFollow();
         this.player.setVisible(false);
         this.herbs.forEach(h => { if (!h.collected && h.sprite) h.sprite.setVisible(false); });
@@ -1833,9 +2129,7 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * 创建玩家（精灵表动画版）
-     * 精灵表 1920×1920，480px/帧，4列×4行=16帧
-     * 行0=下 行1=左 行2=右 行3=上，每行4帧
+     * 创建玩家
      */
     createPlayer() {
         const cfg = this.config;
@@ -1871,7 +2165,7 @@ class GameScene extends Phaser.Scene {
             frameRate: 1, repeat: 0
         });
 
-        // ── 创建物理精灵（480px/帧，缩小至约192px显示）──
+        // ── 创建物理精灵 ──
         this.player = this.physics.add.sprite(startX, startY, 'player', 0);
         this.player.setScale(0.4);
         this.player.body.setCollideWorldBounds(true);
@@ -1883,7 +2177,7 @@ class GameScene extends Phaser.Scene {
         this.player.setDepth(10);
         this.player.anims.play('idle');
 
-        console.log('✅ 玩家创建完成（终稿精灵表 1920x1920，480px/帧，4×4=16帧）');
+        console.log('✅ 玩家创建完成');
     }
 
     /**
@@ -1899,7 +2193,7 @@ class GameScene extends Phaser.Scene {
 
             const herb = this.add.circle(pos.x, pos.y, 15, this.getHerbColor(pos.type));
             herb.setStrokeStyle(2, 0xffffff);
-            herb.setDepth(4);  // ★ 在地面图层之上
+            herb.setDepth(4);
 
             const label = this.add.text(pos.x, pos.y + 25, data.name, {
                 fontSize: '12px', color: '#ffffff',
@@ -1917,7 +2211,7 @@ class GameScene extends Phaser.Scene {
         const cam = this.config.camera;
         this.cameras.main.startFollow(this.player, true, cam.followLerpX, cam.followLerpY);
 
-        // 溪流地图缩小显示（2400×1792，zoom 0.55 使视口 2327px 不超出地图宽度 2400px，避免漏出背景）
+        // 溪流地图缩小显示
         const mapId = this.config.currentMapId;
         if (mapId === 'stream') {
             this.cameras.main.setZoom(0.55);
@@ -1929,15 +2223,12 @@ class GameScene extends Phaser.Scene {
      * 输入
      */
     setupInput() {
-        // ★ 确保键盘输入处于启用状态（修复从剧情场景返回时键盘被禁用的问题）
         if (!this.input || !this.input.keyboard) {
             console.warn('GameScene: 输入插件未初始化，跳过键盘设置');
             return;
         }
 
         this.input.keyboard.enabled = true;
-        
-        // ★ 重置键盘状态，清除场景切换时可能残留的按键按下状态
         this.input.keyboard.resetKeys();
 
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -1973,7 +2264,9 @@ class GameScene extends Phaser.Scene {
         window.uiManager.updateMinimap(this.player.x, this.player.y);
         this.checkCollection();
         this.checkNPCInteraction();
-        this.checkPortalInteraction();  // ★ 传送门 E 键交互
+        this.checkPortalInteraction();
+        this.checkStreamTriggers();
+        this._updateGuideOverlay();
 
         if (window.gameStateManager.state.debugMode) {
             window.uiManager.updateDebugInfo({
@@ -2039,13 +2332,11 @@ class GameScene extends Phaser.Scene {
         });
 
         if (near) {
-            // ★ 甘草：C02 剧情未完成 → 靠近自动触发（不需要按 E），同时自动采集
             if (near.data.id === 'gancao') {
                 const gancaoCompleted = window._completedNpcs && window._completedNpcs.has('gancao');
                 if (!gancaoCompleted && !this._gancaoStoryTriggering) {
                     this._gancaoStoryTriggering = true;
                     console.log('▶ 靠近甘草，自动采集并触发 C02 第一株甘草剧情');
-                    // ★ 先采集甘草（入背包、保存位置、隐藏），再触发剧情
                     this.collect(near);
                     this.triggerStoryScene({
                         name: '甘草',
@@ -2054,7 +2345,6 @@ class GameScene extends Phaser.Scene {
                     });
                     return;
                 }
-                // ★ C02 已完成，正常采集
             }
             window.uiManager.showCollectPrompt(near.data.name);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -2079,7 +2369,6 @@ class GameScene extends Phaser.Scene {
         window.uiManager.updateHerbGuideUI();
         window.uiManager.updateTaskProgress();
 
-        // ★ 采集计数 + 持久化位置（防止场景重启后复现）
         console.log(`[collect] herbId=${herb.data.id}, name=${herb.data.name}`);
         if (!window._collectedHerbPositions) window._collectedHerbPositions = new Set();
         const posKey = `${herb.data.id}_${Math.round(herb.sprite.x)}_${Math.round(herb.sprite.y)}`;
@@ -2094,11 +2383,11 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * 检测 NPC 交互（E 键触发第一章剧情）
+     * 检测 NPC 交互
      */
     checkNPCInteraction() {
         if (!this.player || !this.eKey) return;
-        const interactDist = 80; // NPC 交互距离
+        const interactDist = 80;
 
         let nearNpc = null;
         this.npcs.forEach(npc => {
@@ -2110,17 +2399,15 @@ class GameScene extends Phaser.Scene {
         });
 
         if (nearNpc) {
-            // 显示 E 键交互提示
             window.uiManager.showCollectPrompt(`与${nearNpc.name}对话`);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
                 this.triggerStoryScene(nearNpc);
             }
         }
-        // 注意：如果同时在草药附近，checkCollection 的提示会覆盖此提示，功能正常
     }
 
     /**
-     * 检测传送门交互（E 键传送）
+     * 检测传送门交互
      */
     checkPortalInteraction() {
         if (!this.player || !this.eKey || this.portals.length === 0) return;
@@ -2143,8 +2430,237 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * 触发第一章剧情场景（切换到 IntroScene 播放指定场景）
-     * @param {Object} npcData - NPC 交互数据 { name, storyIdx }
+     * ★ 流地图区域触发器检测
+     */
+    checkStreamTriggers() {
+        if (!this._streamTriggers || this._streamTriggers.length === 0) return;
+        if (!this.player) return;
+
+        const px = this.player.x;
+        const py = this.player.y;
+
+        for (const zone of this._streamTriggers) {
+            if (this._streamTriggered.has(zone.id)) continue;
+            if (zone.require && !this._streamTriggered.has(zone.require)) continue;
+
+            if (px >= zone.x && px <= zone.x + zone.w &&
+                py >= zone.y && py <= zone.y + zone.h) {
+                console.log(`▶ 流地图触发器: 进入区域 ${zone.id}，触发场景索引 ${zone.sceneIdx}`);
+                this._streamTriggered.add(zone.id);
+
+                if (zone.id === 'c15c') {
+                    this._deactivateGuide();
+                }
+
+                this.triggerStorySceneByIndex(zone.sceneIdx);
+                return;
+            }
+        }
+    }
+
+    // ===================== 过桥指引系统 =====================
+
+    /**
+     * ★ 设置 C15b 之后的过桥指引遮罩
+     * 升级版：使用 HTML5 Canvas 动态生成具有气团微粒质感的有机的“真实迷雾背景”代替原本生硬的黑框
+     */
+    _setupGuideOverlay() {
+        if (!window._streamGuideActive || !this.player) return;
+
+        this._guideActive = true;
+        this._guideTarget = window._streamGuideTarget || { x: 750, y: 1075 };
+
+        // ── 1. 动态生成迷雾纹理（全局仅生成一次，保证高性能） ──
+        if (!this.textures.exists('fog_mist_texture')) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 2048;
+            canvas.height = 2048;
+            const ctx = canvas.getContext('2d');
+            const cx = 1024;
+            const cy = 1024;
+
+            // 创建核心环形渐变：控出玩家周围的视野，向外羽化并逐渐融入深邃环境
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 1024);
+            grad.addColorStop(0, 'rgba(15, 24, 20, 0)');         // 玩家核心区完全晴朗
+            grad.addColorStop(0.06, 'rgba(15, 24, 20, 0)');       // 晴朗舒适圈
+            grad.addColorStop(0.12, 'rgba(15, 24, 20, 0.55)');    // 边缘羽化过渡区
+            grad.addColorStop(0.32, 'rgba(12, 18, 15, 0.94)');    // 渐入迷雾主干
+            grad.addColorStop(1, 'rgba(8, 12, 10, 1)');           // 最外围遮罩绝对浓雾
+
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 2048, 2048);
+
+            // 叠加算法：绘制散落的半透明气体微粒团，营造真实迷雾的有机烟雾颗粒感
+            for (let i = 0; i < 350; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                // 确保微粒主要堆积在视野舒适圈以外（r > 110）
+                const r = 110 + Math.random() * 950;
+                const x = cx + Math.cos(angle) * r;
+                const y = cy + Math.sin(angle) * r;
+                const size = 60 + Math.random() * 140;
+
+                const cloudGrad = ctx.createRadialGradient(x, y, 0, x, y, size);
+                cloudGrad.addColorStop(0, 'rgba(24, 34, 28, 0.16)'); // 烟雾轻微堆叠
+                cloudGrad.addColorStop(1, 'rgba(24, 34, 28, 0)');
+
+                ctx.fillStyle = cloudGrad;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            this.textures.addCanvas('fog_mist_texture', canvas);
+        }
+
+        // ── 2. 创建迷雾图片精灵对象 ──
+        // 代替原本的 Graphics 黑框，挂载到世界坐标系（setScrollFactor(1)），完美跟随玩家平移
+        this._guideOverlay = this.add.image(this.player.x, this.player.y, 'fog_mist_texture');
+        this._guideOverlay.setDepth(20);
+        this._guideOverlay.setScrollFactor(1);
+
+        // 指引箭头保持使用 Graphics 绘制
+        this._guideArrow = this.add.graphics();
+        this._guideArrow.setDepth(25);
+        this._guideArrow.setScrollFactor(1);
+
+        // 提示文字
+        this._guideHint = this.add.text(
+            this.cameras.main.centerX, 50,
+            '◈ 跟随指引，穿过石桥 ◈',
+            {
+                fontSize: '18px',
+                color: '#ffeebb',
+                fontFamily: 'Arial',
+                fontStyle: 'bold',
+                stroke: '#000000',
+                strokeThickness: 3,
+                shadow: { blur: 8, color: '#ffaa00', fill: true }
+            }
+        ).setOrigin(0.5, 0).setDepth(25).setScrollFactor(0);
+
+        console.log('过桥指引：流体烟雾微粒感迷雾背景已成功激活');
+    }
+
+    /**
+     * ★ 每帧更新指引迷雾和箭头
+     * 实时计算并同步迷雾的坐标及摄像机缩放因数，确保完美铺满且视野大小恒定
+     */
+    _updateGuideOverlay() {
+        if (!this._guideActive || !this.player) return;
+
+        const cam = this.cameras.main;
+        const scale = 1 / cam.zoom;
+
+        // 1. ── 实时同步迷雾精灵的坐标与摄像机缩放 ──
+        if (this._guideOverlay && this._guideOverlay.setPosition) {
+            this._guideOverlay.setPosition(this.player.x, this.player.y);
+            // 关键逻辑：随着大地图整体 Zoom 缩小，迷雾图片需要扩大 1 / zoom 倍
+            // 从而保证中央亮区在屏幕上的物理直径始终维持 100px 左右，且边缘绝不露底
+            this._guideOverlay.setScale(scale);
+        }
+
+        // 2. ── 指引箭头（世界坐标渲染） ──
+        if (this._guideArrow) {
+            this._guideArrow.clear();
+            if (!this._guideTarget) return;
+
+            const cx = this.player.x;
+            const cy = this.player.y;
+            const tx = this._guideTarget.x;
+            const ty = this._guideTarget.y;
+
+            const worldArrowDist = 85 * scale;
+            const angle = Phaser.Math.Angle.Between(cx, cy, tx, ty);
+            const aX = cx + Math.cos(angle) * worldArrowDist;
+            const aY = cy + Math.sin(angle) * worldArrowDist;
+
+            // 脉冲动态效果
+            const t = this.time.now / 400;
+            const pulse = 0.8 + 0.2 * Math.sin(t * Math.PI * 2);
+
+            // 箭头主体（三角形），根据缩放因数自适应调整世界大小，确保物理视觉大小恒定
+            const tipX = aX + Math.cos(angle) * 20 * pulse * scale;
+            const tipY = aY + Math.sin(angle) * 20 * pulse * scale;
+            const perpX = Math.cos(angle + Math.PI / 2) * 10 * scale;
+            const perpY = Math.sin(angle + Math.PI / 2) * 10 * scale;
+            const baseCX = aX - Math.cos(angle) * 10 * scale;
+            const baseCY = aY - Math.sin(angle) * 10 * scale;
+
+            this._guideArrow.fillStyle(0xffcc00, 0.9);
+            this._guideArrow.fillTriangle(
+                tipX, tipY,
+                baseCX + perpX, baseCY + perpY,
+                baseCX - perpX, baseCY - perpY
+            );
+
+            // 箭头光晕效果
+            this._guideArrow.fillStyle(0xffcc00, 0.2);
+            const glowSize = 1.6;
+            this._guideArrow.fillTriangle(
+                aX + Math.cos(angle) * 35 * pulse * scale, aY + Math.sin(angle) * 35 * pulse * scale,
+                baseCX + perpX * glowSize, baseCY + perpY * glowSize,
+                baseCX - perpX * glowSize, baseCY - perpY * glowSize
+            );
+        }
+    }
+
+    /**
+     * ★ 关闭过桥指引
+     */
+    _deactivateGuide() {
+        this._guideActive = false;
+        window._streamGuideActive = false;
+        window._streamGuideTarget = null;
+
+        if (this._guideOverlay) { this._guideOverlay.destroy(); this._guideOverlay = null; }
+        if (this._guideArrow) { this._guideArrow.destroy(); this._guideArrow = null; }
+        if (this._guideHint) { this._guideHint.destroy(); this._guideHint = null; }
+
+        console.log('过桥指引已关闭');
+    }
+
+    // ===================== 剧情触发 =====================
+
+    /**
+     * ★ 通过场景索引触发剧情
+     */
+    triggerStorySceneByIndex(sceneIdx) {
+        const chapter1Data = window._chapter1Data;
+        if (!chapter1Data || !chapter1Data.scenes) {
+            console.error('第一章剧情数据未加载，无法触发剧情');
+            return;
+        }
+        if (sceneIdx < 0 || sceneIdx >= chapter1Data.scenes.length) {
+            console.error('场景索引无效:', sceneIdx);
+            return;
+        }
+
+        console.log(`触发剧情: 场景索引 ${sceneIdx}`);
+        window.uiManager.hideCollectPrompt();
+
+        window._returnPlayerPos = {
+            x: this.player.x,
+            y: this.player.y,
+            mapId: this.config.currentMapId
+        };
+        window._returnToStreamMap = true;
+
+        if (sceneIdx === 15) {
+            window._streamGuideActive = true;
+            window._streamGuideTarget = { x: 750, y: 1075 };
+            console.log('▶ 激活过桥指引：目标 (750, 1075)');
+        }
+
+        this.scene.start('IntroScene', {
+            debugMode: true,
+            debugTargetIdx: sceneIdx,
+            forceChapter1: chapter1Data,
+            returnToGame: true
+        });
+    }
+
+    /**
+     * 触发第一章剧情场景
      */
     triggerStoryScene(npcData) {
         const chapter1Data = window._chapter1Data;
@@ -2160,26 +2676,22 @@ class GameScene extends Phaser.Scene {
         console.log(`触发剧情: ${npcData.name} → 场景索引 ${npcData.storyIdx}`);
         npcData.interacted = true;
 
-        // ★ 标记该 NPC 剧情已完成，返回后不再显示
         if (!window._completedNpcs) window._completedNpcs = new Set();
         window._completedNpcs.add(npcData.npcId);
 
-        // 隐藏采集提示
         window.uiManager.hideCollectPrompt();
 
-        // ★ 保存当前玩家位置，剧情结束后恢复
         window._returnPlayerPos = {
             x: this.player.x,
             y: this.player.y,
             mapId: this.config.currentMapId
         };
 
-        // 使用 IntroScene 播放指定剧情场景，播放完毕自动返回 GameScene
         this.scene.start('IntroScene', {
             debugMode: true,
             debugTargetIdx: npcData.storyIdx,
             forceChapter1: chapter1Data,
-            returnToGame: true   // ★ 剧情结束后自动返回游戏，不显示调试提示
+            returnToGame: true
         });
     }
 
