@@ -41,14 +41,7 @@
         <!-- 任务栏 -->
         <div id="task-panel">
             <h3>📋 当前任务</h3>
-            <div class="task-item" data-task="1">
-                <div class="task-checkbox">☐</div>
-                <div class="task-text">采集甘草 ×3 (0/3)</div>
-            </div>
-            <div class="task-item" data-task="2">
-                <div class="task-checkbox">☐</div>
-                <div class="task-text">与药铺掌柜对话</div>
-            </div>
+            <div id="task-list"></div>
         </div>
 
         <!-- 顶部右侧功能按钮 -->
@@ -420,8 +413,14 @@
     <!-- 游戏模块：状态管理（依赖 config） -->
     <script src="src/gameState.js"></script>
     
+    <!-- 游戏模块：任务数据（依赖 gameState） -->
+    <script src="src/data/quest_data.js"></script>
+    
     <!-- 游戏模块：UI管理（依赖 gameState） -->
     <script src="src/ui.js"></script>
+    
+    <!-- 游戏模块：音频管理（依赖 config、Phaser） -->
+    <script src="src/AudioManager.js"></script>
     
     <!-- 游戏模块：系统（依赖 Phaser） -->
     <script src="src/systems/TypewriterSystem.js"></script>
@@ -436,6 +435,13 @@
     <script src="src/FlowerIdGame.js"></script>
     <script src="src/DryFlowerGame.js"></script>
     <script src="src/DiagnosisMinigame.js"></script>
+    <script src="src/minigames/herb/HerbMinigameCore.js"></script>
+    <script src="src/minigames/herb/LicoriceHarvestGame.js"></script>
+    <script src="src/minigames/herb/ChrysanthemumPickGame.js"></script>
+    <script src="src/minigames/herb/HerbGrindingGame.js"></script>
+    <script src="src/minigames/herb/HerbMinigameAPI.js"></script>
+    <script src="src/minigames/side-stories/MedicalQuizMinigame.js"></script>
+    <script src="src/side-stories/SideStoryAPI.js"></script>
     <script src="src/DebugManager.js"></script>
     
     <!-- 游戏入口（依赖所有模块） -->

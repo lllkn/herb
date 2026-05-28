@@ -1496,22 +1496,66 @@ class UIManager {
     }
 
     /**
-     * 更新任务进度显示
+     * 更新任务面板 UI（根据当前地图显示对应任务）
+     * @param {string} mapId - 'plain' | 'village' | 'stream'
      */
-    updateTaskProgress() {
-        const task1 = document.querySelector('[data-task="1"]');
-        if (!task1) return;
+    updateQuestPanel(mapId) {
+        const taskList = document.getElementById('task-list');
+        if (!taskList) return;
 
-        const checkbox = task1.querySelector('.task-checkbox');
-        const taskText = task1.querySelector('.task-text');
+        const gsm = window.gameStateManager;
+        if (!gsm || !window.QUESTS_DATA) return;
 
-        const gancaoCount = window.gameStateManager.getHerbCount('gancao');
-        taskText.textContent = `采集甘草 ×3 (${Math.min(gancaoCount, 3)}/3)`;
-
-        if (gancaoCount >= 3) {
-            checkbox.textContent = '✓';
-            checkbox.style.color = '#4a7c28';
+        const mapQuests = window.QUESTS_DATA.filter(q => q.mapId === mapId);
+        if (mapQuests.length === 0) {
+            taskList.innerHTML = '<div class="task-item task-empty">暂无任务</div>';
+            return;
         }
+
+        const sortedQuests = [...mapQuests].sort((a, b) => (a.order || 99) - (b.order || 99));
+
+        taskList.innerHTML = sortedQuests.map(q => {
+            const state = gsm.getQuestState(q.id);
+            let cls = 'task-item';
+            let checkbox = '☐';
+            let textStyle = '';
+
+            if (state === 'completed') {
+                cls += ' task-completed';
+                checkbox = '✓';
+                textStyle = 'text-decoration: line-through; opacity: 0.5;';
+            } else if (state === 'locked') {
+                cls += ' task-locked';
+                checkbox = '🔒';
+                textStyle = 'opacity: 0.4;';
+            }
+
+            return `<div class="${cls}" data-quest="${q.id}">
+                <div class="task-checkbox">${checkbox}</div>
+                <div class="task-text" style="${textStyle}"><span class="task-icon">${q.icon}</span> ${q.name}${state === 'locked' ? '（前置未完成）' : ''}</div>
+            </div>`;
+        }).join('');
+
+        console.log(`[UIManager] 任务面板已更新 (${mapId}) — ${mapQuests.filter(q => gsm.getQuestState(q.id) === 'completed').length}/${mapQuests.length} 已完成`);
+    }
+
+    /**
+     * 刷新当前地图的任务面板（不传 mapId 时自动从 GameConfig 获取）
+     */
+    refreshQuestPanel() {
+        const mapId = (window.GameConfig && window.GameConfig.currentMapId) || 'plain';
+        this.updateQuestPanel(mapId);
+    }
+
+    /**
+     * 任务完成时的高亮闪烁动画
+     * @param {string} questId
+     */
+    flashQuestComplete(questId) {
+        const el = document.querySelector(`[data-quest="${questId}"]`);
+        if (!el) return;
+        el.classList.add('task-flash');
+        setTimeout(() => el.classList.remove('task-flash'), 1200);
     }
 
     // ==================== 调试信息 ====================

@@ -229,6 +229,11 @@ class GameScene extends Phaser.Scene {
     create() {
         console.log('GameScene: 开始创建...');
 
+        // ★ 绑定 AudioManager 到当前 Phaser 场景
+        if (window.audioManager) {
+            window.audioManager.attachScene(this);
+        }
+
         // ★ 每次创建时重置状态（scene.start 不重置实例属性）
         this._isImageMapMode = false;
         this._imageMapBg = null;
@@ -246,6 +251,19 @@ class GameScene extends Phaser.Scene {
         if (this._isImageMapMode) {
             this._ensureMainUI();       // ★ 关键：恢复主UI，隐藏IntroScene的遮罩层
             this._setupImageMapUI();
+            this._playMapBGM();         // ★ 村庄地图播放对应 BGM
+
+            // ★ 刷新背包/图鉴/情籍（从剧情返回时可能获得物品）
+            if (window.uiManager) {
+                window.uiManager.updateBackpackUI();
+                window.uiManager.updateHerbGuideUI();
+                window.uiManager.updateAttributesUI();
+            }
+
+            this._processQuestCompletions(); // ★ 处理待完成的任务
+            if (window.uiManager && window.uiManager.refreshQuestPanel) {
+                window.uiManager.refreshQuestPanel();
+            }
             return;
         }
         
@@ -303,6 +321,17 @@ class GameScene extends Phaser.Scene {
         }
 
         console.log('GameScene: 创建完成');
+
+        // ★ 根据当前地图播放对应 BGM
+        this._playMapBGM();
+
+        // ★ 处理待完成的任务（从剧情/事件返回时）
+        this._processQuestCompletions();
+
+        // ★ 刷新任务面板 UI
+        if (window.uiManager && window.uiManager.refreshQuestPanel) {
+            window.uiManager.refreshQuestPanel();
+        }
 
         // ★ 注册 shutdown 事件处理器：当 GameScene 被停止时（如进入剧情），确保下次重启时状态正确
         if (!this._shutdownRegistered) {
@@ -1406,6 +1435,9 @@ class GameScene extends Phaser.Scene {
             st[evt.spotId] = evt.nextState;
             console.log(`[村庄事件] ✅ ${evt.spotId} → ${evt.nextState}`, st);
 
+            // ★ 任务系统：地点完成 → 完成对应 quest
+            this._completeQuestForLocation(evt.spotId, evt.locKey);
+
             // ★ 作坊(C11)完成后 → 解锁药铺(C12)
             if (evt.spotId === 'workshop' && evt.nextState === 'completed') {
                 st.herb_shop = 'pending';
@@ -2077,7 +2109,13 @@ class GameScene extends Phaser.Scene {
         window.uiManager.showCollectSuccess(herb.data.name);
         window.uiManager.updateBackpackUI();
         window.uiManager.updateHerbGuideUI();
-        window.uiManager.updateTaskProgress();
+        // ★ 任务系统：采集甘草 → 完成 Q_PLAIN_HERB
+        if (window.gameStateManager) {
+            window.gameStateManager.completeQuestByEvent('EVT_FIRST_HERB');
+            if (window.uiManager.refreshQuestPanel) {
+                window.uiManager.refreshQuestPanel();
+            }
+        }
 
         // ★ 采集计数 + 持久化位置（防止场景重启后复现）
         console.log(`[collect] herbId=${herb.data.id}, name=${herb.data.name}`);
@@ -2164,6 +2202,11 @@ class GameScene extends Phaser.Scene {
         if (!window._completedNpcs) window._completedNpcs = new Set();
         window._completedNpcs.add(npcData.npcId);
 
+        // ★ 设置待处理的任务完成标记（剧情返回后由 _processQuestCompletions 处理）
+        if (npcData.storyIdx !== undefined) {
+            window._pendingQuestStoryIdx = npcData.storyIdx;
+        }
+
         // 隐藏采集提示
         window.uiManager.hideCollectPrompt();
 
@@ -2184,10 +2227,128 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
+     * ★ 处理待完成的任务（从剧情/事件返回时调用）
+     * 根据 pendingQuestStoryIdx 查找并完成对应 quest
+     */
+    _processQuestCompletions() {
+        const gsm = window.gameStateManager;
+        if (!gsm) return;
+
+        // 1. 处理 NPC/对象交互触发的任务完成
+        if (window._pendingQuestStoryIdx !== undefined) {
+            const storyIdx = window._pendingQuestStoryIdx;
+            delete window._pendingQuestStoryIdx;
+            this._completeQuestForStoryIdx(storyIdx);
+        }
+
+        // 2. ★ 首次进入平原时初始化任务
+        if (this.config.currentMapId === 'plain') {
+            const activeQuests = gsm.getActiveQuests('plain');
+            if (activeQuests.length === 0 && gsm.getCompletedQuests('plain').length === 0) {
+                console.log('[Quest] 🌿 首次进入平原，初始化任务');
+                gsm.initQuests();
+            }
+        }
+
+        // 3. 首次进入翠竹村时也确保任务已初始化
+        if (this.config.currentMapId === 'village') {
+            const hasAnyQuest = [...(window.QUESTS_DATA || [])].some(q => 
+                q.mapId === 'village' && gsm.getQuestState(q.id) !== 'locked'
+            );
+            if (!hasAnyQuest) {
+                console.log('[Quest] 🏘️ 首次进入翠竹村，初始化任务');
+                gsm.initQuests();
+            }
+        }
+    }
+
+    /**
+     * 根据剧情索引完成对应 quest
+     * @param {number} storyIdx - 在 story_chapter1.json.scenes 中的索引
+     */
+    _completeQuestForStoryIdx(storyIdx) {
+        const gsm = window.gameStateManager;
+        if (!gsm) return;
+
+        // storyIdx → eventId 映射
+        const idxToEvent = {
+            1: 'EVT_FIRST_HERB',       // C02
+            2: 'EVT_WOODCUTTER',       // C03
+            3: 'EVT_ABANDONED_BASKET', // C04
+            4: 'EVT_WASHERWOMAN',      // C05
+            5: 'EVT_MERCHANT',         // C06
+            6: 'EVT_VILLAGE_GATE',     // C07
+            8: 'EVT_LAOLI_HERB_GARDEN',  // C09
+            9: 'EVT_WELL_VILLAGER',      // C10
+            10:'EVT_DRYING_PLATFORM',    // C11
+            11:'EVT_EMPTY_SHOP',         // C12
+            12:'EVT_ZHANG_DIAGNOSIS',    // C13
+        };
+
+        const eventId = idxToEvent[storyIdx];
+        if (eventId) {
+            const questId = gsm.completeQuestByEvent(eventId);
+            if (questId) {
+                console.log(`[Quest] ✅ 任务完成: ${questId} (scene ${storyIdx})`);
+                if (window.uiManager && window.uiManager.flashQuestComplete) {
+                    window.uiManager.flashQuestComplete(questId);
+                }
+            }
+        }
+    }
+
+    /**
+     * 根据地点的 locKey 完成对应 quest（村庄用）
+     * @param {string} spotId - 地点 ID (如 'herb_garden')
+     * @param {string} locKey - 地点完成 key (如 'loc_herb_garden')
+     */
+    _completeQuestForLocation(spotId, locKey) {
+        const gsm = window.gameStateManager;
+        if (!gsm || !locKey) return;
+
+        const questId = gsm.completeQuestByLocation(locKey);
+        if (questId) {
+            console.log(`[Quest] ✅ 地点任务完成: ${questId} (${spotId})`);
+            if (window.uiManager && window.uiManager.flashQuestComplete) {
+                window.uiManager.flashQuestComplete(questId);
+            }
+        }
+    }
+
+    /**
      * 草药颜色
      */
     getHerbColor(type) {
         return this.config.herbColors[type] || this.config.herbColors[0];
+    }
+
+    /**
+     * 根据当前地图 ID 播放对应 BGM
+     * 映射：plain → 平原.mp3, village → 翠竹村.mp3, stream → 溪流山谷.mp3
+     */
+    _playMapBGM() {
+        if (!window.audioManager) return;
+
+        const mapId = this.config.currentMapId;
+        let bgmKey = null;
+
+        switch (mapId) {
+            case 'plain':
+                bgmKey = 'plain';
+                break;
+            case 'village':
+                bgmKey = 'village';
+                break;
+            case 'stream':
+                bgmKey = 'valley';
+                break;
+            default:
+                console.log('[GameScene] 未知地图 ID，无对应 BGM:', mapId);
+                return;
+        }
+
+        console.log('[GameScene] 播放地图 BGM:', mapId, '→', bgmKey);
+        window.audioManager.playBGM(bgmKey);
     }
 }
 

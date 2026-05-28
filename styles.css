@@ -243,6 +243,40 @@ body {
     flex: 1;
 }
 
+/* ★ 任务状态样式 */
+.task-empty {
+    color: #8b7355;
+    font-style: italic;
+    cursor: default;
+    justify-content: center;
+}
+
+.task-completed .task-checkbox {
+    border-color: #4a7c28;
+    background: rgba(74, 124, 40, 0.2);
+    color: #4a7c28;
+}
+
+.task-locked .task-checkbox {
+    border-color: #555;
+    color: #888;
+}
+
+.task-icon {
+    font-size: 14px;
+    margin-right: 2px;
+}
+
+/* 任务完成闪烁动画 */
+@keyframes taskFlash {
+    0%, 100% { background: transparent; }
+    50% { background: rgba(74, 124, 40, 0.4); }
+}
+
+.task-flash {
+    animation: taskFlash 0.6s ease-in-out 2;
+}
+
 /* ==================== 顶部右侧：功能按钮 ==================== */
 #top-right-buttons {
     position: absolute;

@@ -53,7 +53,10 @@ class GameStateManager {
             completedLocations: new Set(),
 
             // 《本草情籍》属性数值：{ attrId: value }
-            attributes: {}
+            attributes: {},
+
+            // ★ 任务系统：{ questId: 'locked' | 'active' | 'completed' }
+            questStates: {}
         };
     }
 
@@ -277,6 +280,144 @@ class GameStateManager {
             console.error('GameState 反序列化失败:', e);
             return false;
         }
+    }
+
+    // ==================== 任务系统 ====================
+
+    /**
+     * 初始化任务状态（序章结束后调用）
+     * 根据当前地图和前置条件设定每个任务的状态
+     */
+    initQuests() {
+        const quests = window.QUESTS_DATA || [];
+        quests.forEach(q => {
+            // 检查前置任务是否都已完成
+            const prereqsMet = q.required.every(reqId => this.state.questStates[reqId] === 'completed');
+            if (q.required.length === 0 || prereqsMet) {
+                this.state.questStates[q.id] = 'active';
+            } else {
+                this.state.questStates[q.id] = 'locked';
+            }
+        });
+        console.log('[GameState] 任务状态已初始化:', { ...this.state.questStates });
+    }
+
+    /**
+     * 完成任务
+     * @param {string} questId - 任务ID
+     * @returns {boolean} 是否成功完成
+     */
+    completeQuest(questId) {
+        if (this.state.questStates[questId] === 'completed') {
+            return false; // 已完成，不重复
+        }
+        this.state.questStates[questId] = 'completed';
+        console.log(`[GameState] ✅ 任务完成: ${questId}`);
+
+        // ★ 检查是否有依赖此任务的后续任务，自动解锁
+        this._checkAndUnlockQuests();
+        return true;
+    }
+
+    /**
+     * 手动激活任务
+     * @param {string} questId
+     */
+    activateQuest(questId) {
+        if (this.state.questStates[questId] === 'locked' || !this.state.questStates[questId]) {
+            this.state.questStates[questId] = 'active';
+            console.log(`[GameState] 🔓 任务解锁: ${questId}`);
+        }
+    }
+
+    /**
+     * 获取任务状态
+     * @param {string} questId
+     * @returns {'locked'|'active'|'completed'}
+     */
+    getQuestState(questId) {
+        return this.state.questStates[questId] || 'locked';
+    }
+
+    /**
+     * 获取指定地图上的活跃任务ID列表
+     * @param {string} mapId - 'plain' | 'village' | 'stream'
+     * @returns {string[]}
+     */
+    getActiveQuests(mapId) {
+        const quests = window.QUESTS_DATA || [];
+        return quests
+            .filter(q => q.mapId === mapId && this.state.questStates[q.id] === 'active')
+            .sort((a, b) => (a.order || 99) - (b.order || 99))
+            .map(q => q.id);
+    }
+
+    /**
+     * 获取指定地图上已完成的任务ID列表
+     * @param {string} mapId
+     * @returns {string[]}
+     */
+    getCompletedQuests(mapId) {
+        const quests = window.QUESTS_DATA || [];
+        return quests
+            .filter(q => q.mapId === mapId && this.state.questStates[q.id] === 'completed')
+            .map(q => q.id);
+    }
+
+    /**
+     * 检查并解锁所有依赖已完成任务的新任务
+     */
+    _checkAndUnlockQuests() {
+        const quests = window.QUESTS_DATA || [];
+        let changed = false;
+        quests.forEach(q => {
+            if (this.state.questStates[q.id] === 'locked') {
+                const prereqsMet = q.required.every(reqId => this.state.questStates[reqId] === 'completed');
+                if (prereqsMet) {
+                    this.state.questStates[q.id] = 'active';
+                    console.log(`[GameState] 🔓 自动解锁任务: ${q.id}`);
+                    changed = true;
+                }
+            }
+        });
+        return changed;
+    }
+
+    /**
+     * 根据事件 ID 查找对应的任务并完成
+     * @param {string} eventId - 如 'EVT_FIRST_HERB'
+     * @returns {string|null} 被完成的任务 ID
+     */
+    completeQuestByEvent(eventId) {
+        const quests = window.QUESTS_DATA || [];
+        const quest = quests.find(q => q.completeOn.type === 'event' && q.completeOn.value === eventId);
+        if (quest) {
+            this.completeQuest(quest.id);
+            return quest.id;
+        }
+        return null;
+    }
+
+    /**
+     * 根据地点 key 查找对应的任务并完成
+     * @param {string} locKey - 如 'loc_herb_garden'
+     * @returns {string|null} 被完成的任务 ID
+     */
+    completeQuestByLocation(locKey) {
+        const quests = window.QUESTS_DATA || [];
+        const quest = quests.find(q => q.completeOn.type === 'loc' && q.completeOn.value === locKey);
+        if (quest) {
+            this.completeQuest(quest.id);
+            return quest.id;
+        }
+        return null;
+    }
+
+    /**
+     * 重置所有任务状态（用于新游戏）
+     */
+    resetQuests() {
+        this.state.questStates = {};
     }
 }
 

@@ -176,6 +176,20 @@ class IntroScene extends Phaser.Scene {
                 this.load.image(key, path);
             }
         });
+
+        // === 支线 NPC 头像（素材缺失时以 Emoji 兜底） ===
+        const sideStoryCharacters = [
+            'npc_wang_dazhuang.png',  // 王大壮（支线：以毒攻毒）
+            'npc_wang_laotai.png'      // 王老太（支线：以毒攻毒）
+        ];
+
+        sideStoryCharacters.forEach(file => {
+            const key = file.replace('.png', '');
+            const path = `src/assets/pictures/characters/${file}`;
+            if (!this.textures.exists(key)) {
+                this.load.image(key, path);
+            }
+        });
     }
 
     /**
@@ -231,6 +245,7 @@ class IntroScene extends Phaser.Scene {
             'bg_drying_platform.png', // 晒药台
             'bg_empty_shop.png',     // 空置铺面
             'bg_patient_room.png',    // 张大娘家
+            'bg_wang_home_interior.png',  // 王家内室（支线：以毒攻毒）
             'bg_valley_entry.png',   // 山谷入口 / C15d蛊根草
             'bg_valley_exit.png',    // 山谷出口
             'c15_a.png',             // C15a 山药采集
@@ -263,6 +278,11 @@ class IntroScene extends Phaser.Scene {
         // ★ 注册 Phaser 场景生命周期事件：确保场景销毁时执行清理
         this.events.on('shutdown', this._onSceneShutdown, this);
         this.events.on('destroy', this._onSceneShutdown, this);
+
+        // ★ 绑定 AudioManager 到当前 Phaser 场景
+        if (window.audioManager) {
+            window.audioManager.attachScene(this);
+        }
 
         try {
             // === 检查是否从调试器启动（携带调试参数） ===
@@ -900,10 +920,13 @@ class IntroScene extends Phaser.Scene {
      * @param {Object} scene - 场景数据
      */
     _setBGM(scene) {
-        if (scene.bgm) {
-            // BGM 功能暂未实现，静默跳过（避免误导）
-            // TODO: 当有音频资源后启用此功能
-            // console.log('IntroScene: 切换BGM', scene.bgm);
+        if (scene.bgm && window.audioManager) {
+            console.log('IntroScene: 切换BGM →', scene.bgm);
+            window.audioManager.playBGM(scene.bgm);
+        } else if (!scene.bgm) {
+            console.log(`IntroScene: 场景 ${scene.id} 未配置 bgm，保持当前 BGM`);
+        } else if (!window.audioManager) {
+            console.warn('IntroScene: audioManager 未就绪，无法播放 BGM');
         }
     }
 
@@ -1037,6 +1060,18 @@ class IntroScene extends Phaser.Scene {
             case 'minigame_dry_flower':
                 this._showDryFlowerMinigame(step);
                 break;
+            case 'minigame_licorice_harvest':
+                this._showHerbCraftMinigame(step, 'licorice');
+                break;
+            case 'minigame_chrysanthemum_pick':
+                this._showHerbCraftMinigame(step, 'chrysanthemum');
+                break;
+            case 'minigame_herb_grind':
+                this._showHerbCraftMinigame(step, 'grind');
+                break;
+            case 'minigame_medical_quiz':
+                this._showMedicalQuizMinigame(step);
+                break;
             default:
                 console.warn('IntroScene: 未知步骤类型', step.type);
                 this._nextStep();
@@ -1142,6 +1177,9 @@ class IntroScene extends Phaser.Scene {
 
         // 隐藏角色立绘（旁白时不需要显示）
         this._hideCharacterPortrait();
+
+        // ★ 支持旁白步骤设置标记（与 _showDialogue 中 setFlag 逻辑一致）
+        if (step.setFlag) { this._setFlag(step.setFlag, true); }
 
         this.waitingForInput = false;
         this._showContinueHint(false);
@@ -1364,14 +1402,21 @@ class IntroScene extends Phaser.Scene {
         const isChapter1 = this._isChapter1;
         const isSkippable = !!step.skippable || isChapter1;
 
-        // 显示教程遮罩
-        this.tutorialOverlay.show({
-            hint: hint,
-            hintPosition: step.hintPosition || 'bottom',
-            highlightTargets: step.highlightTargets || [],
-            clickToContinue: isSkippable,  // 第一章模式下全部允许点击继续
-            onComplete: () => this._onTutorialComplete(step)
-        });
+        // ★ 弹窗交互类教程（背包/图鉴）：不显示 Phaser 遮罩，改用 HTML 弹窗直交互
+        const isModalTutorial = tutorialAction === 'open_backpack_tutorial' ||
+                                tutorialAction === 'open_backpack' ||
+                                tutorialAction === 'open_herb_pedia';
+
+        // 显示教程遮罩（弹窗交互类跳过遮罩，避免遮挡 HTML UI）
+        if (!isModalTutorial) {
+            this.tutorialOverlay.show({
+                hint: hint,
+                hintPosition: step.hintPosition || 'bottom',
+                highlightTargets: step.highlightTargets || [],
+                clickToContinue: isSkippable,  // 第一章模式下全部允许点击继续
+                onComplete: () => this._onTutorialComplete(step)
+            });
+        }
 
         // 根据动作类型执行不同逻辑
         switch (tutorialAction) {
@@ -1507,6 +1552,25 @@ class IntroScene extends Phaser.Scene {
             topRightButtons.style.display = '';
         }
 
+        // ★ 临时降低 canvas z-index，让 HTML 按钮和弹窗可见
+        // （_startScene 里 canvas.zIndex=1000 会盖住 z-index≈100 的 HTML UI）
+        if (this.game?.canvas) {
+            this.game.canvas.style.zIndex = '50';
+        }
+
+        // ★ 清除 _hideHTMLUI() 设置的内联 display:none（否则 .modal.active 类无效）
+        document.querySelectorAll('.modal').forEach(m => { m.style.display = ''; });
+        const modalOverlay = document.getElementById('modal-overlay');
+        if (modalOverlay) modalOverlay.style.display = '';  // ID 方式也被 _hideHTMLUI 设了内联样式
+
+        // 隐藏对话框（让背包 / 图鉴UI完整展示）
+        this.dialogBox.setVisible(false);
+        this.waitingForInput = false;
+
+        // ★ 防竞态：刚打开弹窗时忽略"已关闭"检测（给 DOM 渲染一帧的时间）
+        this._modalJustOpened = true;
+        this.time.delayedCall(300, () => { this._modalJustOpened = false; });
+
         // 真实打开背包弹窗
         if (window.uiManager) {
             // 刷新背包数据
@@ -1519,6 +1583,11 @@ class IntroScene extends Phaser.Scene {
             this._setupModalCloseCallback(() => {
                 console.log('IntroScene: 背包已关闭，等待玩家点击确认');
                 this._modalClosedPendingConfirm = true;
+
+                // 恢复 canvas z-index
+                if (this.game?.canvas) {
+                    this.game.canvas.style.zIndex = '1000';
+                }
 
                 // 隐藏UI元素（恢复序章隐藏状态）
                 const buttons = document.getElementById('top-right-buttons');
@@ -1575,6 +1644,24 @@ class IntroScene extends Phaser.Scene {
             topRightButtons.style.display = '';
         }
 
+        // ★ 临时降低 canvas z-index，让 HTML 按钮和弹窗可见
+        if (this.game?.canvas) {
+            this.game.canvas.style.zIndex = '50';
+        }
+
+        // ★ 清除 _hideHTMLUI() 设置的内联 display:none（否则 .modal.active 类无效）
+        document.querySelectorAll('.modal').forEach(m => { m.style.display = ''; });
+        const modalOverlayH = document.getElementById('modal-overlay');
+        if (modalOverlayH) modalOverlayH.style.display = '';  // ID 方式也被 _hideHTMLUI 设了内联样式
+
+        // 隐藏对话框（让图鉴UI完整展示，不受对话框遮挡）
+        this.dialogBox.setVisible(false);
+        this.waitingForInput = false;
+
+        // ★ 防竞态：刚打开弹窗时忽略"已关闭"检测
+        this._modalJustOpened = true;
+        this.time.delayedCall(300, () => { this._modalJustOpened = false; });
+
         // 真实打开图鉴弹窗
         if (window.uiManager) {
             // 刷新图谱数据（确保刚解锁的甘草已显示）
@@ -1587,6 +1674,11 @@ class IntroScene extends Phaser.Scene {
             this._setupModalCloseCallback(() => {
                 console.log('IntroScene: 图鉴已关闭，等待玩家点击确认');
                 this._modalClosedPendingConfirm = true;
+
+                // 恢复 canvas z-index
+                if (this.game?.canvas) {
+                    this.game.canvas.style.zIndex = '1000';
+                }
 
                 // 隐藏UI元素（恢复序章隐藏状态）
                 const buttons = document.getElementById('top-right-buttons');
@@ -1704,11 +1796,17 @@ class IntroScene extends Phaser.Scene {
         if (this._currentTutorialStep) {
             const action = this._currentTutorialStep.tutorialAction;
             if (action === 'open_backpack' || action === 'open_backpack_tutorial' || action === 'open_herb_pedia') {
+                // ★ 防竞态：弹窗刚打开时（200ms内），允许 DOM 渲染，不检测"已关闭"
+                if (this._modalJustOpened) {
+                    console.log('[诊断] 弹窗刚打开，跳过关闭检测');
+                    return;
+                }
+
                 const overlay = document.getElementById('modal-overlay');
+                // ★ 只用内联 display:none 和 hidden 类来判断（去除 offsetParent，position:absolute 时恒为 null）
                 const isOverlayHidden = !overlay ||
                     overlay.style.display === 'none' ||
-                    overlay.classList.contains('hidden') ||
-                    overlay.offsetParent === null;
+                    overlay.classList.contains('hidden');
 
                 if (isOverlayHidden) {
                     console.log('[诊断] 检测到弹窗已关闭，完成教程', action);
@@ -1758,6 +1856,11 @@ class IntroScene extends Phaser.Scene {
         if (this._modalObserver) {
             this._modalObserver.disconnect();
             this._modalObserver = null;
+        }
+
+        // ★ 兜底：恢复 canvas z-index（弹窗教程期间被临时降至 50）
+        if (this.game?.canvas) {
+            this.game.canvas.style.zIndex = '1000';
         }
 
         this.tutorialActive = false;
@@ -1975,9 +2078,11 @@ class IntroScene extends Phaser.Scene {
 
         // 隐藏特写图片（奖励显示时不需要）
         this._hideOverlayImage();
+        // 隐藏旁白文字（防止与奖励面板重叠）
+        this.narrationText.setVisible(false);
 
         const items = step.items || [];
-        let rewardText = '获得：\n';
+        const title = step.title || '获得奖励';
 
         // 获取草药ID列表，用于判断奖励类型
         const HERB_IDS = (window.GameData && window.GameData.HERBS_DATA)
@@ -1990,9 +2095,6 @@ class IntroScene extends Phaser.Scene {
         const gsmState = window.gameStateManager ? window.gameStateManager.state : this.gameState;
 
         items.forEach(item => {
-            const count = item.count ? `×${item.count}` : '';
-            rewardText += `${item.icon || '📦'} ${item.name}${count}\n`;
-
             // 属性类（声望等）：写入 state.attributes 并跳过背包入库
             if (ATTR_IDS.includes(item.id)) {
                 if (window.gameStateManager) {
@@ -2007,15 +2109,12 @@ class IntroScene extends Phaser.Scene {
             const isHerb = HERB_IDS.includes(item.id);
 
             if (isHerb && window.gameStateManager) {
-                // 草药：通过 gameStateManager 添加（自动解锁图鉴）
                 for (let i = 0; i < (item.count || 1); i++) {
                     window.gameStateManager.addHerbToBackpack(item.id);
                 }
             } else if (item.id === 'copper') {
-                // 铜钱：写入 gameStateManager.state.copper
                 gsmState.copper = (gsmState.copper || 0) + item.count;
             } else {
-                // 其他物资：写入 gameStateManager.state.inventory
                 if (!gsmState.inventory) gsmState.inventory = {};
                 gsmState.inventory[item.id] = (gsmState.inventory[item.id] || 0) + (item.count || 1);
             }
@@ -2023,44 +2122,171 @@ class IntroScene extends Phaser.Scene {
             console.log('IntroScene: 物品已添加', item.id, '→', isHerb ? 'backpack' : 'inventory');
         });
 
-        // 刷新UI（背包、图鉴、情籍属性面板）
+        // 刷新UI
         if (window.uiManager) {
             window.uiManager.updateBackpackUI();
             window.uiManager.updateHerbGuideUI();
             window.uiManager.updateAttributesUI();
         }
 
-        // 显示奖励文本
+        // === 美化奖励面板 ===
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        const rewardGroup = this.add.container(width / 2, height / 2).setDepth(60);
 
-        const rewardDisplay = this.add.text(width / 2, height / 2, rewardText, {
-            fontSize: '26px',
-            color: '#ffcc00',
+        // 面板尺寸（自适应物品数量）
+        const panelW = Math.max(380, items.length * 150 + 60);
+        const panelH = 200;
+
+        // 半透明暗色底框 + 金色镶边
+        const bg = this.add.graphics();
+        bg.fillStyle(0x1a1a2e, 0.92);
+        bg.fillRoundedRect(-panelW / 2, -panelH / 2, panelW, panelH, 16);
+        bg.lineStyle(2, 0xc9a851, 0.9);
+        bg.strokeRoundedRect(-panelW / 2, -panelH / 2, panelW, panelH, 16);
+        // 内发光装饰线
+        bg.lineStyle(1, 0xc9a851, 0.3);
+        bg.strokeRoundedRect(-panelW / 2 + 4, -panelH / 2 + 4, panelW - 8, panelH - 8, 12);
+        rewardGroup.add(bg);
+
+        // 顶部装饰条
+        const topBar = this.add.graphics();
+        topBar.fillStyle(0xc9a851, 0.15);
+        topBar.fillRoundedRect(-panelW / 2 + 8, -panelH / 2 + 8, panelW - 16, 48, 8);
+        rewardGroup.add(topBar);
+
+        // 标题文字
+        const titleText = this.add.text(0, -panelH / 2 + 32, title, {
+            fontSize: '28px',
+            color: '#f0d878',
             fontFamily: '"FangSong", "KaiTi", "STFangsong", "STKaiti", serif',
-            align: 'center',
-            lineSpacing: 10,
-            backgroundColor: '#000000aa',
-            padding: { x: 20, y: 15 }
-        })
-            .setOrigin(0.5)
-            .setDepth(60);
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setAlpha(0);
+        rewardGroup.add(titleText);
 
-        // 日志输出获得的物资
-        console.log('IntroScene: 奖励已添加到背包', this.gameState);
+        // 标题两侧装饰线
+        const titleW = titleText.width || 120;
+        const lineL = this.add.graphics();
+        lineL.lineStyle(1, 0xc9a851, 0.5);
+        lineL.lineBetween(-panelW / 2 + 30, -panelH / 2 + 32, -titleW / 2 - 16, -panelH / 2 + 32);
+        lineL.setAlpha(0);
+        rewardGroup.add(lineL);
 
-        // 等待后消失
-        this.time.delayedCall(2000, () => {
+        const lineR = this.add.graphics();
+        lineR.lineStyle(1, 0xc9a851, 0.5);
+        lineR.lineBetween(titleW / 2 + 16, -panelH / 2 + 32, panelW / 2 - 30, -panelH / 2 + 32);
+        lineR.setAlpha(0);
+        rewardGroup.add(lineR);
+
+        // 物品行
+        const startX = -((items.length - 1) * 130) / 2;
+        const itemY = 18;
+        const itemCards = [];
+
+        items.forEach((item, i) => {
+            const x = startX + i * 130;
+            const cardGroup = this.add.container(x, itemY).setAlpha(0);
+            rewardGroup.add(cardGroup);
+
+            // 图标底圆
+            const iconCircle = this.add.graphics();
+            iconCircle.fillStyle(0x2a2a3e, 0.9);
+            iconCircle.fillCircle(0, -8, 28);
+            iconCircle.lineStyle(2, 0xc9a851, 0.7);
+            iconCircle.strokeCircle(0, -8, 28);
+            cardGroup.add(iconCircle);
+
+            // 图标文字
+            const iconText = this.add.text(0, -8, item.icon || '📦', {
+                fontSize: '26px'
+            }).setOrigin(0.5);
+            cardGroup.add(iconText);
+
+            // 物品名称
+            const nameStr = item.count && item.count > 1
+                ? `${item.name} x${item.count}`
+                : item.name;
+            const nameText = this.add.text(0, 34, nameStr, {
+                fontSize: '16px',
+                color: '#e0d5ba',
+                fontFamily: '"FangSong", "KaiTi", "STFangsong", "STKaiti", serif',
+                align: 'center',
+                wordWrap: { width: 110 }
+            }).setOrigin(0.5, 0);
+            cardGroup.add(nameText);
+
+            // 品质标签
+            if (item.id === 'reputation') {
+                const tag = this.add.text(0, 58, '声望', {
+                    fontSize: '12px',
+                    color: '#c9a851',
+                    fontFamily: '"FangSong", "KaiTi", "STFangsong", "STKaiti", serif',
+                    backgroundColor: '#00000044',
+                    padding: { x: 6, y: 2 }
+                }).setOrigin(0.5);
+                cardGroup.add(tag);
+            } else if (HERB_IDS.includes(item.id)) {
+                const tag = this.add.text(0, 58, '图鉴解锁', {
+                    fontSize: '12px',
+                    color: '#5caf5c',
+                    fontFamily: '"FangSong", "KaiTi", "STFangsong", "STKaiti", serif',
+                    backgroundColor: '#00000044',
+                    padding: { x: 6, y: 2 }
+                }).setOrigin(0.5);
+                cardGroup.add(tag);
+            }
+
+            itemCards.push(cardGroup);
+        });
+
+        // 面板入场动画
+        rewardGroup.setScale(0.85).setAlpha(0);
+        this.tweens.add({
+            targets: rewardGroup,
+            scaleX: 1,
+            scaleY: 1,
+            alpha: 1,
+            duration: 300,
+            ease: 'Back.easeOut'
+        });
+
+        // 标题 + 装饰线条淡入
+        this.tweens.add({
+            targets: [titleText, lineL, lineR],
+            alpha: 1,
+            duration: 400,
+            delay: 150
+        });
+
+        // 物品逐个弹出
+        itemCards.forEach((card, i) => {
             this.tweens.add({
-                targets: rewardDisplay,
+                targets: card,
+                alpha: 1,
+                scaleX: { from: 0.6, to: 1 },
+                scaleY: { from: 0.6, to: 1 },
+                duration: 350,
+                delay: 200 + i * 120,
+                ease: 'Back.easeOut'
+            });
+        });
+
+        // 等待后淡出
+        this.time.delayedCall(step.displayDuration || 2500, () => {
+            this.tweens.add({
+                targets: rewardGroup,
                 alpha: 0,
-                duration: 500,
+                scaleX: 0.9,
+                scaleY: 0.9,
+                duration: 400,
                 onComplete: () => {
-                    rewardDisplay.destroy();
+                    rewardGroup.destroy(true);
                     this._nextStep();
                 }
             });
         });
+
+        console.log('IntroScene: 奖励已添加到背包', this.gameState);
     }
 
     /**
@@ -2360,7 +2586,10 @@ class IntroScene extends Phaser.Scene {
             'laoli': '🌿',
             'villager_b': '👩',
             'zhangdaniang': '👵',
-            'lvren': '🚶'
+            'lvren': '🚶',
+            // 支线 NPC
+            'wang_dazhuang': '💪',
+            'wang_laotai': '🤒'
         };
         return emojiMap[character] || '❓';
     }
@@ -3097,6 +3326,108 @@ class IntroScene extends Phaser.Scene {
     }
 
     /**
+     * 启动本草技艺小游戏（甘草采挖 / 菊花采摘 / 研磨药粉）。
+     *
+     * 剧情 JSON 可直接使用：
+     * { "type": "minigame_licorice_harvest" }
+     * { "type": "minigame_chrysanthemum_pick", "minigameOptions": { "timer": 25 } }
+     * { "type": "minigame_herb_grind" }
+     */
+    _showHerbCraftMinigame(step, gameId) {
+        console.log('IntroScene: 启动本草技艺小游戏', gameId, step);
+
+        this._flowerGameActive = true;
+        this.waitingForInput = false;
+        this._showContinueHint(false);
+        this.dialogBox.setVisible(false);
+        this.narrationText.setVisible(false);
+        if (this.skipButton) this.skipButton.setVisible(false);
+        if (this.bgImage) this.bgImage.setVisible(false);
+        if (this.overlayImage) { this.overlayImage.destroy(); this.overlayImage = null; }
+        if (this.overlayBorder) { this.overlayBorder.destroy(); this.overlayBorder = null; }
+        if (this.choiceSystem) this.choiceSystem.hide();
+        if (this.typewriter && this.typewriter.isTyping) this.typewriter.complete();
+
+        const api = window.HerbMinigameAPI;
+        if (!api || typeof api.start !== 'function') {
+            console.error('IntroScene: HerbMinigameAPI 未加载');
+            this._flowerGameActive = false;
+            if (this.skipButton) this.skipButton.setVisible(true);
+            if (this.bgImage) this.bgImage.setVisible(true);
+            this.dialogBox.setVisible(true);
+            this._nextStep();
+            return;
+        }
+
+        api.start(gameId, step.minigameOptions || {})
+            .then((result) => {
+                console.log('IntroScene: 本草技艺小游戏完成', result);
+                if (result && result.success && step.rewardOnCorrect) {
+                    this._applyReward(step.rewardOnCorrect);
+                }
+                if (step.resultFlag && window.gameStateManager && window.gameStateManager.state) {
+                    window.gameStateManager.state[step.resultFlag] = result;
+                }
+            })
+            .catch((err) => {
+                console.error('IntroScene: 本草技艺小游戏启动失败', err);
+            })
+            .finally(() => {
+                this._flowerGameActive = false;
+                if (this.skipButton) this.skipButton.setVisible(true);
+                if (this.bgImage) this.bgImage.setVisible(true);
+                this.dialogBox.setVisible(true);
+                this.narrationText.setVisible(false);
+                this.waitingForInput = false;
+                this.time.delayedCall(100, () => this._nextStep());
+            });
+    }
+
+    _showMedicalQuizMinigame(step) {
+        console.log('IntroScene: 启动医学问答小游戏', step);
+
+        this._flowerGameActive = true;
+        this.waitingForInput = false;
+        this._showContinueHint(false);
+        this.dialogBox.setVisible(false);
+        this.narrationText.setVisible(false);
+        if (this.skipButton) this.skipButton.setVisible(false);
+        if (this.bgImage) this.bgImage.setVisible(false);
+        if (this.overlayImage) { this.overlayImage.destroy(); this.overlayImage = null; }
+        if (this.overlayBorder) { this.overlayBorder.destroy(); this.overlayBorder = null; }
+        if (this.choiceSystem) this.choiceSystem.hide();
+        if (this.typewriter && this.typewriter.isTyping) this.typewriter.complete();
+
+        const SceneClass = window.MedicalQuizMinigame;
+        if (!SceneClass) {
+            console.error('IntroScene: MedicalQuizMinigame 未加载');
+            this._flowerGameActive = false;
+            this._nextStep();
+            return;
+        }
+
+        const quiz = new SceneClass({
+            id: step.id,
+            quiz: step.quiz || {},
+            resultFlag: step.resultFlag,
+            onComplete: (result) => {
+                quiz.destroy();
+                if (result && result.success && step.rewardOnCorrect) {
+                    this._applyReward(step.rewardOnCorrect);
+                }
+                this._flowerGameActive = false;
+                if (this.skipButton) this.skipButton.setVisible(true);
+                if (this.bgImage) this.bgImage.setVisible(true);
+                this.dialogBox.setVisible(true);
+                this.narrationText.setVisible(false);
+                this.waitingForInput = false;
+                this.time.delayedCall(100, () => this._nextStep());
+            }
+        });
+        quiz.mount(document.getElementById('game-container') || document.body);
+    }
+
+    /**
      * 应用属性奖励
      * @param {Object} reward - { attr: string, delta: number }
      */
@@ -3532,6 +3863,12 @@ class IntroScene extends Phaser.Scene {
         if (window.GameConfig) {
             window.GameConfig.currentMapId = 'plain';
             console.log('[剧情] currentMapId 已设为: plain（平原地图）');
+
+            // ★ 初始化任务系统（序章结束后首次进入平原）
+            if (window.gameStateManager && window.QUESTS_DATA) {
+                window.gameStateManager.initQuests();
+                console.log('[剧情] 任务系统已初始化');
+            }
         }
         // 清除可能残留的村庄/溪流强制标志
         window._forceVillageMap = false;
@@ -3702,6 +4039,11 @@ class IntroScene extends Phaser.Scene {
      */
     _onSceneShutdown() {
         console.log('IntroScene: shutdown 事件触发，正在清理...');
+
+        // ★ 停止当前 BGM（下一场景会自行播放对应 BGM）
+        if (window.audioManager) {
+            window.audioManager.stopBGM();
+        }
 
         try {
             // ★ 安全恢复所有主页面UI（即使 _endPrologue 已调用，重复调用也无害）

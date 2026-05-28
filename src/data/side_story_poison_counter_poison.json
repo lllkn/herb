@@ -1,0 +1,519 @@
+{
+  "version": "1.0",
+  "storyId": "side_poison_counter_poison",
+  "title": "支线·以毒攻毒",
+  "description": "翠竹村东侧，王大壮家。同一个傍晚内完成的药理辨证支线。",
+  "scenes": [
+    {
+      "id": "SPCP01",
+      "name": "以毒攻毒",
+      "type": "dialogue",
+      "background": "bg_village_center.png",
+      "bgm": "bgm_village.mp3",
+      "_trigger": {
+        "type": "npc",
+        "npcId": "wang_dazhuang",
+        "once": true,
+        "eventId": "EVT_SIDE_POISON_COUNTER_POISON"
+      },
+      "steps": [
+        {
+          "id": "SPCP_intro_001",
+          "type": "narration",
+          "text": "傍晚，你从张大娘家走出。路过东侧柴房，一个壮实的男人从篱笆后闪出来，差点撞上你。",
+          "nextDelay": 1200
+        },
+        {
+          "id": "SPCP_intro_002",
+          "type": "dialogue",
+          "character": "wang_dazhuang",
+          "name": "王大壮",
+          "text": "哎，对不住！你是刚给张大娘治病的郎中吧……能不能帮我看看这个？",
+          "avatar": "npc_wang_dazhuang.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_intro_003",
+          "type": "narration",
+          "text": "他左右看看，把一张折叠多次的纸推过来。纸上只有两个字，笔迹潦草：\n「蟾酥」\n纸的下半截被撕掉了。",
+          "nextDelay": 2200
+        },
+        {
+          "id": "SPCP_intro_004",
+          "type": "dialogue",
+          "character": "wang_dazhuang",
+          "name": "王大壮",
+          "text": "昨天一个走方郎中路过，说这东西能治我娘的咳症。但他要钱才肯说用量，我凑不够……郎中，你知道这是什么吗？",
+          "avatar": "npc_wang_dazhuang.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_quiz_01",
+          "type": "minigame_medical_quiz",
+          "quiz": {
+            "kicker": "互动① · 认药",
+            "title": "蟾酥是什么？",
+            "type": "single",
+            "prompt": "你看着纸上的字，脑中浮现出这味药的样子。",
+            "options": [
+              { "id": "A", "text": "一种菌类，生于潮湿山林" },
+              { "id": "B", "text": "蟾蜍耳后腺及皮肤腺的分泌物，晒干后入药", "correct": true },
+              { "id": "C", "text": "一种矿物质，状如白霜" },
+              { "id": "D", "text": "蟾蜍的内脏，焙干研粉" }
+            ],
+            "explanation": "【知识卡片】蟾酥\n采自中华大蟾蜍或黑眶蟾蜍的耳后腺分泌物，经晒干或低温烘干而成。味辛、性温，有大毒。功效为解毒消肿、强心止痛。现代研究中，华蟾酥毒基（Bufalin）是其重要活性成分。"
+          },
+          "rewardOnCorrect": { "attr": "herb_knowledge", "delta": 2 }
+        },
+        {
+          "id": "SPCP_intro_005",
+          "type": "dialogue",
+          "character": "wang_dazhuang",
+          "name": "王大壮",
+          "text": "那……真的能治咳症？",
+          "avatar": "npc_wang_dazhuang.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_intro_006",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "能不能治，得先看人。走方郎中连你娘都没见过就开药，我不信他。",
+          "avatar": "zhurengong.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_intro_007",
+          "type": "dialogue",
+          "character": "wang_dazhuang",
+          "name": "王大壮",
+          "text": "……好，你去看看。",
+          "avatar": "npc_wang_dazhuang.png",
+          "nextDelay": 700
+        },
+        {
+          "id": "SPCP_wang_001",
+          "type": "narration",
+          "text": "推开王大壮家的门。内室昏暗，一位老太太半靠在竹榻上，听见脚步声把褥子往上拽了拽。",
+          "backgroundOverride": "bg_wang_home_interior",
+          "nextDelay": 1500
+        },
+        {
+          "id": "SPCP_wang_002",
+          "type": "dialogue",
+          "character": "wang_laotai",
+          "name": "王老太",
+          "text": "又请郎中？",
+          "avatar": "npc_wang_laotai.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_wang_003",
+          "type": "dialogue",
+          "character": "wang_dazhuang",
+          "name": "王大壮",
+          "text": "娘，让先生瞧瞧。",
+          "avatar": "npc_wang_dazhuang.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_quiz_02",
+          "type": "minigame_medical_quiz",
+          "quiz": {
+            "kicker": "互动② · 望诊判断",
+            "title": "选出最关键的两项望诊体征",
+            "type": "multi",
+            "prompt": "灯光昏黄，你仔细观察王老太的面色与口唇。请选择你认为最关键的两项。",
+            "options": [
+              { "id": "A", "text": "面色㿠白，颧骨处有两片淡红", "correct": true },
+              { "id": "B", "text": "嘴唇干燥，舌面有细裂纹", "correct": true },
+              { "id": "C", "text": "眼白泛黄" },
+              { "id": "D", "text": "手背皮肤干燥、无光泽" },
+              { "id": "E", "text": "指甲呈青紫色" }
+            ],
+            "explanation": "颧红如妆，是虚热上浮之象；唇干舌裂，提示津液亏耗、阴液不足。眼黄更偏湿热或肝胆问题，手背干燥与指甲青紫只能作辅助信息。"
+          },
+          "rewardOnCorrect": { "attr": "diagnosis", "delta": 2 }
+        },
+        {
+          "id": "SPCP_wang_004",
+          "type": "narration",
+          "text": "你在心里记下：阴虚的底子。",
+          "nextDelay": 1000
+        },
+        {
+          "id": "SPCP_ask_001",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "老人家，咳了多久了？痰里带血吗？",
+          "avatar": "zhurengong.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_ask_002",
+          "type": "dialogue",
+          "character": "wang_laotai",
+          "name": "王老太",
+          "text": "三年。带。",
+          "avatar": "npc_wang_laotai.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_ask_003",
+          "type": "dialogue",
+          "character": "wang_dazhuang",
+          "name": "王大壮",
+          "text": "有时候是暗红色的……有时候几乎是黑的。",
+          "avatar": "npc_wang_dazhuang.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_quiz_03",
+          "type": "minigame_medical_quiz",
+          "quiz": {
+            "kicker": "互动③ · 症状分析",
+            "title": "暗红甚至黑色的痰血意味着什么？",
+            "type": "single",
+            "prompt": "结合久咳三年与痰血色暗，判断其核心病机。",
+            "options": [
+              { "id": "A", "text": "病情较轻，血色暗说明出血量少" },
+              { "id": "B", "text": "瘀血停积，血液不能正常运行，色暗为陈旧性瘀血", "correct": true },
+              { "id": "C", "text": "热毒炽盛，血被热邪熏蒸所致" },
+              { "id": "D", "text": "气虚不摄血，脾不统血" }
+            ],
+            "explanation": "血色鲜红多为新鲜出血或热迫血行；色暗红乃至发黑，常见于血行不畅、瘀血停滞。结合久咳痰血，提示肺络瘀阻。"
+          },
+          "rewardOnCorrect": { "attr": "diagnosis", "delta": 2 }
+        },
+        {
+          "id": "SPCP_ask_004",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "胸口疼吗？夜里睡得着吗？",
+          "avatar": "zhurengong.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_ask_005",
+          "type": "dialogue",
+          "character": "wang_laotai",
+          "name": "王老太",
+          "text": "两边肋下，像堵着什么。睡不踏实。总是热，又盗汗。",
+          "avatar": "npc_wang_laotai.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_quiz_04",
+          "type": "minigame_medical_quiz",
+          "quiz": {
+            "kicker": "互动④ · 症状连线",
+            "title": "将症状与病机连线",
+            "type": "matching",
+            "prompt": "四组症状指向同一个病机核心：阴虚为本，血瘀为标。",
+            "left": [
+              { "id": "night_heat", "text": "夜间发热、盗汗" },
+              { "id": "rib_block", "text": "胁肋胀闷如堵" },
+              { "id": "dark_blood", "text": "痰血色暗" },
+              { "id": "red_dry", "text": "颧红唇干" }
+            ],
+            "right": [
+              { "id": "yin_heat", "text": "阴虚内热" },
+              { "id": "lung_block", "text": "肺络不通" },
+              { "id": "blood_stasis", "text": "瘀血阻络" },
+              { "id": "fluid_loss", "text": "津液亏耗" }
+            ],
+            "correctMap": {
+              "night_heat": "yin_heat",
+              "rib_block": "lung_block",
+              "dark_blood": "blood_stasis",
+              "red_dry": "fluid_loss"
+            },
+            "explanation": "夜热盗汗属阴虚内热；胁肋胀闷提示肺络不通；痰血色暗为瘀血阻络；颧红唇干说明津液亏耗。合参可见：阴虚为本，血瘀为标。"
+          },
+          "rewardOnCorrect": { "attr": "diagnosis", "delta": 3 }
+        },
+        {
+          "id": "SPCP_pulse_001",
+          "type": "narration",
+          "text": "你坐到榻边，伸手。王老太犹豫了一秒，把手腕搭上来。脉来细而无力，如细线绵延；偶有一顿，似刀轻刮竹节，涩而不流畅。",
+          "nextDelay": 2400
+        },
+        {
+          "id": "SPCP_quiz_05",
+          "type": "minigame_medical_quiz",
+          "quiz": {
+            "kicker": "互动⑤ · 脉象识别",
+            "title": "这是哪种脉象组合？",
+            "type": "single",
+            "prompt": "根据文字描述判断脉象。",
+            "options": [
+              { "id": "A", "text": "浮脉 + 数脉（外感风热）" },
+              { "id": "B", "text": "细脉 + 涩脉（阴虚血瘀）", "correct": true },
+              { "id": "C", "text": "沉脉 + 迟脉（阳虚寒凝）" },
+              { "id": "D", "text": "洪脉 + 滑脉（痰热壅肺）" }
+            ],
+            "explanation": "细脉主阴血亏虚，气血不足以充盈脉道；涩脉主血瘀、津液亏耗。两者同见，与王老太阴虚血瘀证高度吻合。"
+          },
+          "rewardOnCorrect": { "attr": "diagnosis", "delta": 2 }
+        },
+        {
+          "id": "SPCP_dx_001",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "老人家，我大概清楚了。阴虚血瘀。身体里的阴液耗了太久，血液运行受阻，瘀在肺里出不来。",
+          "avatar": "zhurengong.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_dx_002",
+          "type": "dialogue",
+          "character": "wang_laotai",
+          "name": "王老太",
+          "text": "能治吗？",
+          "avatar": "npc_wang_laotai.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_dx_003",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "慢慢来，能调。",
+          "avatar": "zhurengong.png",
+          "nextDelay": 700
+        },
+        {
+          "id": "SPCP_poison_001",
+          "type": "dialogue",
+          "character": "wang_dazhuang",
+          "name": "王大壮",
+          "text": "先生，那走方郎中说的蟾酥——用得上吗？",
+          "avatar": "npc_wang_dazhuang.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_poison_002",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "方向不算全错，但有个大问题。",
+          "avatar": "zhurengong.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_quiz_06",
+          "type": "minigame_medical_quiz",
+          "quiz": {
+            "kicker": "互动⑥ · 药性推理",
+            "title": "阴虚体质遇上温热蟾酥会怎样？",
+            "type": "single",
+            "prompt": "王老太体质为阴虚，蟾酥药性温热、走窜力强。将这两个条件放在一起推理。",
+            "options": [
+              { "id": "A", "text": "蟾酥温热助阳，正好补足她的虚弱" },
+              { "id": "B", "text": "蟾酥温热燥烈，会加重阴虚，进一步灼伤津液", "correct": true },
+              { "id": "C", "text": "蟾酥有毒，与体质无关，都会损伤脏腑" },
+              { "id": "D", "text": "蟾酥走窜力强，能直接冲开瘀血，体质不影响效果" }
+            ],
+            "explanation": "阴虚的人体内已经缺少津液，蟾酥性温热如同加火。若不先养阴扶正，贸然使用会进一步灼伤津液，加剧虚热。"
+          },
+          "rewardOnCorrect": { "attr": "herb_knowledge", "delta": 3 }
+        },
+        {
+          "id": "SPCP_poison_003",
+          "type": "dialogue",
+          "character": "wang_dazhuang",
+          "name": "王大壮",
+          "text": "那蟾酥……就没用了？",
+          "avatar": "npc_wang_dazhuang.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_poison_004",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "不是没用，是不能现在单独用。",
+          "avatar": "zhurengong.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_quiz_07",
+          "type": "minigame_medical_quiz",
+          "quiz": {
+            "kicker": "互动⑦ · 以毒攻毒原理",
+            "title": "哪些是有据可查的“以毒攻毒”案例？",
+            "type": "multi",
+            "prompt": "多选。毒药入医的前提是炮制、剂量、配伍与辨证都正确。",
+            "options": [
+              { "id": "A", "text": "砒霜（三氧化二砷）治疗急性早幼粒细胞白血病", "correct": true },
+              { "id": "B", "text": "全蝎、蜈蚣等虫类药治疗顽固性神经痛", "correct": true },
+              { "id": "C", "text": "附子配伍干姜、炙甘草，回阳救逆", "correct": true },
+              { "id": "D", "text": "用毒蘑菇泡水治疗湿疹" },
+              { "id": "E", "text": "斑蝥外用治疗顽癣、赘疣", "correct": true }
+            ],
+            "explanation": "A、B、C、E均有医学或本草应用依据；D属于危险民间偏方，没有可靠理论与实证支撑。以毒攻毒不是乱用毒，而是精准驾驭毒性。"
+          },
+          "rewardOnCorrect": { "attr": "herb_knowledge", "delta": 3 }
+        },
+        {
+          "id": "SPCP_formula_001",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "以毒攻毒的前提，是毒性的方向与病邪匹配，同时病人的身体能承受药力。你娘现在的状态，要先把底子补起来，再谈用不用蟾酥。",
+          "avatar": "zhurengong.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_quiz_08",
+          "type": "minigame_medical_quiz",
+          "quiz": {
+            "kicker": "互动⑧ · 组方选择",
+            "title": "从药材中选三味主药",
+            "type": "herbSelect",
+            "prompt": "根据“阴虚血瘀”的病机，选择最合适的三味作为主药。",
+            "options": [
+              { "id": "ganjiang", "text": "干姜：温中散寒，辛热" },
+              { "id": "shengdihuang", "text": "生地黄：清热养阴，凉血", "correct": true },
+              { "id": "mahuang", "text": "麻黄：发汗解表，宣肺，辛温" },
+              { "id": "shashen", "text": "沙参：养阴清肺，益胃生津", "correct": true },
+              { "id": "cangzhu", "text": "苍术：燥湿健脾，辛苦温" },
+              { "id": "sanqi", "text": "三七：化瘀止血，活血定痛", "correct": true },
+              { "id": "rougui", "text": "肉桂：补火助阳，温通经脉，辛甘热" },
+              { "id": "banxia", "text": "半夏：燥湿化痰，降逆止呕，辛温有毒" }
+            ],
+            "explanation": "生地黄与沙参滋养阴液、清虚热，针对阴虚为本；三七活血化瘀而不耗气伤血，针对血瘀为标。干姜、肉桂、麻黄、苍术、半夏都不适合此时的阴虚底子。"
+          },
+          "rewardOnCorrect": { "attr": "diagnosis", "delta": 3 }
+        },
+        {
+          "id": "SPCP_formula_002",
+          "type": "narration",
+          "text": "你提笔写下方子：\n沙参、麦冬、生地、玉竹\n藕节炭、白茅根\n三七粉（另包，温水冲服）\n川贝母",
+          "nextDelay": 2600
+        },
+        {
+          "id": "SPCP_formula_003",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "先用这张方子，养阴为主，三七化瘀为辅。等底子稳了，咳血减少，我们再商量下一步。",
+          "avatar": "zhurengong.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_quiz_09",
+          "type": "minigame_medical_quiz",
+          "quiz": {
+            "kicker": "互动⑨ · 用药安全问答",
+            "title": "三七活血，会不会让血流更多？",
+            "type": "single",
+            "prompt": "王大壮指着三七问：我娘还在咳血，活血不会让血流更多吗？",
+            "options": [
+              { "id": "A", "text": "三七纯粹活血，咳血期间禁用" },
+              { "id": "B", "text": "三七既能活血化瘀，又能止血，故称止血不留瘀、化瘀不出血", "correct": true },
+              { "id": "C", "text": "三七只能外用止血，不能内服" },
+              { "id": "D", "text": "三七性寒，化瘀同时清热" }
+            ],
+            "explanation": "三七是止血化瘀要药，兼具止血与活血之功。其特点正在于止血不留瘀、化瘀不出血，适合本案“瘀阻肺络而见咳血”的思路。"
+          },
+          "rewardOnCorrect": { "attr": "herb_knowledge", "delta": 2 }
+        },
+        {
+          "id": "SPCP_end_001",
+          "type": "dialogue",
+          "character": "protagonist",
+          "name": "主人公",
+          "text": "王大壮，你这个问题问得很好。好的郎中，病人也要会问。",
+          "avatar": "zhurengong.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_end_001b",
+          "type": "narration",
+          "text": "王大壮把那张只写了「蟾酥」的纸片从怀里摸出来，看了看，又看了看你写满的方子。\n\n他嘴唇动了动，像是憋了很久的话。",
+          "nextDelay": 2200
+        },
+        {
+          "id": "SPCP_end_001c",
+          "type": "dialogue",
+          "character": "wang_dazhuang",
+          "name": "王大壮",
+          "text": "先生，你开的方子写了这么多……那之前那个郎中，只写了两个字，还要跟我收钱。你说他是不是在骗我？",
+          "avatar": "npc_wang_dazhuang.png",
+          "nextDelay": 500
+        },
+        {
+          "id": "SPCP_final_choice",
+          "type": "choice",
+          "options": [
+            {
+              "text": "“他说的不全是假话，只是把真话用来骗钱了。”",
+              "flag": "poison_choice_truth",
+              "response": {
+                "type": "dialogue",
+                "character": "wang_dazhuang",
+                "name": "王大壮",
+                "text": "（点头，把药方重新叠好，放进胸口的衣袋）谢谢你，先生。",
+                "avatar": "npc_wang_dazhuang.png",
+                "nextStep": "SPCP_end_002"
+              }
+            },
+            {
+              "text": "“猛药不一定错，但用猛药的前提他没告诉你——这比骗话更危险。”",
+              "flag": "poison_choice_principle",
+              "response": {
+                "type": "dialogue",
+                "character": "wang_dazhuang",
+                "name": "王大壮",
+                "text": "（点头，把药方重新叠好，放进胸口的衣袋）谢谢你，先生。",
+                "avatar": "npc_wang_dazhuang.png",
+                "nextStep": "SPCP_end_002"
+              }
+            },
+            {
+              "text": "“我不评价别人。你只需要知道，这张方子是我认真看过之后开的。”",
+              "flag": "poison_choice_calm",
+              "response": {
+                "type": "dialogue",
+                "character": "wang_dazhuang",
+                "name": "王大壮",
+                "text": "（点头，把药方重新叠好，放进胸口的衣袋）谢谢你，先生。",
+                "avatar": "npc_wang_dazhuang.png",
+                "nextStep": "SPCP_end_002"
+              }
+            }
+          ]
+        },
+        {
+          "id": "SPCP_end_002",
+          "type": "narration",
+          "text": "他没有再多说什么。但那句话里，有三年的重量。\n\n内室传来王老太的声音，不是咳嗽，是在喊儿子吃饭。王大壮应了一声，快步走进去了。",
+          "nextDelay": 1800
+        },
+        {
+          "id": "SPCP_reward",
+          "type": "reward",
+          "title": "支线完成 · 以毒攻毒",
+          "displayDuration": 3200,
+          "items": [
+            { "id": "chansu", "name": "蟾酥", "count": 1, "icon": "☣" },
+            { "id": "sanqi", "name": "三七", "count": 1, "icon": "✚" },
+            { "id": "shengdihuang", "name": "生地黄", "count": 1, "icon": "◆" },
+            { "id": "reputation", "name": "医者声望", "count": 10, "icon": "★" }
+          ],
+          "nextDelay": 1500
+        },
+        {
+          "id": "SPCP_end",
+          "type": "end",
+          "nextScene": "GameScene"
+        }
+      ]
+    }
+  ]
+}

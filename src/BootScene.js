@@ -51,6 +51,14 @@ class BootScene extends Phaser.Scene {
 
         // 加载地图事件配置
         this.load.json('map_events_data', 'src/data/map_events.json');
+
+        // ★ 预加载 BGM 音频文件
+        console.log('BootScene: 预加载 BGM 文件...');
+        this.load.audio('bgm_school',  'src/assets/bgm/学堂.mp3');
+        this.load.audio('bgm_plain',   'src/assets/bgm/平原.mp3');
+        this.load.audio('bgm_village', 'src/assets/bgm/翠竹村.mp3');
+        this.load.audio('bgm_valley',  'src/assets/bgm/溪流山谷.mp3');
+        this.load.audio('bgm_side',    'src/assets/bgm/支线.mp3');
     }
 
     create() {

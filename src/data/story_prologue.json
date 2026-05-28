@@ -10,6 +10,7 @@
       "name": "开场黑屏独白",
       "type": "monologue",
       "duration": 45,
+      "bgm": "bgm_school.mp3",
       "steps": [
         {
           "id": "S01_001",
@@ -247,10 +248,10 @@
                 "character": "bai",
                 "expression": "smile",
                 "name": "白院长",
-                "text": "（赞许地点头）很好，观察入微是医者的基本功。现在走近它，亲手采一株试试。",
+                "text": "（赞许地点头）很好，观察入微是医者的基本功。来，亲手采挖一株甘草——走近它，让为师看看你的手法。",
                 "avatar": "bai.png",
                 "nextDelay": 500,
-                "nextStep": "S04_tutorial_1"
+                "nextStep": "S04_minigame_licorice"
               }
             },
             {
@@ -260,50 +261,20 @@
                 "character": "bai",
                 "expression": "thoughtful",
                 "name": "白院长",
-                "text": "问得好。甘草味甘性平，能补脾益气、润肺止咳，更有调和诸药之能。被誉为「国老」，你且去采一株来。",
+                "text": "问得好。甘草味甘性平，能补脾益气、润肺止咳，更有调和诸药之能。被誉为「国老」，你且亲手采挖一株来。",
                 "avatar": "bai.png",
                 "nextDelay": 500,
-                "nextStep": "S04_tutorial_1"
+                "nextStep": "S04_minigame_licorice"
               }
             }
           ]
         },
         {
-          "id": "S04_tutorial_1",
-          "type": "tutorial",
-          "tutorialAction": "highlight_herb",
-          "herbId": "gancao",
-          "hint": "靠近甘草（金色光圈标记），走进半径50px以内触发交互（点击屏幕可跳过）",
-          "hintPosition": "bottom",
-          "pulseColor": 16766720,
-          "skippable": true,
-          "nextDelay": 0
-        },
-        {
-          "id": "S04_tutorial_2",
-          "type": "tutorial",
-          "tutorialAction": "show_collect_prompt",
-          "hint": "出现采集提示 ——·E 采集 甘草·—— ，按 E 键开始采集（点击屏幕可跳过）",
-          "hintPosition": "bottom",
-          "skippable": true,
-          "nextDelay": 0
-        },
-        {
-          "id": "S04_tutorial_3",
-          "type": "tutorial",
-          "tutorialAction": "play_collect_animation",
-          "hint": "播放采集动画（主角蹲下，绿色粒子飘散）→ 屏幕右上 +甘草×1 浮字（点击屏幕可跳过）",
-          "hintPosition": "bottom",
-          "skippable": true,
-          "nextDelay": 1000
-        },
-        {
-          "id": "S04_tutorial_4",
-          "type": "tutorial",
-          "tutorialAction": "open_backpack",
-          "hint": "引导：「按 B 键或点击背包图标」查看刚采集的甘草",
-          "hintPosition": "bottom",
-          "nextDelay": 0
+          "id": "S04_minigame_licorice",
+          "type": "minigame_licorice_harvest",
+          "rewardOnCorrect": { "attr": "herbalism", "delta": 2 },
+          "resultFlag": "__storyLicoriceResult",
+          "hint": "🌿 走近甘草，开始采挖小游戏——小心不要伤到根茎！"
         },
         {
           "id": "S04_005",
@@ -311,7 +282,7 @@
           "character": "bai",
           "expression": "smile",
           "name": "白院长",
-          "text": "（看着你手中的甘草，微微点头）不错。甘草，味甘性平，归心肺脾胃经。能补脾益气，润肺止咳，调和诸药。",
+          "text": "（看着你采挖的手法，微微点头）手法不错。甘草，味甘性平，归心肺脾胃经。能补脾益气，润肺止咳，调和诸药。",
           "avatar": "bai.png",
           "unlockHerb": "gancao",
           "nextDelay": 500
@@ -333,21 +304,18 @@
           "character": "bai",
           "expression": "thoughtful",
           "name": "白院长",
-          "text": "菊花，疏散风热、平肝明目。秋日采摘最佳，此时药力最盛。你去采两株回来。",
+          "text": "菊花，疏散风热、平肝明目。秋日采摘最佳，此时药力最盛。你去采一些回来——小心花瓣，莫要揉碎了。",
           "avatar": "bai.png",
           "overlayImage": "juhua_closeup",
           "unlockHerb": "juhua",
           "nextDelay": 500
         },
         {
-          "id": "S04_tutorial_5",
-          "type": "tutorial",
-          "tutorialAction": "collect_juhua",
-          "herbId": "juhua",
-          "requiredCount": 2,
-          "hint": "去采集菊花×2（靠近后按E），进度：0/2",
-          "hintPosition": "bottom",
-          "nextDelay": 0
+          "id": "S04_minigame_chrysanthemum",
+          "type": "minigame_chrysanthemum_pick",
+          "minigameOptions": { "timer": 25 },
+          "rewardOnCorrect": { "attr": "herbalism", "delta": 2 },
+          "hint": "🌼 走近菊花花丛，开始采摘小游戏——轻摘轻放，保持花瓣完整！"
         },
         {
           "id": "S04_008",
@@ -355,7 +323,7 @@
           "character": "bai",
           "expression": "serious",
           "name": "白院长",
-          "text": "（满意地看着你的收获）记住——不同节气，草药药性有别；晨露未干时采摘，效力最佳。这是老夫毕生的经验。",
+          "text": "（看你采摘的手法，眼中闪过赞许）记住——不同节气，草药药性有别；晨露未干时采摘，效力最佳。这是老夫毕生的经验。",
           "avatar": "bai.png",
           "nextDelay": 500
         },
@@ -579,7 +547,7 @@
           "character": "bai",
           "expression": "smile",
           "name": "白院长",
-          "text": "（指向竹匾与药碾）晾晒去湿气，碾磨成药粉——这是最基础的炮制。你且试试看？",
+          "text": "（指向竹匾与药碾）晾晒去湿气，碾磨成药粉——这是最基础的炮制。两种手法，你且都来试试？",
           "avatar": "bai.png",
           "nextDelay": 500
         },
@@ -594,10 +562,10 @@
                 "character": "bai",
                 "expression": "smile",
                 "name": "白院长",
-                "text": "（赞许地点头）好！有此心气最好。先从晾晒开始——将菊花铺上竹匾。",
+                "text": "（赞许地点头）好！先从晾晒开始——将菊花拖到竹匾上摊开晾晒。晒好了，再去药碾那边研磨甘草。",
                 "avatar": "bai.png",
                 "nextDelay": 500,
-                "nextStep": "S06_tutorial_start"
+                "nextStep": "S06_minigame_dry"
               }
             },
             {
@@ -607,10 +575,10 @@
                 "character": "bai",
                 "expression": "thoughtful",
                 "name": "白院长",
-                "text": "（温和地笑）莫怕，为师一步步教你。先看为师做一遍，你再动手。",
+                "text": "（温和地笑）莫怕，一步步来。先晾晒菊花去湿，再碾磨甘草成粉——为师在旁看着。",
                 "avatar": "bai.png",
                 "nextDelay": 500,
-                "nextStep": "S06_tutorial_start"
+                "nextStep": "S06_minigame_dry"
               }
             },
             {
@@ -630,53 +598,28 @@
           ]
         },
         {
-          "id": "S06_tutorial_start",
-          "type": "tutorial",
-          "tutorialAction": "sun_drying",
-          "hint": "走近晒药台，按 E 键，打开晾晒界面",
-          "hintPosition": "bottom",
-          "nextDelay": 0
+          "id": "S06_minigame_dry",
+          "type": "minigame_dry_flower",
+          "dryData": {
+            "herbName": "菊花",
+            "totalFlowers": 5
+          },
+          "rewardOnCorrect": { "attr": "crafting", "delta": 2 },
+          "hint": "🌞 走近晒药台，开始晒菊小游戏——将菊花拖入竹匾晾晒！"
         },
         {
-          "id": "S06_tutorial_2",
-          "type": "tutorial",
-          "tutorialAction": "drag_herb_to_tray",
-          "herbId": "juhua",
-          "hint": "将背包中的「菊花」拖拽至竹匾格子，点击「开始晾晒」",
-          "hintPosition": "bottom",
-          "nextDelay": 0
-        },
-        {
-          "id": "S06_tutorial_3",
-          "type": "tutorial",
-          "tutorialAction": "wait_drying",
-          "hint": "等待进度条完成（教程中加速为3秒），获得「晒菊花」",
-          "hintPosition": "bottom",
-          "nextDelay": 0
-        },
-        {
-          "id": "S06_tutorial_4",
-          "type": "tutorial",
-          "tutorialAction": "grind_herb",
-          "herbId": "gancao",
-          "hint": "走近药碾子，按 E ，进行碾磨操作（鼠标拖动）",
-          "hintPosition": "bottom",
-          "nextDelay": 0
-        },
-        {
-          "id": "S06_tutorial_5",
-          "type": "tutorial",
-          "tutorialAction": "complete_grinding",
-          "hint": "获得「甘草粉×1」——完成炮制教程",
-          "hintPosition": "bottom",
-          "nextDelay": 1000
+          "id": "S06_minigame_grind",
+          "type": "minigame_herb_grind",
+          "rewardOnCorrect": { "attr": "crafting", "delta": 3 },
+          "resultFlag": "__storyGrindResult",
+          "hint": "🔨 走近药碾子，开始研磨甘草小游戏——来回拖动碾轮，碾成细粉！"
         },
         {
           "id": "S06_choice_end",
           "type": "choice",
           "options": [
             {
-              "text": "（擦擦汗）原来炮制这么有意思！",
+              "text": "（擦擦汗）晾晒和研磨……原来炮制这么有意思！",
               "flag": "enjoyed_craft",
               "response": {
                 "character": "bai",
@@ -825,8 +768,11 @@
           "id": "S07_tutorial_1",
           "type": "tutorial",
           "tutorialAction": "open_backpack_tutorial",
-          "hint": "点击右上角「背包」按钮查看行囊，看完后自行关闭",
+          "hint": "🌿 行囊已展开——点击左侧物品查看详情，浏览完毕后关闭窗口继续。",
           "hintPosition": "bottom",
+          "highlightTargets": [
+            { "x": 960, "y": 540, "radius": 280 }
+          ],
           "nextDelay": 0
         },
         {
@@ -843,8 +789,11 @@
           "id": "S07_tutorial_2",
           "type": "tutorial",
           "tutorialAction": "open_herb_pedia",
-          "hint": "点击右上角「图鉴」按钮查看图谱全貌，看完后自行关闭",
+          "hint": "📖 图谱已展开——点击左侧卡片查看草药详情，灰色为未解锁，浏览完毕后关闭窗口继续。",
           "hintPosition": "bottom",
+          "highlightTargets": [
+            { "x": 960, "y": 540, "radius": 280 }
+          ],
           "nextDelay": 0
         },
         {

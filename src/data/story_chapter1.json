@@ -614,7 +614,7 @@
           "type": "reward",
           "items": [
             {
-              "id": "juhua_dried",
+              "id": "juhua",
               "name": "晒菊花",
               "count": 1,
               "icon": "🌼"

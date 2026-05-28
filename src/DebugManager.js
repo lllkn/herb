@@ -56,6 +56,15 @@ class DebugManager {
         { label: '🏞  溪流山谷', ids: ['EVT_VALLEY_ENTRY','EVT_SHANYAO_COLLECTED','EVT_FOLLOWED_QINGMIAO','EVT_VALLEY_CLEARING','EVT_RETURN_VILLAGE'] }
     ];
 
+    static SIDE_STORIES = [
+        {
+            id: 'poison_counter_poison',
+            value: 'SIDE_STORY:poison_counter_poison',
+            label: '支线·以毒攻毒',
+            description: '王大壮家 · 蟾酥与阴虚血瘀辨证'
+        }
+    ];
+
     /**
      * @param {Phaser.Scene} scene - 所属场景（IntroScene）
      */
@@ -211,6 +220,7 @@ class DebugManager {
                 this.selectEl.appendChild(optGroup);
             });
         }
+        this._appendSideStorySelect();
         this.panel.appendChild(this.selectEl);
 
         // 按钮行 
@@ -287,6 +297,23 @@ class DebugManager {
             });
             this.selectEl.appendChild(optGroup);
         });
+    }
+
+    _appendSideStorySelect() {
+        if (!this.selectEl || this.selectEl.dataset.sideStoriesAttached === 'true') return;
+
+        const optGroup = document.createElement('optgroup');
+        optGroup.label = '支线剧情';
+        DebugManager.SIDE_STORIES.forEach(story => {
+            const op = document.createElement('option');
+            op.value = story.value;
+            op.textContent = `${story.label} - ${story.description}`;
+            op.dataset.sideStoryId = story.id;
+            optGroup.appendChild(op);
+        });
+
+        this.selectEl.appendChild(optGroup);
+        this.selectEl.dataset.sideStoriesAttached = 'true';
     }
 
     /**
@@ -399,6 +426,26 @@ class DebugManager {
         }
 
         // 将选中的值（可能是 eventId 或直接是 sceneId）转换为 sceneId
+        if (selectedValue.startsWith('SIDE_STORY:')) {
+            const sideStoryId = selectedValue.slice('SIDE_STORY:'.length);
+            this._showHint(`正在启动支线：${sideStoryId}...`);
+            this.toggle();
+
+            if (!window.SideStoryAPI || typeof window.SideStoryAPI.start !== 'function') {
+                console.error('DebugManager: SideStoryAPI 未加载');
+                this._showHint('SideStoryAPI 未加载，无法启动支线');
+                return;
+            }
+
+            window.SideStoryAPI.start(sideStoryId)
+                .then(() => console.log(`DebugManager: 支线已启动 ${sideStoryId}`))
+                .catch(err => {
+                    console.error('DebugManager: 支线启动失败', err);
+                    this._showHint(`支线启动失败：${err.message || err}`);
+                });
+            return;
+        }
+
         let sceneId = selectedValue;
 
         // 如果选中值以 EVT_ 开头，通过映射查找对应 sceneId
