@@ -2407,6 +2407,28 @@ class GameScene extends Phaser.Scene {
             }
         }
 
+        // ★ 溪流采集计数：山药 / 茯苓
+        if (herb.data.id === 'shanyao') {
+            window._shanyaoCollected = (window._shanyaoCollected || 0) + 1;
+            console.log(`[Quest] 山药采集进度: ${window._shanyaoCollected}/3`);
+            if (window._shanyaoCollected >= 3 && window.gameStateManager) {
+                window.gameStateManager.completeQuestByEvent('EVT_SHANYAO_3_COLLECTED');
+                if (window.uiManager.refreshQuestPanel) {
+                    window.uiManager.refreshQuestPanel();
+                }
+            }
+        }
+        if (herb.data.id === 'fuling') {
+            window._fulingCollected = (window._fulingCollected || 0) + 1;
+            console.log(`[Quest] 茯苓采集进度: ${window._fulingCollected}/3`);
+            if (window._fulingCollected >= 3 && window.gameStateManager) {
+                window.gameStateManager.completeQuestByEvent('EVT_FULING_3_COLLECTED');
+                if (window.uiManager.refreshQuestPanel) {
+                    window.uiManager.refreshQuestPanel();
+                }
+            }
+        }
+
         console.log(`[collect] herbId=${herb.data.id}, name=${herb.data.name}`);
         if (!window._collectedHerbPositions) window._collectedHerbPositions = new Set();
         const posKey = `${herb.data.id}_${Math.round(herb.sprite.x)}_${Math.round(herb.sprite.y)}`;
@@ -2683,10 +2705,25 @@ class GameScene extends Phaser.Scene {
         };
         window._returnToStreamMap = true;
 
+        // ★ 设置待处理的任务完成标记（剧情返回后由 _processQuestCompletions 处理）
+        window._pendingQuestStoryIdx = sceneIdx;
+
         if (sceneIdx === 15) {
             window._streamGuideActive = true;
             window._streamGuideTarget = { x: 750, y: 1075 };
             console.log('▶ 激活过桥指引：目标 (750, 1075)');
+        }
+
+        // ★ C15d 结束后自动衔接 C16
+        if (sceneIdx === 17) {
+            window._chainC16AfterC15d = true;
+            console.log('▶ C15d 结束后将自动衔接 C16');
+        }
+
+        // ★ C16 第一章结局 → 提示支线选择
+        if (sceneIdx === 18) {
+            window._chapter1Complete = true;
+            console.log('▶ 第一章结束，返回后将提示支线选择');
         }
 
         this.scene.start('IntroScene', {
@@ -2773,6 +2810,155 @@ class GameScene extends Phaser.Scene {
                 gsm.initQuests();
             }
         }
+
+        // 4. ★ 首次进入溪流地图时初始化溪流任务
+        if (this.config.currentMapId === 'stream') {
+            const hasAnyStreamQuest = [...(window.QUESTS_DATA || [])].some(q => 
+                q.mapId === 'stream' && gsm.getQuestState(q.id) !== 'locked'
+            );
+            if (!hasAnyStreamQuest) {
+                console.log('[Quest] 🏞️ 首次进入溪流山谷，初始化任务');
+                gsm.initQuests();
+            }
+        }
+
+        // 5. ★ C15d → C16 自动衔接
+        if (window._chainC16AfterC15d) {
+            delete window._chainC16AfterC15d;
+            console.log('[Story] C15d 结束，自动衔接 C16...');
+            this.time.delayedCall(300, () => {
+                this.triggerStorySceneByIndex(18);
+            });
+        }
+
+        // 6. ★ 第一章结局 → 提示是否开启支线「以毒攻毒」
+        if (window._chapter1Complete) {
+            delete window._chapter1Complete;
+            console.log('[Story] 第一章完成，弹出支线选择...');
+            this.time.delayedCall(500, () => {
+                this._showSideStoryPrompt();
+            });
+        }
+    }
+
+    /**
+     * ★ 第一章结局后弹出支线选择提示
+     */
+    _showSideStoryPrompt() {
+        // 移除已有弹窗（防止重叠）
+        const existing = document.getElementById('side_story_prompt_overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'side_story_prompt_overlay';
+        overlay.style.cssText = [
+            'position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999;',
+            'display:flex; align-items:center; justify-content:center;',
+            'background:rgba(0,0,0,0.75);',
+            'font-family:"Microsoft YaHei","PingFang SC",sans-serif;'
+        ].join('');
+
+        const panel = document.createElement('div');
+        panel.style.cssText = [
+            'background:linear-gradient(135deg, #1a2a1a 0%, #0d1f0d 100%);',
+            'border:2px solid #8b7355; border-radius:16px; padding:32px 40px;',
+            'max-width:460px; width:90%; text-align:center;',
+            'box-shadow:0 0 40px rgba(139,115,85,0.3);'
+        ].join('');
+
+        const title = document.createElement('div');
+        title.textContent = '第一章 结束';
+        title.style.cssText = 'color:#e8d8b8; font-size:24px; font-weight:bold; margin-bottom:8px;';
+
+        const subtitle = document.createElement('div');
+        subtitle.textContent = '翠竹村的春天';
+        subtitle.style.cssText = 'color:#8b7355; font-size:14px; margin-bottom:20px;';
+
+        const desc = document.createElement('div');
+        desc.textContent = '是否开启支线剧情「以毒攻毒」？';
+        desc.style.cssText = 'color:#c8b898; font-size:16px; line-height:1.6; margin-bottom:24px;';
+
+        const hint = document.createElement('div');
+        hint.textContent = '王大壮家·蟾酥与阴虚血瘀辨证';
+        hint.style.cssText = 'color:#6b5b4b; font-size:13px; margin-bottom:24px;';
+
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex; gap:16px; justify-content:center;';
+
+        const btnYes = document.createElement('button');
+        btnYes.textContent = '是，开启支线';
+        btnYes.style.cssText = [
+            'padding:10px 28px; font-size:16px; border:none; border-radius:8px; cursor:pointer;',
+            'background:#2a5a2a; color:#e8d8b8; font-weight:bold;',
+            'transition:all 0.2s; border:1px solid #3a7a3a;'
+        ].join('');
+
+        const btnNo = document.createElement('button');
+        btnNo.textContent = '稍后再说';
+        btnNo.style.cssText = [
+            'padding:10px 28px; font-size:16px; border:none; border-radius:8px; cursor:pointer;',
+            'background:transparent; color:#8b7355;',
+            'border:1px solid #5a4a3a; transition:all 0.2s;'
+        ].join('');
+
+        const self = this;
+        const close = () => { overlay.remove(); };
+
+        btnYes.addEventListener('mouseenter', () => { btnYes.style.background = '#3a7a3a'; });
+        btnYes.addEventListener('mouseleave', () => { btnYes.style.background = '#2a5a2a'; });
+        btnYes.addEventListener('click', () => {
+            close();
+            self._startSideStoryFlow();
+        });
+
+        btnNo.addEventListener('mouseenter', () => { btnNo.style.background = 'rgba(90,74,58,0.3)'; });
+        btnNo.addEventListener('mouseleave', () => { btnNo.style.background = 'transparent'; });
+        btnNo.addEventListener('click', () => {
+            close();
+            console.log('[Story] 玩家选择稍后开启支线');
+        });
+
+        btnRow.appendChild(btnYes);
+        btnRow.appendChild(btnNo);
+        panel.appendChild(title);
+        panel.appendChild(subtitle);
+        panel.appendChild(desc);
+        panel.appendChild(hint);
+        panel.appendChild(btnRow);
+        overlay.appendChild(panel);
+        document.body.appendChild(overlay);
+    }
+
+    /**
+     * ★ 启动支线「以毒攻毒」
+     */
+    _startSideStoryFlow() {
+        // 确保支线草药定义已注入图鉴
+        if (window.SideStoryAPI && window.SideStoryAPI.ensureHerbDefinitions) {
+            window.SideStoryAPI.ensureHerbDefinitions();
+        }
+
+        const url = 'src/data/side_story_poison_counter_poison.json';
+        console.log('[SideStory] 加载支线数据:', url);
+
+        fetch(`${url}?_=${Date.now()}`, { cache: 'no-cache' })
+            .then(res => res.json())
+            .then(storyData => {
+                console.log('[SideStory] 支线数据已加载，启动 IntroScene');
+                this.scene.start('IntroScene', {
+                    debugMode: true,
+                    debugTargetIdx: 0,
+                    forceChapter1: storyData,
+                    returnToGame: true
+                });
+            })
+            .catch(err => {
+                console.error('[SideStory] 支线数据加载失败:', err);
+                // 兜底：用 SideStoryAPI
+                if (window.SideStoryAPI && window.SideStoryAPI.start) {
+                    window.SideStoryAPI.start('poison_counter_poison');
+                }
+            });
     }
 
     /**
@@ -2796,6 +2982,12 @@ class GameScene extends Phaser.Scene {
             10:'EVT_DRYING_PLATFORM',    // C11
             11:'EVT_EMPTY_SHOP',         // C12
             12:'EVT_ZHANG_DIAGNOSIS',    // C13
+            // 溪流山谷 (stream)
+            14:'EVT_VALLEY_ENTRY',       // C15a 进入溪谷
+            15:'EVT_SHANYAO_COLLECTED',  // C15b 采集完山药
+            16:'EVT_FOLLOWED_QINGMIAO',  // C15c 跟随青苗
+            17:'EVT_VALLEY_CLEARING',    // C15d 发现蛊根草
+            18:'EVT_RETURN_VILLAGE',      // C16 第一章结局
         };
 
         const eventId = idxToEvent[storyIdx];

@@ -123,6 +123,40 @@ window.QUESTS_DATA = [
     required: ['Q_VILL_HERB', 'Q_VILL_DRY', 'Q_VILL_WELL', 'Q_VILL_SHOP'],
     completeOn: { type: 'loc', value: 'loc_zhang_home' },
     order: 5
+  },
+
+  // ========================================================
+  // 溪流 (stream) 任务 — 3个
+  // ========================================================
+  {
+    id: 'Q_STREAM_SHANYAO',
+    name: '采集山药',
+    desc: '在溪流山谷中采集3株山药',
+    mapId: 'stream',
+    icon: '🥔',
+    required: [],
+    completeOn: { type: 'event', value: 'EVT_SHANYAO_3_COLLECTED' },
+    order: 1
+  },
+  {
+    id: 'Q_STREAM_FULING',
+    name: '采集茯苓',
+    desc: '在松林深处采集3株茯苓',
+    mapId: 'stream',
+    icon: '🍄',
+    required: ['Q_STREAM_SHANYAO'],
+    completeOn: { type: 'event', value: 'EVT_FULING_3_COLLECTED' },
+    order: 2
+  },
+  {
+    id: 'Q_STREAM_GUGEN',
+    name: '发现蛊根草',
+    desc: '穿过迷雾松林，发现传说中的蛊根草',
+    mapId: 'stream',
+    icon: '🌿',
+    required: ['Q_STREAM_FULING'],
+    completeOn: { type: 'event', value: 'EVT_VALLEY_CLEARING' },
+    order: 3
   }
 ];
 
