@@ -82,6 +82,9 @@ class IntroScene extends Phaser.Scene {
     preload() {
         console.log('IntroScene: 预加载资源');
 
+        // ★ 显示转场遮罩（初始加载屏仍在时会自动跳过）
+        if (window.showSceneTransition) window.showSceneTransition();
+
         // 监听加载进度，同步到 HTML 进度条（55% → 95%）
         this.load.on('progress', (value) => {
             const pct = Math.floor(55 + value * 40);
@@ -285,6 +288,11 @@ class IntroScene extends Phaser.Scene {
         // ★ 注册 Phaser 场景生命周期事件：确保场景销毁时执行清理
         this.events.on('shutdown', this._onSceneShutdown, this);
         this.events.on('destroy', this._onSceneShutdown, this);
+
+        // ★ 剧情渲染完首帧后隐藏转场遮罩
+        this.events.once(Phaser.Scenes.Events.UPDATE, () => {
+            if (window.hideSceneTransition) window.hideSceneTransition();
+        });
 
         // ★ 绑定 AudioManager 到当前 Phaser 场景
         if (window.audioManager) {

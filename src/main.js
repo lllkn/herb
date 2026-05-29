@@ -82,6 +82,28 @@ function startTimeSystem() {
 }
 
 /**
+ * 显示场景转场遮罩（场景切换时调用，遮住 preload 加载空白）
+ */
+window.showSceneTransition = function() {
+    // 初始加载屏仍在显示时不重复遮罩
+    const loading = document.getElementById('loading-screen');
+    if (loading && loading.style.display !== 'none' &&
+        getComputedStyle(loading).display !== 'none') {
+        return;
+    }
+    const el = document.getElementById('scene-transition');
+    if (el) el.classList.add('active');
+};
+
+/**
+ * 隐藏场景转场遮罩（目标场景渲染完首帧后调用）
+ */
+window.hideSceneTransition = function() {
+    const el = document.getElementById('scene-transition');
+    if (el) el.classList.remove('active');
+};
+
+/**
  * 启动加载序列
  * 立即初始化 Phaser，由场景真实进度驱动进度条
  */

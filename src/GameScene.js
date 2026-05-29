@@ -140,7 +140,10 @@ class GameScene extends Phaser.Scene {
      */
     preload() {
         console.log('GameScene: 预加载资源...');
-        
+
+        // ★ 显示转场遮罩，遮住资源加载期间的空白
+        if (window.showSceneTransition) window.showSceneTransition();
+
         // ★ 强制村庄地图标志（双重保险：C08 show_village_map 和翠竹村剧情返回两种来源）
         if (window._forceVillageMap || window._returnToVillageMap) {
             console.log('[GameScene preload] 检测到村庄地图标志，强制使用 village 地图');
@@ -247,6 +250,11 @@ class GameScene extends Phaser.Scene {
      */
     create() {
         console.log('GameScene: 开始创建...');
+
+        // ★ 场景渲染完首帧后隐藏转场遮罩（覆盖图片地图/普通地图所有路径）
+        this.events.once(Phaser.Scenes.Events.UPDATE, () => {
+            if (window.hideSceneTransition) window.hideSceneTransition();
+        });
 
         // ★ 绑定 AudioManager 到当前 Phaser 场景
         if (window.audioManager) {

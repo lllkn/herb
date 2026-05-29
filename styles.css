@@ -39,6 +39,49 @@ body {
     z-index: 1;
 }
 
+/* ==================== 场景转场遮罩 ==================== */
+#scene-transition {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #1a140c;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1500;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+#scene-transition.active {
+    display: flex;
+    opacity: 1;
+}
+.scene-transition-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+}
+.scene-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(212, 168, 87, 0.25);
+    border-top-color: #D4A857;
+    border-radius: 50%;
+    animation: scene-spin 0.8s linear infinite;
+}
+@keyframes scene-spin {
+    to { transform: rotate(360deg); }
+}
+.scene-transition-text {
+    color: #D4A857;
+    font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+}
+
 /* ==================== 加载界面 ==================== */
 #loading-screen {
     position: fixed;
