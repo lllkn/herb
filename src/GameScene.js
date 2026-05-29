@@ -212,21 +212,21 @@ class GameScene extends Phaser.Scene {
             if (this.anims.exists(k)) this.anims.remove(k);
         });
 
-        // ── 加载新角色精灵表（终稿.png，1920×1920，480px/帧，4×4=16帧）──
-        this.load.spritesheet('player', 'src/assets/sprites/player_final.png', {
+        // ── 加载新角色精灵表（终稿.webp，1920×1920，480px/帧，4×4=16帧）──
+        this.load.spritesheet('player', 'src/assets/sprites/player_final.webp', {
             frameWidth: 480,
             frameHeight: 480
         });
 
-        // ── 加载草药纹理（按 herbId 查找 assets/pictures/herbs/<id>.png）──
+        // ── 加载草药纹理（按 herbId 查找 assets/pictures/herbs/<id>.webp）──
         const herbTextures = [
-            { id: 'gancao', file: 'gancao.png' },
-            { id: 'jinyinhua', file: 'jinyinhua.png' },
-            { id: 'hongjingtian', file: 'hongjingtian.png' },
-            { id: 'heshouwu', file: 'heshouwu.png' },
-            { id: 'shichangpu', file: '石菖蒲.png' },
-            { id: 'fuling', file: '茯苓.png' },
-            { id: 'shanyao', file: '山药.png' }
+            { id: 'gancao', file: 'gancao.webp' },
+            { id: 'jinyinhua', file: 'jinyinhua.webp' },
+            { id: 'hongjingtian', file: 'hongjingtian.webp' },
+            { id: 'heshouwu', file: 'heshouwu.webp' },
+            { id: 'shichangpu', file: '石菖蒲.webp' },
+            { id: 'fuling', file: '茯苓.webp' },
+            { id: 'shanyao', file: '山药.webp' }
         ];
         herbTextures.forEach(h => {
             this.load.image(`herb_${h.id}`, `src/assets/pictures/herbs/${h.file}`);
@@ -235,13 +235,13 @@ class GameScene extends Phaser.Scene {
         // ── 加载 NPC 纹理 ──
         const npcTextures = ['washerwoman_npc', 'woodcutter_npc', 'merchant_npc'];
         npcTextures.forEach(id => {
-            this.load.image(`npc_${id}`, `src/assets/pictures/herbs/${id}.png`);
+            this.load.image(`npc_${id}`, `src/assets/pictures/herbs/${id}.webp`);
         });
 
         // ── 加载交互物纹理 ──
         const objTextures = ['abandoned_basket', 'plain'];
         objTextures.forEach(id => {
-            this.load.image(`obj_${id}`, `src/assets/pictures/herbs/${id}.png`);
+            this.load.image(`obj_${id}`, `src/assets/pictures/herbs/${id}.webp`);
         });
     }
 
@@ -1426,7 +1426,7 @@ class GameScene extends Phaser.Scene {
 
         console.log(`传送门: "${obj.name}" → ${targetMap}, 位置: (${x}, ${y})`);
 
-        // 优先使用对象 tileset 图片（如翠竹村牌坊 plain.png）
+        // 优先使用对象 tileset 图片（如翠竹村牌坊 plain.webp）
         let portalSprite = null;
         const tsName = this._getTilesetNameByGid(obj.gid || 0);
         console.log(`  gid=${obj.gid} → tileset="${tsName || 'unknown'}"`);
@@ -1589,7 +1589,7 @@ class GameScene extends Phaser.Scene {
             npcSprite.setDepth(5);
             console.log(`  ✓ 精灵已创建: ${texKeyObj}`);
         } else if (npcId) {
-            // ★ 回退1：尝试通过 tileset GID 查找纹理（如翠竹村牌坊用 plain.png）
+            // ★ 回退1：尝试通过 tileset GID 查找纹理（如翠竹村牌坊用 plain.webp）
             const tsName = this._getTilesetNameByGid(obj.gid || 0);
             if (tsName) {
                 const fallbackKeys = [`obj_${tsName}`, `npc_${tsName}`, tsName];

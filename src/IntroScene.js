@@ -123,16 +123,16 @@ class IntroScene extends Phaser.Scene {
      */
     _loadCGImages() {
         const cgList = [
-            'cg_01_school.png',
-            'cg_02_spirit_room.png',
-            'cg_03_awakening.png',
-            'cg_04_departure.png'
+            'cg_01_school.webp',
+            'cg_02_spirit_room.webp',
+            'cg_03_awakening.webp',
+            'cg_04_departure.webp'
         ];
 
         cgList.forEach(file => {
             const path = `src/assets/pictures/prologue/${file}`;
             // 检查文件是否存在（简单方式：尝试加载，失败也不报错）
-            this.load.image(file.replace('.png', ''), path);
+            this.load.image(file.replace('.webp', ''), path);
         });
     }
 
@@ -142,44 +142,44 @@ class IntroScene extends Phaser.Scene {
     _loadCharacterImages() {
         // === 序章角色 ===
         const prologueCharacters = [
-            'bai.png',
-            'xiaolan.png',
-            'qingmiao.png'
+            'bai.webp',
+            'xiaolan.webp',
+            'qingmiao.webp'
         ];
 
         prologueCharacters.forEach(file => {
             const path = `src/assets/pictures/characters/${file}`;
-            this.load.image(file.replace('.png', ''), path);
+            this.load.image(file.replace('.webp', ''), path);
         });
 
         // 加载师傅立绘（全身体像）- PNG透明背景版本
         // 注意：中文命名资源放在 picture/ 目录下（与 pictures/characters/ 区分）
-        this.load.image('bai_standing', 'src/assets/picture/师傅立绘1.png');
+        this.load.image('bai_standing', 'src/assets/picture/师傅立绘1.webp');
 
         // 加载小兰立绘（全身体像）
-        this.load.image('xiaolan_standing', 'src/assets/picture/小兰.png');
+        this.load.image('xiaolan_standing', 'src/assets/picture/小兰.webp');
 
         // 加载灵宠立绘
-        this.load.image('lingchong_portrait', 'src/assets/picture/灵宠.png');
+        this.load.image('lingchong_portrait', 'src/assets/picture/灵宠.webp');
 
         // 加载青苗精灵图（用于粒子效果）
-        this.load.image('pet_qingmiao', 'src/assets/pictures/characters/pet_qingmiao.png');
+        this.load.image('pet_qingmiao', 'src/assets/pictures/characters/pet_qingmiao.webp');
 
         // === 第一章 NPC 头像 ===
         const chapter1Characters = [
-            'woodcutter.png',       // 砍柴老汉
-            'washerwoman.png',      // 洗衣村妇
-            'merchant.png',         // 行商王掌柜
-            'village_chief.png',    // 村长张老汉
-            'laoli.png',            // 药农老李
-            'villager_b.png',       // 村民乙
-            'zhangdaniang.png',     // 张大娘
-            'traveler.png',         // 旅人
-            'zhurengong.png'        // 主人公
+            'woodcutter.webp',       // 砍柴老汉
+            'washerwoman.webp',      // 洗衣村妇
+            'merchant.webp',         // 行商王掌柜
+            'village_chief.webp',    // 村长张老汉
+            'laoli.webp',            // 药农老李
+            'villager_b.webp',       // 村民乙
+            'zhangdaniang.webp',     // 张大娘
+            'traveler.webp',         // 旅人
+            'zhurengong.webp'        // 主人公
         ];
 
         chapter1Characters.forEach(file => {
-            const key = file.replace('.png', '');
+            const key = file.replace('.webp', '');
             const path = `src/assets/pictures/characters/${file}`;
             // 如果已加载则跳过
             if (!this.textures.exists(key)) {
@@ -189,12 +189,12 @@ class IntroScene extends Phaser.Scene {
 
         // === 支线 NPC 头像（素材缺失时以 Emoji 兜底） ===
         const sideStoryCharacters = [
-            'npc_wang_dazhuang.png',  // 王大壮（支线：以毒攻毒）
-            'npc_wang_laotai.png'      // 王老太（支线：以毒攻毒）
+            'npc_wang_dazhuang.webp',  // 王大壮（支线：以毒攻毒）
+            'npc_wang_laotai.webp'      // 王老太（支线：以毒攻毒）
         ];
 
         sideStoryCharacters.forEach(file => {
-            const key = file.replace('.png', '');
+            const key = file.replace('.webp', '');
             const path = `src/assets/pictures/characters/${file}`;
             if (!this.textures.exists(key)) {
                 this.load.image(key, path);
@@ -207,64 +207,73 @@ class IntroScene extends Phaser.Scene {
      */
     _loadBackgroundImages() {
         const backgrounds = [
-            'bg_school_yard.png',
-            'bg_herb_garden.png',
-            'bg_spirit_room.png',
-            'bg_school_gate.png',
-            'bg_dean_room.png',
-            'bg_processing_room.png',
-            '牛车赶路.png'              // S10 搭车路途背景
+            'bg_school_yard.webp',
+            'bg_herb_garden.webp',
+            'bg_spirit_room.webp',
+            'bg_school_gate.webp',
+            'bg_dean_room.webp',
+            'bg_processing_room.webp',
+            '牛车赶路.webp'              // S10 搭车路途背景
         ];
 
         backgrounds.forEach(file => {
             const path = `src/assets/pictures/backgrounds/${file}`;
-            this.load.image(file.replace('.png', ''), path);
+            this.load.image(file.replace('.webp', ''), path);
         });
 
         // 加载药圃专用图片
-        this.load.image('herb_garden_bg', 'src/assets/picture/药圃背景.png');
-        this.load.image('gancao_closeup', 'src/assets/picture/甘草特写.png');
-        this.load.image('juhua_closeup', 'src/assets/picture/菊花特写.png');
+        this.load.image('herb_garden_bg', 'src/assets/picture/药圃背景.webp');
+        this.load.image('gancao_closeup', 'src/assets/picture/甘草特写.webp');
+        this.load.image('juhua_closeup', 'src/assets/picture/菊花特写.webp');
 
         // 加载药房专用图片
-        this.load.image('yaofang_bg', 'src/assets/picture/药房.png');
-        this.load.image('eshi_closeup', 'src/assets/picture/鹅卵石特写.png');
+        this.load.image('yaofang_bg', 'src/assets/picture/药房.webp');
+        this.load.image('eshi_closeup', 'src/assets/picture/鹅卵石特写.webp');
 
         // 加载学堂门口背景
-        this.load.image('xuetang_menkou', 'src/assets/picture/学堂门口.png');
+        this.load.image('xuetang_menkou', 'src/assets/picture/学堂门口.webp');
 
         // 加载炮制间专用背景
-        this.load.image('paozhijian_bg', 'src/assets/picture/炮制间.png');
-        this.load.image('guodao_bg', 'src/assets/picture/过道.png');
+        this.load.image('paozhijian_bg', 'src/assets/picture/炮制间.webp');
+        this.load.image('guodao_bg', 'src/assets/picture/过道.webp');
 
         // 加载内室背景
-        this.load.image('neishi_bg', 'src/assets/picture/内室.png');
+        this.load.image('neishi_bg', 'src/assets/picture/内室.webp');
 
         // === 第一章背景图片 ===
+        // ★ 仅在确实进入第一章时才加载，避免序章一次性加载 18 张大背景拖慢启动
+        const initData = this.scene.settings.data;
+        const needChapter1 = (window._loadChapter >= 1) ||
+                             (initData && initData.forceChapter1);
+        if (!needChapter1) {
+            console.log('[IntroScene] 序章模式，跳过第一章背景预加载（按需懒加载）');
+            return;
+        }
+
         const ch1Backgrounds = [
-            'bg_plains_entry.png',     // 平原入口
-            'bg_plains_road.png',      // 平原山路
-            'bg_plains_woods.png',     // 平原树林
-            'bg_plains_river.png',     // 平原溪岸
-            'bg_plains_south.png',     // 平原村前
-            'bg_village_gate.png',    // 翠竹村牌坊
-            'bg_village_entrance.png',// 翠竹村口
-            'bg_village_center.png',  // 翠竹村中心
-            // bg_herb_garden.png 已在上方 backgrounds 列表中加载（第187行），此处复用 key
-            'bg_village_well.png',    // 水井边
-            'bg_drying_platform.png', // 晒药台
-            'bg_empty_shop.png',     // 空置铺面
-            'bg_patient_room.png',    // 张大娘家
-            'bg_wang_home_interior.png',  // 王家内室（支线：以毒攻毒）
-            'bg_valley_entry.png',   // 山谷入口 / C15d蛊根草
-            'bg_valley_exit.png',    // 山谷出口
-            'c15_a.png',             // C15a 山药采集
-            'c15_b.png',             // C15b 迷雾松林
-            'c15_c.png'              // C15c 石菖蒲
+            'bg_plains_entry.webp',     // 平原入口
+            'bg_plains_road.webp',      // 平原山路
+            'bg_plains_woods.webp',     // 平原树林
+            'bg_plains_river.webp',     // 平原溪岸
+            'bg_plains_south.webp',     // 平原村前
+            'bg_village_gate.webp',    // 翠竹村牌坊
+            'bg_village_entrance.webp',// 翠竹村口
+            'bg_village_center.webp',  // 翠竹村中心
+            // bg_herb_garden.webp 已在上方 backgrounds 列表中加载（第187行），此处复用 key
+            'bg_village_well.webp',    // 水井边
+            'bg_drying_platform.webp', // 晒药台
+            'bg_empty_shop.webp',     // 空置铺面
+            'bg_patient_room.webp',    // 张大娘家
+            'bg_wang_home_interior.webp',  // 王家内室（支线：以毒攻毒）
+            'bg_valley_entry.webp',   // 山谷入口 / C15d蛊根草
+            'bg_valley_exit.webp',    // 山谷出口
+            'c15_a.webp',             // C15a 山药采集
+            'c15_b.webp',             // C15b 迷雾松林
+            'c15_c.webp'              // C15c 石菖蒲
         ];
 
         ch1Backgrounds.forEach(file => {
-            const name = file.replace('.png', '');
+            const name = file.replace('.webp', '');
             const path = `src/assets/pictures/backgrounds/${file}`;
             // 已加载的跳过
             if (!this.textures.exists(name)) {
@@ -273,10 +282,10 @@ class IntroScene extends Phaser.Scene {
         });
 
         // 加载CG图片（第一章）
-        this.load.image('cg_06_gugen_discovery', 'src/assets/pictures/cg/cg_06_gugen.png');
+        this.load.image('cg_06_gugen_discovery', 'src/assets/pictures/cg/cg_06_gugen.webp');
 
         // 加载翠竹村地图全景图
-        this.load.image('village_map_full', 'src/assets/picture/翠竹村地图.png');
+        this.load.image('village_map_full', 'src/assets/picture/翠竹村地图.webp');
     }
 
     /**
@@ -884,9 +893,9 @@ class IntroScene extends Phaser.Scene {
         console.log(`[诊断] 背景已创建 | type: ${scene.type} | 颜色: ${bgColor.toString(16)} | 尺寸: ${width}x${height}`);
 
         // 如果有背景图片
-        if (scene.background && this.textures.exists(scene.background.replace('.png', ''))) {
+        if (scene.background && this.textures.exists(scene.background.replace('.webp', ''))) {
             this.bgImage.destroy();
-            this.bgImage = this.add.image(width / 2, height / 2, scene.background.replace('.png', ''))
+            this.bgImage = this.add.image(width / 2, height / 2, scene.background.replace('.webp', ''))
                 .setDisplaySize(width, height)
                 .setDepth(0);
             console.log(`[诊断] ✓ 背景图加载成功: ${scene.background}`);
@@ -898,7 +907,7 @@ class IntroScene extends Phaser.Scene {
 
     /**
      * 应用步骤级别的背景覆盖（用于场景中途的过场切换）
-     * @param {string} backgroundKey - 背景图片key（不含.png后缀）
+     * @param {string} backgroundKey - 背景图片key（不含.webp后缀）
      */
     _applyBackgroundOverride(backgroundKey) {
         const width = this.cameras.main.width;
@@ -911,7 +920,7 @@ class IntroScene extends Phaser.Scene {
         }
 
         // 检查纹理是否存在
-        const textureKey = backgroundKey.replace('.png', '');
+        const textureKey = backgroundKey.replace('.webp', '');
         if (this.textures.exists(textureKey)) {
             this.bgImage = this.add.image(width / 2, height / 2, textureKey)
                 .setDisplaySize(width, height)
@@ -1984,7 +1993,7 @@ class IntroScene extends Phaser.Scene {
         this._hideOverlayImage();
 
         const cgId = step.cgId || (step.cgConfig && step.cgConfig.image);
-        const cgKey = cgId ? cgId.replace('.png', '') : 'cg_01_school';
+        const cgKey = cgId ? cgId.replace('.webp', '') : 'cg_01_school';
 
         console.log('IntroScene: 显示CG', cgKey);
 
@@ -2567,7 +2576,7 @@ class IntroScene extends Phaser.Scene {
         }
 
         // 尝试使用真实头像图片
-        const textureKey = avatarKey ? avatarKey.replace('.png', '') : null;
+        const textureKey = avatarKey ? avatarKey.replace('.webp', '') : null;
         const hasImage = textureKey && this.textures.exists(textureKey);
 
         if (hasImage) {
@@ -3049,7 +3058,7 @@ class IntroScene extends Phaser.Scene {
 
         const processText = processTexts[step.processType] || '（按照炮制规范操作……）\n\n（炮制完成！）';
 
-        this._updateAvatar(step.character || 'laoli', step.avatar || 'laoli.png');
+        this._updateAvatar(step.character || 'laoli', step.avatar || 'laoli.webp');
         this._updateName(step.name || '药农 老李');
 
         this.typewriter.start(processText, {
@@ -3485,7 +3494,7 @@ class IntroScene extends Phaser.Scene {
             this.dialogBox.setVisible(true);
 
             const feedback = selected.correct ? (step.correctFeedback || '回答正确！') : (step.wrongFeedback || '回答错误。');
-            this._updateAvatar(step.character || 'laoli', step.avatar || 'laoli.png');
+            this._updateAvatar(step.character || 'laoli', step.avatar || 'laoli.webp');
             this._updateName(step.name || '药农 老李');
 
             this.typewriter.start(feedback, {
@@ -3543,7 +3552,7 @@ class IntroScene extends Phaser.Scene {
             const rewardMap = { 1: step.rewardOnPerfect, 2: step.rewardOnPass, 3: step.rewardOnPass, 4: step.rewardOnFail };
 
             this.dialogBox.setVisible(true);
-            this._updateAvatar('laoli', 'laoli.png');
+            this._updateAvatar('laoli', 'laoli.webp');
             this._updateName('药农 老李');
 
             this.typewriter.start(feedbackMap[num], {

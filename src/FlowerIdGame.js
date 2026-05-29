@@ -20,7 +20,7 @@ class FlowerIdGame extends Phaser.Scene {
             id: 'juhua',
             name: '菊花',
             imageKey: 'flower_juhua',
-            imagePath: 'src/assets/picture/小游戏-菊花.png',
+            imagePath: 'src/assets/picture/小游戏-菊花.webp',
             isCorrect: false,
             descHeader: '菊花 — 秋霜君子',
             descBody: '菊花性甘苦微寒，入肺肝二经，\n善散风清热、平肝明目。\n杭白菊、亳菊、滁菊、贡菊\n并称四大名菊。',
@@ -30,7 +30,7 @@ class FlowerIdGame extends Phaser.Scene {
             id: 'xiuqiu',
             name: '黄色绣球花',
             imageKey: 'flower_xiuqiu',
-            imagePath: 'src/assets/picture/小游戏-绣球.png',
+            imagePath: 'src/assets/picture/小游戏-绣球.webp',
             isCorrect: false,
             descHeader: '绣球花 — 花团锦簇',
             descBody: '绣球花虽花色丰富、花团饱满，\n但多作观赏之用，\n并非中药材。\n古人云"梅兰竹菊"四君子，\n绣球不在其列。',
@@ -40,7 +40,7 @@ class FlowerIdGame extends Phaser.Scene {
             id: 'jinyinhua',
             name: '金银花',
             imageKey: 'flower_jinyinhua',
-            imagePath: 'src/assets/picture/小游戏-金银花.png',
+            imagePath: 'src/assets/picture/小游戏-金银花.webp',
             isCorrect: true,
             descHeader: '金银花 — 清热解毒圣品',
             descBody: '金银花性甘寒，入肺心胃经，\n清热解毒、疏散风热、\n凉血止痢。初花洁白，\n后转金黄，故名"金银"。',
@@ -69,7 +69,7 @@ class FlowerIdGame extends Phaser.Scene {
         this.load.image(this.FLOWERS.juhua.imageKey, this.FLOWERS.juhua.imagePath);
         this.load.image(this.FLOWERS.xiuqiu.imageKey, this.FLOWERS.xiuqiu.imagePath);
         this.load.image(this.FLOWERS.jinyinhua.imageKey, this.FLOWERS.jinyinhua.imagePath);
-        this.load.image('lingchong', 'src/assets/picture/灵宠.png');
+        this.load.image('lingchong', 'src/assets/picture/灵宠.webp');
 
         this.load.on('complete', () => {
             console.log('[FlowerIdGame] 所有图片加载完成');

@@ -71,7 +71,7 @@
       "name": "岐黄学堂·清晨",
       "type": "scene",
       "duration": 90,
-      "background": "bg_school_yard.png",
+      "background": "bg_school_yard.webp",
       "bgm": "bgm_school.mp3",
       "steps": [
         {
@@ -94,7 +94,7 @@
       "name": "结业典礼·白院长对话",
       "type": "dialogue",
       "duration": 180,
-      "background": "bg_school_yard.png",
+      "background": "bg_school_yard.webp",
       "bgm": "bgm_school.mp3",
       "steps": [
         {
@@ -104,7 +104,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "孩子，在这学堂，你已勤修三载。今日结业，老夫甚是欣慰。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -114,7 +114,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "本草之道，非书中所能尽述。真正的医者，须以山川为师，以百姓为鉴。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -124,7 +124,7 @@
           "expression": "thoughtful",
           "name": "白院长",
           "text": "只是……你此番出行，心中可有把握？",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -139,7 +139,7 @@
                 "expression": "smile",
                 "name": "白院长",
                 "text": "（欣慰地点头）好，有此心气，前路虽远，终能到达。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S03_004"
               }
@@ -152,7 +152,7 @@
                 "expression": "smile",
                 "name": "白院长",
                 "text": "（温和地笑）无妨，行医之路本就是边行边学。为师也曾如此走来。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S03_004"
               }
@@ -165,7 +165,7 @@
                 "expression": "thoughtful",
                 "name": "白院长",
                 "text": "（眼中闪过赞许）好孩子，医者之心，正在此处。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S03_004"
               }
@@ -179,7 +179,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（点头）同时。结业之前，老夫还有最后一课要教你——随我去药圃吧。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -189,7 +189,7 @@
           "expression": "thoughtful",
           "name": "白院长",
           "text": "那里种着学堂最珍贵的几味药草。你且仔细看，日后行走江湖，这些可是救命的宝贝。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -222,7 +222,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（走到一株植物前，蹲下身来）来，你且看——这株是甘草。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "overlayImage": "gancao_closeup",
           "nextDelay": 500
         },
@@ -233,7 +233,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "你看它的叶片，卵圆形，边缘有细齿；茎直立，表面有柔毛。记住这个样子。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "overlayImage": "gancao_closeup",
           "nextDelay": 500
         },
@@ -249,7 +249,7 @@
                 "expression": "smile",
                 "name": "白院长",
                 "text": "（赞许地点头）很好，观察入微是医者的基本功。来，亲手采挖一株甘草——走近它，让为师看看你的手法。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S04_minigame_licorice"
               }
@@ -262,7 +262,7 @@
                 "expression": "thoughtful",
                 "name": "白院长",
                 "text": "问得好。甘草味甘性平，能补脾益气、润肺止咳，更有调和诸药之能。被誉为「国老」，你且亲手采挖一株来。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S04_minigame_licorice"
               }
@@ -283,7 +283,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（看着你采挖的手法，微微点头）手法不错。甘草，味甘性平，归心肺脾胃经。能补脾益气，润肺止咳，调和诸药。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "unlockHerb": "gancao",
           "nextDelay": 500
         },
@@ -294,7 +294,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "再来认识一味常用药——菊花。（走向右侧花丛）这便是了。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "overlayImage": "juhua_closeup",
           "nextDelay": 500
         },
@@ -305,7 +305,7 @@
           "expression": "thoughtful",
           "name": "白院长",
           "text": "菊花，疏散风热、平肝明目。秋日采摘最佳，此时药力最盛。你去采一些回来——小心花瓣，莫要揉碎了。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "overlayImage": "juhua_closeup",
           "unlockHerb": "juhua",
           "nextDelay": 500
@@ -324,7 +324,7 @@
           "expression": "serious",
           "name": "白院长",
           "text": "（看你采摘的手法，眼中闪过赞许）记住——不同节气，草药药性有别；晨露未干时采摘，效力最佳。这是老夫毕生的经验。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -343,7 +343,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "这些草药先收好，日后必有用处。随我来，灵药房还有一样东西要交给你。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500,
           "nextScene": "S05"
         }
@@ -370,7 +370,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（走到石台前，指向三枚散发着微光的卵石）这些，是学堂代代相传的灵宠之卵。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "overlayImage": "eshi_closeup",
           "hidePortrait": true,
           "nextDelay": 500
@@ -382,7 +382,7 @@
           "expression": "thoughtful",
           "name": "白院长",
           "text": "它们沉睡已久，只在有缘人靠近时才会苏醒。今日你结业，或有一枚与你有缘……上前感受一番吧。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "overlayImage": "eshi_closeup",
           "hidePortrait": true,
           "nextDelay": 500
@@ -431,7 +431,7 @@
           "type": "cg",
           "cgId": "CG_03",
           "cgConfig": {
-            "image": "cg_03_awakening.png",
+            "image": "cg_03_awakening.webp",
             "fadeInDuration": 800,
             "animation": "awakening",
             "petId": "qingmiao"
@@ -451,7 +451,7 @@
           "expression": "surprised",
           "name": "青苗",
           "text": "（揉着眼睛，迷迷糊糊地坐起）唔……好亮的光……是哪里……？",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -461,7 +461,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "（猛地睁大眼睛，惊喜地跳起来）呀——！！是主人！主人的气息！青苗……青苗认识主人！！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -471,7 +471,7 @@
           "expression": "surprised",
           "name": "青苗",
           "text": "（绕着你飞了一圈，停在你肩头）青苗等了好久好久！终于等到主人了！以后青苗帮主人找好多好多草药！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -481,7 +481,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（眼中满是欣慰）看来它认准你了。青苗是草木之灵，能感知方圆百里内的药草气息。此行有它在侧，如虎添翼。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "setPet": "qingmiao",
           "nextDelay": 500
         },
@@ -492,7 +492,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "（骄傲地挺胸）哼哼！青苗很厉害的！主人去哪青苗就去哪！永远在一起！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500,
           "nextScene": "S06"
         }
@@ -514,7 +514,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（看着肩头的青苗，微微一笑）既已缔结灵契，还有一事需交代——采来的草药，大多不能直接入药。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -524,7 +524,7 @@
           "expression": "thoughtful",
           "name": "白院长",
           "text": "（引你走向隔壁房间）随我来炮制间，让你见识何为「炮制」——晾晒去湿、碾磨成粉，方成良药。亲手试一试吧。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -548,7 +548,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（指向竹匾与药碾）晾晒去湿气，碾磨成药粉——这是最基础的炮制。两种手法，你且都来试试？",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -563,7 +563,7 @@
                 "expression": "smile",
                 "name": "白院长",
                 "text": "（赞许地点头）好！先从晾晒开始——将菊花拖到竹匾上摊开晾晒。晒好了，再去药碾那边研磨甘草。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S06_minigame_dry"
               }
@@ -576,7 +576,7 @@
                 "expression": "thoughtful",
                 "name": "白院长",
                 "text": "（温和地笑）莫怕，一步步来。先晾晒菊花去湿，再碾磨甘草成粉——为师在旁看着。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S06_minigame_dry"
               }
@@ -589,7 +589,7 @@
                 "expression": "smile",
                 "name": "白院长",
                 "text": "（微微点头）也罢，日后遇到炮制台时再来琢磨。去准备行囊吧。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "setFlag": "tutorialSkipped.craft",
                 "nextDelay": 500,
                 "nextStep": "S06_006"
@@ -626,7 +626,7 @@
                 "expression": "smile",
                 "name": "白院长",
                 "text": "（欣慰地笑）不错，手脚利落，也有悟性。此行游历，定能学到更多炮制药材的门道。去吧，整理行囊。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S06_006"
               }
@@ -639,7 +639,7 @@
                 "expression": "thoughtful",
                 "name": "白院长",
                 "text": "（眼中闪过赞赏）嗯，你能想到这一层，很好。炮制之道，贵在用心体察。去吧，行囊已备好。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S06_006"
               }
@@ -653,7 +653,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "（跳上肩头，晃动叶芽）行囊！青苗想看看里面有什么！快去快去！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500,
           "nextScene": "S07"
         }
@@ -680,7 +680,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（轻轻抚过书册封面）这册《百草图录》，是岐黄学堂历代师长的心血——每一味草药的性味归经、炮制之法、产地习性，皆记录于此。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -690,7 +690,7 @@
           "expression": "thoughtful",
           "name": "白院长",
           "text": "（翻开书页，大半图鉴仍是空白）……然而，如今世道变迁，蛊根草肆虐，许多草药正在从这片土地上消失。这册图鉴，已有近半数草药再难寻得踪迹。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 600
         },
         {
@@ -700,7 +700,7 @@
           "expression": "serious",
           "name": "白院长",
           "text": "（郑重地将书册递到你手中）孩子，为师将它交予你。你此番游历，不只是行医救人——更重要的使命，是走遍山川，将那些濒危的、失传的草药一一寻回，补全这本图谱。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 700
         },
         {
@@ -710,7 +710,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（语气温和下来）每收录一味新药，便是为这个时代的本草文明留住了一缕火种。这份担子不轻……但你若愿意，它便是你路上最珍贵的行囊。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 600
         },
         {
@@ -726,7 +726,7 @@
                 "expression": "smile",
                 "name": "白院长",
                 "text": "（眼中闪过欣慰之色，轻拍你的肩膀）好孩子……为师没有看错人。来，我先教你如何使用这册图谱。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S07_007_accept"
               }
@@ -740,7 +740,7 @@
                 "expression": "thoughtful",
                 "name": "白院长",
                 "text": "（温和地摇头）无需此刻便许下重诺。路要一步步走，药要一味味寻——先从学会使用图谱开始，其他的，交给时间。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S07_007_hesitant"
               }
@@ -761,7 +761,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "甘草和菊花已替你炮制收存，干粮三日的量，铜钱若干——都在这里了。路上遇到不认识的草药，便翻图谱查阅。（指了指右上角）先试试打开背包看看？",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -782,7 +782,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "行囊你已见过了。而更重要的，是这册《百草图录》——它不只记录草药信息，更会随你游历不断丰富，收录每一株新发现的草木。来看看它的全貌？（点击右上角「图鉴」按钮）",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -803,7 +803,7 @@
           "expression": "thoughtful",
           "name": "白院长",
           "text": "（将布囊郑重递到你手中）那些灰色的空格……就是等待你去填满的未知。行囊与图谱都已备好——走吧，保重。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "unlockItem": "herb_guide",
           "nextDelay": 500,
           "nextScene": "S08"
@@ -831,7 +831,7 @@
           "expression": "anxious",
           "name": "小兰",
           "text": "师姐！你终于来了！今早刚收到翠竹村加急送来的信——（递过信纸）",
-          "avatar": "xiaolan.png",
+          "avatar": "xiaolan.webp",
           "nextDelay": 500
         },
         {
@@ -855,7 +855,7 @@
           "expression": "serious",
           "name": "白院长",
           "text": "（缓步走来，接过信看了一眼，神色凝重）……翠竹村的信，昨夜就到了。本想让信差先回，没想到他们又加急送来一封。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -865,7 +865,7 @@
           "expression": "thoughtful",
           "name": "白院长",
           "text": "（沉吟片刻，看向你）孩子，你结业后原定自由游历……但此信所托之事，恰是你学医之人的分内之责。你意下如何？",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -880,7 +880,7 @@
                 "expression": "smile",
                 "name": "白院长",
                 "text": "（欣慰点头）好，有此心气，不枉为师三年教导。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S08_007"
               }
@@ -893,7 +893,7 @@
                 "expression": "smile",
                 "name": "白院长",
                 "text": "（赞许）谨慎亦是医者之本。信中所言：咳嗽乏力、老幼尤甚、药材断货——先治病，再查明缘由，此乃正道。",
-                "avatar": "bai.png",
+                "avatar": "bai.webp",
                 "nextDelay": 500,
                 "nextStep": "S08_007"
               }
@@ -907,7 +907,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "（从袖中取出一封书信和一串铜钱）还有两样东西——这是为师写给各地药铺的推荐信，以备不时之需；铜钱两百文，作路费与药资。《百草图录》和行囊你已收好，这趟路程不短，省着用。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -926,7 +926,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "（从肩头探头探脑）哇！主人要去救人吗？青苗帮主人找最好的草药！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -941,7 +941,7 @@
                 "expression": "happy",
                 "name": "青苗",
                 "text": "（开心得转圈圈）嘿嘿！青苗会努力的！找最好最好的草药给主人！",
-                "avatar": "qingmiao.png",
+                "avatar": "qingmiao.webp",
                 "nextDelay": 500,
                 "nextStep": "S08_011"
               }
@@ -954,7 +954,7 @@
                 "expression": "surprised",
                 "name": "青苗",
                 "text": "（认真点头）青苗懂！青苗会帮主人分辨好的坏的！主人放心！",
-                "avatar": "qingmiao.png",
+                "avatar": "qingmiao.webp",
                 "nextDelay": 500,
                 "nextStep": "S08_011"
               }
@@ -968,7 +968,7 @@
           "expression": "serious",
           "name": "白院长",
           "text": "（目光温和而郑重）孩子，此行翠竹村，为师只嘱一事——先治病，再传道。百草之行，由此始。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -978,7 +978,7 @@
           "expression": "smile",
           "name": "白院长",
           "text": "去吧。记住今日所学，以仁心济世，便是岐黄之道的真谛。为师……等你归来。",
-          "avatar": "bai.png",
+          "avatar": "bai.webp",
           "nextDelay": 500
         },
         {
@@ -988,7 +988,7 @@
           "expression": "grateful",
           "name": "小兰",
           "text": "（挥手，眼中含泪）师姐一路平安！……记得平安回来啊！咱们师弟师妹等你回家呢！",
-          "avatar": "xiaolan.png",
+          "avatar": "xiaolan.webp",
           "nextDelay": 500
         },
         {
@@ -998,7 +998,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "（跳上肩头，兴奋地转圈）终于要出发啦！青苗已经闻到翠竹村方向有好多的味道了！快走快走！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500,
           "nextScene": "S09"
         }
@@ -1017,7 +1017,7 @@
       ],
       "cgId": "CG_04",
       "cgConfig": {
-        "image": "cg_04_departure.png",
+        "image": "cg_04_departure.webp",
         "fadeInDuration": 1000,
         "kenBurns": {
           "enabled": true,
@@ -1099,7 +1099,7 @@
       "name": "搭车路途·南下翠竹村",
       "type": "scene",
       "duration": 200,
-      "background": "牛车赶路.png",
+      "background": "牛车赶路.webp",
       "bgm": "bgm_journey.mp3",
       "steps": [
         {

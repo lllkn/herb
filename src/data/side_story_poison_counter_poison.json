@@ -8,7 +8,7 @@
       "id": "SPCP01",
       "name": "以毒攻毒",
       "type": "dialogue",
-      "background": "bg_village_center.png",
+      "background": "bg_village_center.webp",
       "bgm": "bgm_village.mp3",
       "_trigger": {
         "type": "npc",
@@ -47,7 +47,7 @@
           "character": "wang_dazhuang",
           "name": "王大壮",
           "text": "哎，对不住！你是刚给张大娘治病的郎中吧……能不能帮我看看这个？",
-          "avatar": "npc_wang_dazhuang.png",
+          "avatar": "npc_wang_dazhuang.webp",
           "nextDelay": 500
         },
         {
@@ -62,7 +62,7 @@
           "character": "wang_dazhuang",
           "name": "王大壮",
           "text": "昨天一个走方郎中路过，说这东西能治我娘的咳症。但他要钱才肯说用量，我凑不够……郎中，你知道这是什么吗？",
-          "avatar": "npc_wang_dazhuang.png",
+          "avatar": "npc_wang_dazhuang.webp",
           "nextDelay": 500
         },
         {
@@ -89,7 +89,7 @@
           "character": "wang_dazhuang",
           "name": "王大壮",
           "text": "那……真的能治咳症？",
-          "avatar": "npc_wang_dazhuang.png",
+          "avatar": "npc_wang_dazhuang.webp",
           "nextDelay": 500
         },
         {
@@ -98,7 +98,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "能不能治，得先看人。走方郎中连你娘都没见过就开药，我不信他。",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 500
         },
         {
@@ -107,7 +107,7 @@
           "character": "wang_dazhuang",
           "name": "王大壮",
           "text": "……好，你去看看。",
-          "avatar": "npc_wang_dazhuang.png",
+          "avatar": "npc_wang_dazhuang.webp",
           "nextDelay": 700
         },
         {
@@ -123,7 +123,7 @@
           "character": "wang_laotai",
           "name": "王老太",
           "text": "又请郎中？",
-          "avatar": "npc_wang_laotai.png",
+          "avatar": "npc_wang_laotai.webp",
           "nextDelay": 500
         },
         {
@@ -132,7 +132,7 @@
           "character": "wang_dazhuang",
           "name": "王大壮",
           "text": "娘，让先生瞧瞧。",
-          "avatar": "npc_wang_dazhuang.png",
+          "avatar": "npc_wang_dazhuang.webp",
           "nextDelay": 500
         },
         {
@@ -166,7 +166,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "老人家，咳了多久了？痰里带血吗？",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 500
         },
         {
@@ -175,7 +175,7 @@
           "character": "wang_laotai",
           "name": "王老太",
           "text": "三年。带。",
-          "avatar": "npc_wang_laotai.png",
+          "avatar": "npc_wang_laotai.webp",
           "nextDelay": 500
         },
         {
@@ -184,7 +184,7 @@
           "character": "wang_dazhuang",
           "name": "王大壮",
           "text": "有时候是暗红色的……有时候几乎是黑的。",
-          "avatar": "npc_wang_dazhuang.png",
+          "avatar": "npc_wang_dazhuang.webp",
           "nextDelay": 500
         },
         {
@@ -211,7 +211,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "胸口疼吗？夜里睡得着吗？",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 500
         },
         {
@@ -220,7 +220,7 @@
           "character": "wang_laotai",
           "name": "王老太",
           "text": "两边肋下，像堵着什么。睡不踏实。总是热，又盗汗。",
-          "avatar": "npc_wang_laotai.png",
+          "avatar": "npc_wang_laotai.webp",
           "nextDelay": 500
         },
         {
@@ -283,7 +283,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "老人家，我大概清楚了。阴虚血瘀。身体里的阴液耗了太久，血液运行受阻，瘀在肺里出不来。",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 500
         },
         {
@@ -292,7 +292,7 @@
           "character": "wang_laotai",
           "name": "王老太",
           "text": "能治吗？",
-          "avatar": "npc_wang_laotai.png",
+          "avatar": "npc_wang_laotai.webp",
           "nextDelay": 500
         },
         {
@@ -301,7 +301,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "慢慢来，能调。",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 700
         },
         {
@@ -310,7 +310,7 @@
           "character": "wang_dazhuang",
           "name": "王大壮",
           "text": "先生，那走方郎中说的蟾酥——用得上吗？",
-          "avatar": "npc_wang_dazhuang.png",
+          "avatar": "npc_wang_dazhuang.webp",
           "nextDelay": 500
         },
         {
@@ -319,7 +319,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "方向不算全错，但有个大问题。",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 500
         },
         {
@@ -346,7 +346,7 @@
           "character": "wang_dazhuang",
           "name": "王大壮",
           "text": "那蟾酥……就没用了？",
-          "avatar": "npc_wang_dazhuang.png",
+          "avatar": "npc_wang_dazhuang.webp",
           "nextDelay": 500
         },
         {
@@ -355,7 +355,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "不是没用，是不能现在单独用。",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 500
         },
         {
@@ -383,7 +383,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "以毒攻毒的前提，是毒性的方向与病邪匹配，同时病人的身体能承受药力。你娘现在的状态，要先把底子补起来，再谈用不用蟾酥。",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 500
         },
         {
@@ -420,7 +420,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "先用这张方子，养阴为主，三七化瘀为辅。等底子稳了，咳血减少，我们再商量下一步。",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 500
         },
         {
@@ -447,7 +447,7 @@
           "character": "protagonist",
           "name": "主人公",
           "text": "王大壮，你这个问题问得很好。好的郎中，病人也要会问。",
-          "avatar": "zhurengong.png",
+          "avatar": "zhurengong.webp",
           "nextDelay": 500
         },
         {
@@ -462,7 +462,7 @@
           "character": "wang_dazhuang",
           "name": "王大壮",
           "text": "先生，你开的方子写了这么多……那之前那个郎中，只写了两个字，还要跟我收钱。你说他是不是在骗我？",
-          "avatar": "npc_wang_dazhuang.png",
+          "avatar": "npc_wang_dazhuang.webp",
           "nextDelay": 500
         },
         {
@@ -477,7 +477,7 @@
                 "character": "wang_dazhuang",
                 "name": "王大壮",
                 "text": "（点头，把药方重新叠好，放进胸口的衣袋）谢谢你，先生。",
-                "avatar": "npc_wang_dazhuang.png",
+                "avatar": "npc_wang_dazhuang.webp",
                 "nextStep": "SPCP_end_002"
               }
             },
@@ -489,7 +489,7 @@
                 "character": "wang_dazhuang",
                 "name": "王大壮",
                 "text": "（点头，把药方重新叠好，放进胸口的衣袋）谢谢你，先生。",
-                "avatar": "npc_wang_dazhuang.png",
+                "avatar": "npc_wang_dazhuang.webp",
                 "nextStep": "SPCP_end_002"
               }
             },
@@ -501,7 +501,7 @@
                 "character": "wang_dazhuang",
                 "name": "王大壮",
                 "text": "（点头，把药方重新叠好，放进胸口的衣袋）谢谢你，先生。",
-                "avatar": "npc_wang_dazhuang.png",
+                "avatar": "npc_wang_dazhuang.webp",
                 "nextStep": "SPCP_end_002"
               }
             }

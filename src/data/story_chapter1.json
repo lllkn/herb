@@ -9,7 +9,7 @@
       "id": "C01",
       "name": "出生区搭车过场",
       "type": "scene",
-      "background": "bg_plains_entry.png",
+      "background": "bg_plains_entry.webp",
       "bgm": "bgm_journey.mp3",
       "_trigger": {
         "type": "zone",
@@ -26,7 +26,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "（从背囊里探出头）终于到了！主人，这里草药的气息好浓！往南走——青苗感觉到了！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -49,7 +49,7 @@
       "id": "C02",
       "name": "第一株甘草",
       "type": "scene",
-      "background": "bg_plains_road.png",
+      "background": "bg_plains_road.webp",
       "bgm": "bgm_journey.mp3",
       "_trigger": {
         "type": "zone",
@@ -66,7 +66,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "主人！甘草！路边就有！快采！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 300
         },
         {
@@ -84,7 +84,7 @@
       "id": "C03",
       "name": "砍柴老汉问路",
       "type": "dialogue",
-      "background": "bg_plains_road.png",
+      "background": "bg_plains_road.webp",
       "bgm": "bgm_journey.mp3",
       "_trigger": {
         "type": "npc",
@@ -101,7 +101,7 @@
           "expression": "normal",
           "name": "砍柴老伯",
           "text": "（停下斧头，打量你）咦，背着药囊的……是大夫？打哪儿来？",
-          "avatar": "woodcutter.png",
+          "avatar": "woodcutter.webp",
           "nextDelay": 500
         },
         {
@@ -117,7 +117,7 @@
                 "expression": "normal",
                 "name": "砍柴老伯",
                 "text": "哎！好！翠竹村啊，那边可需要大夫！往南走，看见那片竹林向右拐，看见牌坊就是了。村里好些老人病着呢。",
-                "avatar": "woodcutter.png",
+                "avatar": "woodcutter.webp",
                 "nextDelay": 500,
                 "nextStep": "C03_002"
               }
@@ -131,7 +131,7 @@
                 "expression": "normal",
                 "name": "砍柴老伯",
                 "text": "翠竹村？就在南边，竹林旁边。你走路的话，小半个时辰就到了——对了，你是大夫吗？那边正缺人哩！",
-                "avatar": "woodcutter.png",
+                "avatar": "woodcutter.webp",
                 "nextDelay": 500,
                 "nextStep": "C03_002"
               }
@@ -145,7 +145,7 @@
           "expression": "normal",
           "name": "砍柴老伯",
           "text": "（指着南方）路上草药多，顺手采些带着。这条路的甘草最好，我家老伴年年来摘。",
-          "avatar": "woodcutter.png",
+          "avatar": "woodcutter.webp",
           "nextDelay": 500
         }
       ]
@@ -154,7 +154,7 @@
       "id": "C04",
       "name": "废弃草药篓",
       "type": "scene",
-      "background": "bg_plains_woods.png",
+      "background": "bg_plains_woods.webp",
       "bgm": "bgm_journey.mp3",
       "_trigger": {
         "type": "object",
@@ -179,7 +179,7 @@
           "expression": "surprised",
           "name": "青苗",
           "text": "（凑近嗅一嗅）……有人最近来过这里采药，但是放弃了。气味……有点不对。不像是自然枯萎。",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500,
           "setFlag": "clue_herbs_dying"
         }
@@ -189,7 +189,7 @@
       "id": "C05",
       "name": "洗衣村妇",
       "type": "dialogue",
-      "background": "bg_plains_river.png",
+      "background": "bg_plains_river.webp",
       "bgm": "bgm_journey.mp3",
       "_trigger": {
         "type": "npc",
@@ -206,7 +206,7 @@
           "expression": "normal",
           "name": "洗衣妇",
           "text": "（抬头）哎，外乡来的？去翠竹村？那里可惨了……村里老人一个接一个倒，药铺又没货，大夫又请不来……",
-          "avatar": "washerwoman.png",
+          "avatar": "washerwoman.webp",
           "nextDelay": 500
         },
         {
@@ -216,7 +216,7 @@
           "expression": "normal",
           "name": "洗衣妇",
           "text": "（压低声音）我倒是听村里人说，从入秋起，南边草场长了种怪草，灰绿色的，那之后药材就越来越少……可别去踩那东西，晦气。",
-          "avatar": "washerwoman.png",
+          "avatar": "washerwoman.webp",
           "nextDelay": 500,
           "setFlag": "clue_gugen_early"
         },
@@ -227,7 +227,7 @@
           "expression": "surprised",
           "name": "青苗",
           "text": "（小声对主人）主人……蛊根草从这里就开始了？",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         }
       ]
@@ -236,7 +236,7 @@
       "id": "C06",
       "name": "行商王掌柜",
       "type": "dialogue",
-      "background": "bg_plains_south.png",
+      "background": "bg_plains_south.webp",
       "bgm": "bgm_journey.mp3",
       "_trigger": {
         "type": "npc",
@@ -253,7 +253,7 @@
           "expression": "normal",
           "name": "行商 王掌柜",
           "text": "（招手）哎，小大夫，背囊里有草药不？这一带草药紧俏，我收购！",
-          "avatar": "merchant.png",
+          "avatar": "merchant.webp",
           "nextDelay": 500
         },
         {
@@ -269,7 +269,7 @@
                 "expression": "normal",
                 "name": "行商 王掌柜",
                 "text": "哦，自己用的。行，那到了翠竹村，若有余货，村东头药铺找我——对了，那药铺现在没掌柜，等新大夫来了才能开。",
-                "avatar": "merchant.png",
+                "avatar": "merchant.webp",
                 "nextDelay": 500,
                 "nextStep": "C06_002"
               }
@@ -283,7 +283,7 @@
                 "expression": "normal",
                 "name": "行商 王掌柜",
                 "text": "甘草三文一株，菊花五文，金银花十五文一束——金银花现在稀少，价格涨了。你若攒够一批，合算。",
-                "avatar": "merchant.png",
+                "avatar": "merchant.webp",
                 "nextDelay": 500,
                 "nextStep": "C06_002"
               }
@@ -304,7 +304,7 @@
       "id": "C07",
       "name": "翠竹村牌坊",
       "type": "scene",
-      "background": "bg_village_gate.png",
+      "background": "bg_village_gate.webp",
       "bgm": "bgm_village.mp3",
       "autoChainToNext": true,
       "_trigger": {
@@ -328,7 +328,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "到了！到了！主人，村里有好多人的气息……还有草药！还有……（停顿）……还有一种说不清楚的怪味。",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -343,7 +343,7 @@
       "id": "C08",
       "name": "村长接委托",
       "type": "dialogue",
-      "background": "bg_village_entrance.png",
+      "background": "bg_village_entrance.webp",
       "bgm": "bgm_village.mp3",
       "_trigger": {
         "type": "zone",
@@ -361,7 +361,7 @@
           "expression": "happy",
           "name": "村长 张老汉",
           "text": "（搓手）哎呀！岐黄学堂来的吧！小兰托人捎话说要来，我等了你大半天！快快快，进村！",
-          "avatar": "village_chief.png",
+          "avatar": "village_chief.webp",
           "nextDelay": 500
         },
         {
@@ -371,7 +371,7 @@
           "expression": "worried",
           "name": "村长 张老汉",
           "text": "村里这两个月啊，老人们一个个倒下——四肢乏力，咳嗽不止。药铺早断货，镇上大夫又请不来……",
-          "avatar": "village_chief.png",
+          "avatar": "village_chief.webp",
           "nextDelay": 500
         },
         {
@@ -381,7 +381,7 @@
           "expression": "serious",
           "name": "村长 张老汉",
           "text": "村东头有间空铺子，你若愿意留下行医，那铺子免费借你！你治病，我们守铺子，怎么说？",
-          "avatar": "village_chief.png",
+          "avatar": "village_chief.webp",
           "nextDelay": 500
         },
         {
@@ -397,7 +397,7 @@
                 "expression": "happy",
                 "name": "村长 张老汉",
                 "text": "哈哈！好！先四处走走，认认路，认认人。村子不大，一圈下来一盏茶工夫。去跟老李、张大娘他们说说话，了解情况。",
-                "avatar": "village_chief.png",
+                "avatar": "village_chief.webp",
                 "nextDelay": 500,
                 "nextStep": "C08_004"
               }
@@ -411,7 +411,7 @@
                 "expression": "happy",
                 "name": "村长 张老汉",
                 "text": "行，稳当。先四处走走，认认路认认人，铺子的事之后再谈。村里几处你都去看看。",
-                "avatar": "village_chief.png",
+                "avatar": "village_chief.webp",
                 "nextDelay": 500,
                 "nextStep": "C08_004"
               }
@@ -438,7 +438,7 @@
       "id": "C09",
       "name": "草药圃辨药",
       "type": "dialogue",
-      "background": "bg_herb_garden.png",
+      "background": "bg_herb_garden.webp",
       "bgm": "bgm_village.mp3",
       "_trigger": {
         "type": "npc",
@@ -455,7 +455,7 @@
           "expression": "normal",
           "name": "药农 老李",
           "text": "（蹲在药圃边，抬起头）哟，学堂来的。这一圃本来种的是甘草、山药、紫苏……现在都蔫儿了，也不知是土的问题还是那怪草闹的。",
-          "avatar": "laoli.png",
+          "avatar": "laoli.webp",
           "nextDelay": 500
         },
         {
@@ -465,7 +465,7 @@
           "expression": "normal",
           "name": "药农 老李",
           "text": "你既然是大夫，来帮我认认——这三株里头，哪株是金银花？",
-          "avatar": "laoli.png",
+          "avatar": "laoli.webp",
           "nextDelay": 500
         },
         {
@@ -488,7 +488,7 @@
           "expression": "normal",
           "name": "药农 老李",
           "text": "（压低声音）说句心里话……村南那片蛊根草，老汉我见过一次，在深山里。那东西的根，会向土里分泌什么，周围草药全扎不住根。我爷爷说，大草纪二百年那场大疫之前，也出现过。",
-          "avatar": "laoli.png",
+          "avatar": "laoli.webp",
           "nextDelay": 500,
           "setFlag": "clue_gugen_history"
         },
@@ -511,7 +511,7 @@
       "id": "C10",
       "name": "水井边病情线索",
       "type": "dialogue",
-      "background": "bg_village_well.png",
+      "background": "bg_village_well.webp",
       "bgm": "bgm_village.mp3",
       "_trigger": {
         "type": "npc",
@@ -528,7 +528,7 @@
           "expression": "normal",
           "name": "村民 陈大嫂",
           "text": "（打完水，叹气）大夫来了就好……我家老娘三天没下床，腰酸腿软，气都喘不上来。",
-          "avatar": "villager_b.png",
+          "avatar": "villager_b.webp",
           "nextDelay": 500
         },
         {
@@ -538,7 +538,7 @@
           "expression": "normal",
           "name": "村民 陈大嫂",
           "text": "不只我家，隔壁王老伯、李奶奶都一样——乏力、夜咳、腰酸，症状差不多。入秋后就开始的，和那蛊根草出现的时间对得上……",
-          "avatar": "villager_b.png",
+          "avatar": "villager_b.webp",
           "nextDelay": 500,
           "setFlag": "clue_mass_symptom"
         },
@@ -549,7 +549,7 @@
           "expression": "surprised",
           "name": "青苗",
           "text": "（认真地听着，小声对主人）乏力、夜咳、腰酸……主人，这像是肺和肾的问题。",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         }
       ]
@@ -558,7 +558,7 @@
       "id": "C11",
       "name": "晒药台炮制教程",
       "type": "dialogue",
-      "background": "bg_drying_platform.png",
+      "background": "bg_drying_platform.webp",
       "bgm": "bgm_village.mp3",
       "_trigger": {
         "type": "object",
@@ -583,7 +583,7 @@
           "expression": "normal",
           "name": "药农 老李",
           "text": "（路过，停下来）那是晒药匾。你背包里有菊花吗？这时候正好晒——来，我教你两手。",
-          "avatar": "laoli.png",
+          "avatar": "laoli.webp",
           "nextDelay": 500
         },
         {
@@ -606,7 +606,7 @@
           "expression": "normal",
           "name": "药农 老李",
           "text": "炮制讲究「依法修治」——晾晒是最基础的一道。以后蜜炙、醋制慢慢学，急不来。",
-          "avatar": "laoli.png",
+          "avatar": "laoli.webp",
           "nextDelay": 500
         },
         {
@@ -628,7 +628,7 @@
       "id": "C12",
       "name": "空置铺面药铺委托",
       "type": "dialogue",
-      "background": "bg_empty_shop.png",
+      "background": "bg_empty_shop.webp",
       "bgm": "bgm_village.mp3",
       "_trigger": {
         "type": "object",
@@ -653,7 +653,7 @@
           "expression": "serious",
           "name": "村长 张老汉",
           "text": "（跟进来）原来的老掌柜三年前走了，铺子就空着。你若愿意在此行医，这铺子免费借你用，一文不收。",
-          "avatar": "village_chief.png",
+          "avatar": "village_chief.webp",
           "nextDelay": 500
         },
         {
@@ -669,7 +669,7 @@
                 "expression": "happy",
                 "name": "村长 张老汉",
                 "text": "（拍手）好！今儿就把这招牌重新挂上！「百草堂」——你觉得这名字怎样？",
-                "avatar": "village_chief.png",
+                "avatar": "village_chief.webp",
                 "nextDelay": 500,
                 "nextStep": "C12_003"
               }
@@ -683,7 +683,7 @@
                 "expression": "happy",
                 "name": "村长 张老汉",
                 "text": "行，你先忙，铺子随时都在。把张大娘他们看好了，这铺子就是你的。",
-                "avatar": "village_chief.png",
+                "avatar": "village_chief.webp",
                 "nextDelay": 500,
                 "nextStep": "C12_003"
               }
@@ -723,7 +723,7 @@
       "id": "C13",
       "name": "张大娘家四诊问诊",
       "type": "dialogue",
-      "background": "bg_patient_room.png",
+      "background": "bg_patient_room.webp",
       "bgm": "bgm_village.mp3",
       "_trigger": {
         "type": "npc",
@@ -740,7 +740,7 @@
           "expression": "pain",
           "name": "张大娘",
           "text": "（虚弱地看你）大夫来了……腰酸腿软，夜里咳嗽，这两个月越来越重……",
-          "avatar": "zhangdaniang.png",
+          "avatar": "zhangdaniang.webp",
           "hidePortrait": true,
           "nextDelay": 500
         },
@@ -926,7 +926,7 @@
           "expression": "grateful",
           "name": "张大娘",
           "text": "（泪眼）多谢大夫……这三年，没见过这么认真给老身看病的……",
-          "avatar": "zhangdaniang.png",
+          "avatar": "zhangdaniang.webp",
           "nextDelay": 500
         },
         {
@@ -936,7 +936,7 @@
           "expression": "grateful",
           "name": "张大娘",
           "text": "（颤巍巍从枕下摸出一个布包）老身没什么值钱的东西……这是攒了许久的诊金，大夫莫要嫌弃。村里老少都看在眼里，定会念着您的好……",
-          "avatar": "zhangdaniang.png",
+          "avatar": "zhangdaniang.webp",
           "nextDelay": 800
         },
         {
@@ -964,7 +964,7 @@
       "id": "C14",
       "name": "全部地点完成·推进溪谷",
       "type": "dialogue",
-      "background": "bg_village_center.png",
+      "background": "bg_village_center.webp",
       "bgm": "bgm_village.mp3",
       "_trigger": {
         "type": "condition",
@@ -980,7 +980,7 @@
           "expression": "serious",
           "name": "村长 张老汉",
           "text": "大夫，张大娘的方子里需要「山药」和「茯苓」……村里的药铺早没了存货，只有东边溪谷的山坡上才有野生的。",
-          "avatar": "village_chief.png",
+          "avatar": "village_chief.webp",
           "nextDelay": 500
         },
         {
@@ -990,7 +990,7 @@
           "expression": "worried",
           "name": "村长 张老汉",
           "text": "山药要在霜降后采挖药性最足，现在时节正合适。但溪谷路不好走，你一个人……",
-          "avatar": "village_chief.png",
+          "avatar": "village_chief.webp",
           "nextDelay": 500
         },
         {
@@ -1000,7 +1000,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "（抢答）青苗可以引路！青苗感知到溪谷那边有大量野生山药的气息！还有茯苓！很多！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -1030,7 +1030,7 @@
       "id": "C15a",
       "name": "溪流山谷·山药采集",
       "type": "scene",
-      "background": "c15_a.png",
+      "background": "c15_a.webp",
       "bgm": "bgm_valley.mp3",
       "_trigger": {
         "type": "zone",
@@ -1046,7 +1046,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "（兴奋地绕着主人飞转）到了！山药就在溪谷山坡上！茯苓也有！还有……（停顿）……还有一股很奇怪的气味。主人，小心一点。",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -1070,7 +1070,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "那里！那里！山药！霜降后的山药最肥！快挖快挖！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 300
         },
         {
@@ -1084,7 +1084,7 @@
       "id": "C15b",
       "name": "溪流山谷·迷雾松林",
       "type": "scene",
-      "background": "c15_b.png",
+      "background": "c15_b.webp",
       "bgm": "bgm_valley.mp3",
       "_trigger": {
         "type": "event",
@@ -1100,7 +1100,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "山药够了！继续往里走——茯苓在溪岸下流！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 300
         },
         {
@@ -1116,7 +1116,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "（跳到主人头顶）别怕！青苗感知到的！往左走三步，再向前——跟着青苗走！",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -1138,7 +1138,7 @@
       "id": "C15c",
       "name": "溪流山谷·石菖蒲",
       "type": "scene",
-      "background": "c15_c.png",
+      "background": "c15_c.webp",
       "bgm": "bgm_valley.mp3",
       "_trigger": {
         "type": "event",
@@ -1154,7 +1154,7 @@
           "expression": "surprised",
           "name": "青苗",
           "text": "（停下，激动地发光）主人！这里！石菖蒲！好稀有的，可以开窍安神，带回去给村民吧！而且那边还有好多茯苓",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 300
         },
         {
@@ -1168,7 +1168,7 @@
       "id": "C15d",
       "name": "溪流山谷·蛊根草",
       "type": "scene",
-      "background": "bg_valley_entry.png",
+      "background": "bg_valley_entry.webp",
       "bgm": "bgm_valley_dark.mp3",
       "_trigger": {
         "type": "event",
@@ -1188,7 +1188,7 @@
           "type": "cg",
           "cgId": "CG_06",
           "cgConfig": {
-            "image": "cg_06_gugen_discovery.png",
+            "image": "cg_06_gugen_discovery.webp",
             "fadeInDuration": 1200,
             "animation": "slow_zoom"
           },
@@ -1202,7 +1202,7 @@
           "expression": "surprised",
           "name": "青苗",
           "text": "（瑟缩，紧抱主人）主人……这气息……不对。不像是植物，更像是……在吸收什么东西。",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {
@@ -1226,7 +1226,7 @@
                 "expression": "surprised",
                 "name": "青苗",
                 "text": "对！青苗闻到了——像矿物质，又像腐败有机质。主人，记下来！",
-                "avatar": "qingmiao.png",
+                "avatar": "qingmiao.webp",
                 "nextDelay": 500,
                 "nextStep": "C15_015"
               }
@@ -1240,7 +1240,7 @@
                 "expression": "surprised",
                 "name": "青苗",
                 "text": "（若有所思）蛊根草出现时间……和村民第一个发病时间……主人你刚才问的这个，很重要！",
-                "avatar": "qingmiao.png",
+                "avatar": "qingmiao.webp",
                 "nextDelay": 500,
                 "nextStep": "C15_015"
               }
@@ -1260,7 +1260,7 @@
           "expression": "tired",
           "name": "旅人",
           "text": "（停步，看着蛊根草，声音沉静）这东西……你们这里也出现了。",
-          "avatar": "traveler.png",
+          "avatar": "traveler.webp",
           "nextDelay": 800
         },
         {
@@ -1270,7 +1270,7 @@
           "expression": "tired",
           "name": "旅人",
           "text": "我从北边来，一路过了三个村——全是这个。药材枯萎，老人病倒，大夫束手无策。范围越来越大。",
-          "avatar": "traveler.png",
+          "avatar": "traveler.webp",
           "nextDelay": 500
         },
         {
@@ -1280,7 +1280,7 @@
           "expression": "tired",
           "name": "旅人",
           "text": "深山里有个炮制大师，叫崔老，住在松涛谷。他见过更早的蛊根草记录……若有人知道怎么应对，只有他了。",
-          "avatar": "traveler.png",
+          "avatar": "traveler.webp",
           "nextDelay": 500,
           "setFlag": "clue_cuizhao_master"
         },
@@ -1291,7 +1291,7 @@
           "expression": "surprised",
           "name": "青苗",
           "text": "（认真地看着主人）主人……翠竹村的病，只是开始。",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 1000
         },
         {
@@ -1301,7 +1301,7 @@
           "expression": "determined",
           "name": "主人公",
           "text": "等我们看完翠竹村的病，就去找崔老。",
-          "avatar": "zhurengong.png"
+          "avatar": "zhurengong.webp"
         },
         {
           "id": "C15d_end",
@@ -1314,7 +1314,7 @@
       "id": "C16",
       "name": "第一章结局",
       "type": "scene",
-      "background": "bg_valley_exit.png",
+      "background": "bg_valley_exit.webp",
       "bgm": "bgm_victory.mp3",
       "_trigger": {
         "type": "zone",
@@ -1337,7 +1337,7 @@
           "expression": "happy",
           "name": "青苗",
           "text": "回去吧，主人。张大娘他们等着呢。",
-          "avatar": "qingmiao.png",
+          "avatar": "qingmiao.webp",
           "nextDelay": 500
         },
         {

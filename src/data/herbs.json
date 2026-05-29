@@ -12,7 +12,7 @@
       "description": "甘草是最常用的中药之一，有\"十方九草\"之说。性味甘平，归心、肺、脾、胃经。",
       "locations": ["翠竹村·平原", "岐黄学堂·药圃"],
       "seasonBonus": ["春分", "秋分"],
-      "image": "herb_gancao.png",
+      "image": "herb_gancao.webp",
       "price": 10,
       "difficulty": 1
     },
@@ -25,7 +25,7 @@
       "description": "黄芪为豆科植物蒙古黄芪或膜荚黄芪的干燥根，味甘性温。",
       "locations": ["翠竹村·平原", "溪谷"],
       "seasonBonus": ["立春", "雨水"],
-      "image": "herb_huangqi.png",
+      "image": "herb_huangqi.webp",
       "price": 15,
       "difficulty": 1
     },
@@ -38,7 +38,7 @@
       "description": "当归有\"血中圣药\"之称，味甘而重，能专门补血。",
       "locations": ["溪谷", "云雾山"],
       "seasonBonus": ["白露", "秋分"],
-      "image": "herb_danggui.png",
+      "image": "herb_danggui.webp",
       "price": 25,
       "difficulty": 2
     },
@@ -51,7 +51,7 @@
       "description": "枸杞为茄科植物宁夏枸杞的干燥成熟果实，红色椭圆形。",
       "locations": ["翠竹村·药田", "岐黄学堂·药圃"],
       "seasonBonus": ["夏至", "小暑"],
-      "image": "herb_gouqi.png",
+      "image": "herb_gouqi.webp",
       "price": 12,
       "difficulty": 1
     },
@@ -64,7 +64,7 @@
       "description": "金银花为忍冬科植物忍冬的干燥花蕾，性寒味甘。",
       "locations": ["翠竹村·平原", "溪谷"],
       "seasonBonus": ["芒种", "夏至"],
-      "image": "herb_jinyinhua.png",
+      "image": "herb_jinyinhua.webp",
       "price": 18,
       "difficulty": 1
     },
@@ -77,7 +77,7 @@
       "description": "菊花为菊科植物菊的干燥头状花序，有黄白两种。",
       "locations": ["岐黄学堂·药圃", "翠竹村·药田"],
       "seasonBonus": ["寒露", "霜降"],
-      "image": "herb_juhua.png",
+      "image": "herb_juhua.webp",
       "price": 10,
       "difficulty": 1
     },
@@ -90,7 +90,7 @@
       "description": "陈皮为芸香科植物橘及其栽培变种的干燥成熟果皮。",
       "locations": ["翠竹村·村庄"],
       "seasonBonus": ["立冬", "小雪"],
-      "image": "herb_chenpi.png",
+      "image": "herb_chenpi.webp",
       "price": 8,
       "difficulty": 1
     },
@@ -103,7 +103,7 @@
       "description": "白术为菊科植物白术的干燥根茎，味苦甘性温。",
       "locations": ["溪谷", "岐黄学堂·药圃"],
       "seasonBonus": ["清明", "谷雨"],
-      "image": "herb_baizhu.png",
+      "image": "herb_baizhu.webp",
       "price": 20,
       "difficulty": 2
     },
@@ -116,7 +116,7 @@
       "description": "茯苓为多孔菌科真菌茯苓的干燥菌核，寄生于松树根。",
       "locations": ["云雾山", "溪谷"],
       "seasonBonus": ["小满", "芒种"],
-      "image": "herb_fuling.png",
+      "image": "herb_fuling.webp",
       "price": 22,
       "difficulty": 2
     },
@@ -129,7 +129,7 @@
       "description": "川芎为伞形科植物川芎的干燥根茎，味辛性温。",
       "locations": ["溪谷", "云雾山"],
       "seasonBonus": ["惊蛰", "春分"],
-      "image": "herb_chuanxiong.png",
+      "image": "herb_chuanxiong.webp",
       "price": 28,
       "difficulty": 2
     },
@@ -142,7 +142,7 @@
       "description": "黄连为毛茛科植物黄连的干燥根茎，味苦性寒。",
       "locations": ["云雾山"],
       "seasonBonus": ["大雪", "冬至"],
-      "image": "herb_huanglian.png",
+      "image": "herb_huanglian.webp",
       "price": 45,
       "difficulty": 3
     },
@@ -155,7 +155,7 @@
       "description": "人参为五加科植物人参的干燥根，有\"百草之王\"美誉。",
       "locations": ["云雾山·深处"],
       "seasonBonus": ["冬至", "小寒"],
-      "image": "herb_renshen.png",
+      "image": "herb_renshen.webp",
       "price": 100,
       "difficulty": 4
     },
@@ -168,7 +168,7 @@
       "description": "薄荷为唇形科植物薄荷的干燥地上部分，味辛性凉。",
       "locations": ["翠竹村·平原", "岐黄学堂·药圃"],
       "seasonBonus": ["清明", "谷雨"],
-      "image": "herb_bohe.png",
+      "image": "herb_bohe.webp",
       "price": 8,
       "difficulty": 1
     },
@@ -181,7 +181,7 @@
       "description": "艾叶为菊科植物艾的干燥叶，味苦辛性温。",
       "locations": ["翠竹村·平原", "溪谷"],
       "seasonBonus": ["端午", "夏至"],
-      "image": "herb_aiye.png",
+      "image": "herb_aiye.webp",
       "price": 10,
       "difficulty": 1
     },
@@ -194,7 +194,7 @@
       "description": "桑叶为桑科植物桑的干燥叶，味甘苦性寒。",
       "locations": ["翠竹村·村庄", "岐黄学堂"],
       "seasonBonus": ["霜降", "立冬"],
-      "image": "herb_sangye.png",
+      "image": "herb_sangye.webp",
       "price": 8,
       "difficulty": 1
     },
@@ -207,7 +207,7 @@
       "description": "桂枝为樟科植物肉桂的干燥嫩枝，味辛甘性温。",
       "locations": ["翠竹村·平原", "溪谷"],
       "seasonBonus": ["春分", "清明"],
-      "image": "herb_guizhi.png",
+      "image": "herb_guizhi.webp",
       "price": 12,
       "difficulty": 1
     },
@@ -220,7 +220,7 @@
       "description": "柴胡为伞形科植物柴胡的干燥根，味苦性微寒。",
       "locations": ["溪谷", "云雾山"],
       "seasonBonus": ["立春", "雨水"],
-      "image": "herb_chaihu.png",
+      "image": "herb_chaihu.webp",
       "price": 30,
       "difficulty": 2
     },
@@ -233,7 +233,7 @@
       "description": "五味子为木兰科植物五味子的干燥成熟果实，有酸甘辛苦咸五味。",
       "locations": ["云雾山"],
       "seasonBonus": ["白露", "秋分"],
-      "image": "herb_wuweizi.png",
+      "image": "herb_wuweizi.webp",
       "price": 50,
       "difficulty": 3
     },
@@ -246,7 +246,7 @@
       "description": "地黄为玄参科植物地黄的干燥块根，分为鲜地黄、干地黄和熟地黄。",
       "locations": ["溪谷", "岐黄学堂·药圃"],
       "seasonBonus": ["清明", "谷雨"],
-      "image": "herb_dihuang.png",
+      "image": "herb_dihuang.webp",
       "price": 18,
       "difficulty": 2
     },
@@ -259,7 +259,7 @@
       "description": "丹参为唇形科植物丹参的干燥根和根茎，味苦性微寒。",
       "locations": ["溪谷", "云雾山"],
       "seasonBonus": ["立夏", "小满"],
-      "image": "herb_danshen.png",
+      "image": "herb_danshen.webp",
       "price": 35,
       "difficulty": 2
     },
@@ -272,7 +272,7 @@
       "description": "山药为薯蓣科植物薯蓣的干燥根茎，味甘性平。霜降后采挖药性最足，是补益肺肾的要药。",
       "locations": ["溪谷", "云雾山"],
       "seasonBonus": ["霜降", "立冬"],
-      "image": "herb_shanyao.png",
+      "image": "herb_shanyao.webp",
       "price": 25,
       "difficulty": 2
     }

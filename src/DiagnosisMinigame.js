@@ -40,7 +40,7 @@ const PATIENT_CASES = [
     {
         id: 1001,
         patientInfo: { name: "柳清婉", age: 22, gender: "女", occupation: "书院女先生",
-            avatar: "assets/patients/patient_01.png" },
+            avatar: "assets/patients/patient_01.webp" },
         background: "近日春雨连绵，柳姑娘夜间备课至深夜，感风寒后身体不适，已持续三日。",
         inspection: {
             complexion: "面色微红，略显疲惫", tongue: "舌尖偏红，舌苔薄白",
@@ -109,7 +109,7 @@ const PATIENT_CASES = [
     {
         id: 1003,
         patientInfo: { name: "张大娘", age: 58, gender: "女", occupation: "农妇",
-            avatar: "assets/patients/patient_03.png" },
+            avatar: "assets/patients/patient_03.webp" },
         background: "张大娘腰膝酸软、夜间咳嗽已有两月有余，近来愈发乏力。",
         inspection: {
             complexion: "面色苍白无华，精神萎靡", tongue: "舌淡苔薄白，舌体偏胖",
@@ -179,7 +179,7 @@ const PATIENT_CASES = [
     {
         id: 1002,
         patientInfo: { name: "周远山", age: 47, gender: "男", occupation: "镖局护卫",
-            avatar: "assets/patients/patient_02.png" },
+            avatar: "assets/patients/patient_02.webp" },
         background: "长途押镖归来后，饮酒受寒，腰背酸痛，已有五日。",
         inspection: {
             complexion: "面色偏白", tongue: "舌苔白腻", eyes: "神色疲乏", posture: "扶腰而坐",
@@ -247,7 +247,7 @@ const PATIENT_CASES = [
 const UI_THEME = {
     primaryColor: "#7A4F2A", secondaryColor: "#D8C3A5", accentColor: "#B23A48",
     fonts: { title: "STKaiti", content: "SimSun" },
-    background: { main: "assets/bg/main_bg.jpg", panel: "assets/bg/panel_bg.png" },
+    background: { main: "assets/bg/main_bg.jpg", panel: "assets/bg/panel_bg.webp" },
     sounds: { bgm: "assets/audio/bgm.mp3", click: "assets/audio/click.wav", success: "assets/audio/success.wav" }
 };
 

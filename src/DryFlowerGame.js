@@ -37,8 +37,8 @@ class DryFlowerGame extends Phaser.Scene {
 
     preload() {
         console.log('[DryFlowerGame] preload 开始...');
-        this.load.image('dry_basket', 'src/assets/picture/晒菊游戏-背篓.png');
-        this.load.image('dry_flower', 'src/assets/picture/晒菊游戏-菊花.png');
+        this.load.image('dry_basket', 'src/assets/picture/晒菊游戏-背篓.webp');
+        this.load.image('dry_flower', 'src/assets/picture/晒菊游戏-菊花.webp');
     }
 
     create() {

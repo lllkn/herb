@@ -106,11 +106,11 @@ const GameConfig = {
             name: '平原',
             jsonPath: 'src/maps/平原新.json',
             tileImages: [
-                'src/tilesets/Gemini_Generated_Image_npnymcnpnymcnpny.png',
-                'src/tilesets/Gemini_Generated_Image_21rixx21rixx21ri.png',
-                'src/tilesets/Gemini_Generated_Image_bh33dibh33dibh33.png',
-                'src/tilesets/Gemini_Generated_Image_i693pii693pii693.png',
-                'src/assets/pictures/herbs/tukeng.png'
+                'src/tilesets/Gemini_Generated_Image_npnymcnpnymcnpny.webp',
+                'src/tilesets/Gemini_Generated_Image_21rixx21rixx21ri.webp',
+                'src/tilesets/Gemini_Generated_Image_bh33dibh33dibh33.webp',
+                'src/tilesets/Gemini_Generated_Image_i693pii693pii693.webp',
+                'src/assets/pictures/herbs/tukeng.webp'
             ],
             playerStart: { x: 664, y: 744 }  // 行走层(41,46)中心
         },
@@ -119,13 +119,13 @@ const GameConfig = {
             name: '溪流',
             jsonPath: 'src/maps/溪流新.json',
             tileImages: [
-                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g.png',
-                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (1).png',
-                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (2).png',
-                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (3).png',
-                'src/assets/pictures/herbs/石菖蒲.png',
-                'src/assets/pictures/herbs/茯苓.png',
-                'src/assets/pictures/herbs/山药.png'
+                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g.webp',
+                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (1).webp',
+                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (2).webp',
+                'src/tilesets/Gemini_Generated_Image_cj6gptcj6gptcj6g (3).webp',
+                'src/assets/pictures/herbs/石菖蒲.webp',
+                'src/assets/pictures/herbs/茯苓.webp',
+                'src/assets/pictures/herbs/山药.webp'
             ],
             playerStart: { x: 2056, y: 344 }
         },
@@ -133,7 +133,7 @@ const GameConfig = {
         'village': {
             name: '翠竹村',
             isImageMap: true,
-            imagePath: 'src/assets/picture/翠竹村地图.png'
+            imagePath: 'src/assets/picture/翠竹村地图.webp'
         }
     },
 
