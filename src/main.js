@@ -83,35 +83,13 @@ function startTimeSystem() {
 
 /**
  * 启动加载序列
- * 模拟资源加载过程，完成后启动游戏
+ * 立即初始化 Phaser，由场景真实进度驱动进度条
  */
 function startLoadingSequence() {
     const ui = window.uiManager;
-    
-    ui.updateProgress(10, '正在加载游戏资源...');
-
-    setTimeout(() => {
-        ui.updateProgress(30, '正在初始化游戏世界...');
-
-        setTimeout(() => {
-            ui.updateProgress(50, '正在生成草药...');
-
-            setTimeout(() => {
-                ui.updateProgress(70, '正在创建玩家角色...');
-
-                setTimeout(() => {
-                    ui.updateProgress(90, '正在启动游戏...');
-
-                    setTimeout(() => {
-                        ui.updateProgress(100, '加载完成！');
-
-                        // 显示游戏容器并立即初始化（无额外等待）
-                        ui.showGameContainer();
-                        initGame();
-                        startTimeSystem();
-                    }, 300);
-                }, 200);
-            }, 200);
-        }, 200);
-    }, 200);
+    ui.updateProgress(5, '正在启动游戏引擎...');
+    // 显示游戏容器（加载屏仍覆盖其上），让 Phaser 可以初始化
+    ui.showGameContainer();
+    initGame();
+    startTimeSystem();
 }

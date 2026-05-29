@@ -476,16 +476,25 @@ class UIManager {
     }
 
     /**
-     * 隐藏加载界面并显示游戏容器
+     * 显示游戏容器（不隐藏加载屏，让 Phaser 可以初始化）
      */
     showGameContainer() {
-        if (this.loadingScreen) {
-            this.loadingScreen.style.display = 'none';
-        }
         if (this.gameContainer) {
             this.gameContainer.style.display = 'block';
         }
         window.gameStateManager.state.isGameStarted = true;
+    }
+
+    /**
+     * 淡出并隐藏加载界面（剧情真正就绪时调用）
+     */
+    hideLoadingScreen() {
+        if (!this.loadingScreen) return;
+        this.loadingScreen.style.transition = 'opacity 0.4s ease';
+        this.loadingScreen.style.opacity = '0';
+        setTimeout(() => {
+            if (this.loadingScreen) this.loadingScreen.style.display = 'none';
+        }, 420);
     }
 
     // ==================== 弹窗管理 ====================

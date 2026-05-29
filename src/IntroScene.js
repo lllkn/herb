@@ -82,17 +82,28 @@ class IntroScene extends Phaser.Scene {
     preload() {
         console.log('IntroScene: 预加载资源');
 
+        // 监听加载进度，同步到 HTML 进度条（55% → 95%）
+        this.load.on('progress', (value) => {
+            const pct = Math.floor(55 + value * 40);
+            const label = `正在加载剧情资源... ${pct}%`;
+            if (window.uiManager) window.uiManager.updateProgress(pct, label);
+        });
+
         // 加载序章剧情数据（先清除旧缓存，防止 BootScene 传过来的缓存在场景切换时丢失）
         if (this.cache.json.exists('prologue_data')) {
             this.cache.json.remove('prologue_data');
         }
         this.load.json('prologue_data', 'src/data/story_prologue.json');
 
-        // 加载第一章剧情数据
-        this.load.json('chapter1_data', 'src/data/story_chapter1.json');
+        // 第一章数据：BootScene 已加载过则复用，否则重新加载
+        if (!this.cache.json.exists('chapter1_data')) {
+            this.load.json('chapter1_data', 'src/data/story_chapter1.json');
+        }
 
-        // 加载地图事件配置（供调试管理器使用）
-        this.load.json('map_events_data', 'src/data/map_events.json');
+        // 地图事件数据：BootScene 已加载过则复用
+        if (!this.cache.json.exists('map_events_data')) {
+            this.load.json('map_events_data', 'src/data/map_events.json');
+        }
 
         // 加载CG图片（如果有的话）
         this._loadCGImages();
@@ -102,10 +113,6 @@ class IntroScene extends Phaser.Scene {
 
         // 加载背景图片
         this._loadBackgroundImages();
-
-        // 加载音效
-        // this.load.audio('bgm_school', 'src/assets/audio/bgm_school.mp3');
-        // this.load.audio('typewriter_sfx', 'src/assets/audio/typewriter.wav');
     }
 
     /**
@@ -341,6 +348,12 @@ class IntroScene extends Phaser.Scene {
                 console.log('IntroScene: 调试管理器已启动（F3 打开）, panel=', !!this.debugManager.panel);
             } else {
                 console.warn('IntroScene: DebugManager 类未找到！');
+            }
+
+            // 剧情就绪：隐藏 HTML 加载屏，直接进入剧情
+            if (window.uiManager) {
+                window.uiManager.updateProgress(100, '加载完成！');
+                window.uiManager.hideLoadingScreen();
             }
 
             // 开始场景：调试模式跳到目标场景，否则从第一个开始

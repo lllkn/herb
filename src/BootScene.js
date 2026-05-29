@@ -30,10 +30,14 @@ class BootScene extends Phaser.Scene {
 
         // 监听加载进度
         this.load.on('progress', (value) => {
-            progressText.setText(`正在加载游戏资源... ${Math.floor(value * 100)}%`);
+            const pct = Math.floor(5 + value * 50); // 5% → 55%
+            const label = `正在加载游戏资源... ${pct}%`;
+            progressText.setText(label);
             progressBar.clear();
             progressBar.fillStyle(0x8b7355, 1);
             progressBar.fillRoundedRect(width / 2 - 158, height / 2 + 32, 316 * value, 16, 8);
+            // 同步更新 HTML 进度条
+            if (window.uiManager) window.uiManager.updateProgress(pct, label);
         });
 
         this.load.on('complete', () => {
@@ -41,6 +45,7 @@ class BootScene extends Phaser.Scene {
             progressText.destroy();
             progressBar.destroy();
             progressBox.destroy();
+            if (window.uiManager) window.uiManager.updateProgress(55, '正在准备剧情场景...');
         });
 
         // 加载序章剧情数据
@@ -52,13 +57,9 @@ class BootScene extends Phaser.Scene {
         // 加载地图事件配置
         this.load.json('map_events_data', 'src/data/map_events.json');
 
-        // ★ 预加载 BGM 音频文件
-        console.log('BootScene: 预加载 BGM 文件...');
-        this.load.audio('bgm_school',  'src/assets/bgm/学堂.mp3');
-        this.load.audio('bgm_plain',   'src/assets/bgm/平原.mp3');
-        this.load.audio('bgm_village', 'src/assets/bgm/翠竹村.mp3');
-        this.load.audio('bgm_valley',  'src/assets/bgm/溪流山谷.mp3');
-        this.load.audio('bgm_side',    'src/assets/bgm/支线.mp3');
+        // ★ 只预加载序章 BGM，其余 BGM 在 GameScene 首次使用时懒加载
+        console.log('BootScene: 预加载序章 BGM...');
+        this.load.audio('bgm_school', 'src/assets/bgm/学堂.mp3');
     }
 
     create() {

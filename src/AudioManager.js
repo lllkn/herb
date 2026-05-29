@@ -175,10 +175,26 @@ class AudioManager {
             return;
         }
 
-        // 检查音频文件是否已加载
+        // 检查音频是否已加载；未加载则懒加载后再播
         if (!this._scene.cache.audio.exists(fileKey)) {
-            console.warn('[AudioManager] BGM 音频未载入缓存:', fileKey);
-            console.log('[AudioManager] 缓存中的音频 key 列表:', this._scene.cache.audio.getKeys());
+            const bgmFiles = {
+                'bgm_plain':   'src/assets/bgm/平原.mp3',
+                'bgm_village': 'src/assets/bgm/翠竹村.mp3',
+                'bgm_valley':  'src/assets/bgm/溪流山谷.mp3',
+                'bgm_side':    'src/assets/bgm/支线.mp3',
+            };
+            const filePath = bgmFiles[fileKey];
+            if (!filePath) {
+                console.warn('[AudioManager] BGM 文件路径未知:', fileKey);
+                return;
+            }
+            console.log('[AudioManager] 懒加载 BGM:', fileKey);
+            this._scene.load.audio(fileKey, filePath);
+            this._scene.load.once('complete', () => {
+                console.log('[AudioManager] 懒加载完成，播放:', fileKey);
+                this.playBGM(bgmKey, options);
+            });
+            this._scene.load.start();
             return;
         }
 
